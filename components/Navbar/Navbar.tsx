@@ -1,0 +1,289 @@
+// 'use client';
+
+// import Link from "next/link";
+// import { useEffect, useState } from "react";
+// import { useAuth } from "@/context/AuthContext";
+// import hasRequiredRole from "@/utils/checkRole";
+
+// const Navbar = () => {
+//   const { user, logout } = useAuth();
+//   const [links, setLinks] = useState([]);
+//   const [isProductsExpanded, setIsProductsExpanded] = useState(false);
+//   const [isPackageExpanded, setIsPackageExpanded] = useState(false);
+//   const [isAdminExpanded, setIsAdminExpanded] = useState(false);
+
+//   useEffect(() => {
+//     let allowedLinks = [];
+//     if (user && user.jwt) {
+//       allowedLinks.push({ name: "Home", url: "/home", subLinks: [] });
+//       if (hasRequiredRole(user.roles, "Admin")) {
+//         allowedLinks.push({ name: "Admin", url: "/admin", subLinks: ["Dashboard"] });
+//       }
+//       if (hasRequiredRole(user.roles, "ProductOwner")) {
+//         allowedLinks.push({
+//           name: "Products",
+//           url: "/owner",
+//           subLinks: [
+//             { name: "View", url: "view" },
+//             { name: "Add", url: "add" },
+//             { name: "Travel Product Type", url: "productcategory" }  
+//           ]
+//         });
+//       }
+//       if (hasRequiredRole(user.roles, "PackageUploader")) {
+//         allowedLinks.push({ name: "Package", url: "/uploader", subLinks: [{
+//           name: "View", url: ""
+//         }] });
+//       }
+//     } else {
+//       allowedLinks.push({ name: "Login", url: "/login", subLinks: [] });
+//       allowedLinks.push({ name: "Register", url: "/register", subLinks: [] });
+//     }
+//     setLinks(allowedLinks);
+//   }, [user]);
+
+//   const toggleExpand = (section) => {
+//     switch (section) {
+//       case 'Products':
+//         setIsProductsExpanded(!isProductsExpanded);
+//         break;
+//       case 'Package':
+//         setIsPackageExpanded(!isPackageExpanded);
+//         break;
+//       case 'Admin':
+//         setIsAdminExpanded(!isAdminExpanded);
+//         break;
+//       default:
+//         break;
+//     }
+//   };
+
+//   return (
+//     <div className="flex flex-col h-full bg-gray-800 text-white">
+//       <div className="p-5 border-b border-gray-700" style={{ backgroundColor: '#273a8a' }}>
+//         <button className="w-full text-left hover:text-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-white">
+//           Welcome
+//         </button>
+//       </div>
+
+//       <nav className="flex-grow p-5" style={{ backgroundColor: '#34313f' }}>
+//         {links.map((link) => (
+//           <div key={link.name}>
+//             {link.subLinks.length > 0 ? (
+//               <div>
+//                 <button onClick={() => toggleExpand(link.name)}
+//                         className="w-full text-left hover:text-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-white flex justify-between items-center">
+//                   {link.name}
+//                   <span>{link.name === 'Products' && isProductsExpanded ||
+//                          link.name === 'Package' && isPackageExpanded ||
+//                          link.name === 'Admin' && isAdminExpanded ? '▼' : '▶'}</span>
+//                 </button>
+//                 {(link.name === 'Products' && isProductsExpanded) ||
+//                  (link.name === 'Package' && isPackageExpanded) ||
+//                  (link.name === 'Admin' && isAdminExpanded) ? (
+//                   <div className="pl-4">
+//                     {link.subLinks.map(subLink => (
+//                       <Link key={subLink.name} href={`${link.url}/${subLink.url}`} passHref>
+//                         <button className="w-full text-left hover:text-gray-300 p-2">
+//                           {subLink.name}
+//                         </button>
+//                       </Link>
+//                     ))}
+//                   </div>
+//                 ) : null}
+//               </div>
+//             ) : (
+//               <Link href={link.url} passHref>
+//                 <button className="w-full text-left hover:text-gray-300 p-2 focus:outline-none focus:ring-2 focus:ring-white">
+//                   {link.name}
+//                 </button>
+//               </Link>
+//             )}
+//           </div>
+//         ))}
+//       </nav>
+
+//      <div className="mt-auto p-5" style={{ backgroundColor: '#273a8a' }}>
+//        <button
+//         onClick={logout}
+//         className="w-full text-left text-white py-2 px-4 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+//         style={{ backgroundColor: '#273a8a', transition: 'background-color 0.3s ease' }}
+//       >
+//         Logout
+//       </button>
+//     </div>
+
+//     </div>
+//   );
+// };
+
+// export default Navbar;
+
+
+'use client';
+
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import hasRequiredRole from '@/utils/checkRole';
+import './sidenav.css';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
+import { useSidebar } from '@/context/SidebarContext';
+
+const HeaderManagement = () => {
+  const { user, logout } = useAuth();
+  const [links, setLinks] = useState([]);
+  const [expandedSections, setExpandedSections] = useState({
+    Products: false,
+    Package: false,
+    Admin: false,
+    Agent: false,
+  });
+  const { isSidebarOpen, toggleSidebar } = useSidebar();
+
+  const handleLogout = () => {
+    logout();
+  };
+
+  useEffect(() => {
+    let allowedLinks = [];
+    if (user.user_id) {
+      allowedLinks.push({ name: 'Home', url: '/management', subLinks: [] });
+      if (hasRequiredRole(user.role, 'Admin')) {
+        allowedLinks.push({ name: 'Admin', url: '/adminview', subLinks: [] });
+      }
+      if (hasRequiredRole(user.role, 'ProductOwner')) {
+        allowedLinks.push({
+          name: 'Products',
+          url: '#',
+          subLinks: [
+            {
+              name: 'Type Definition',
+              subLinks: [
+                { name: 'UI Component', url: '/owner/productcategory' },
+                { name: 'Product Type', url: '/owner/addInitialProductCategory' },
+              ],
+            },
+            {
+              name: 'Manage Data',
+              subLinks: [
+                { name: 'Product', url: '/owner/add-product' },
+                { name: 'UI Component', url: '/owner/viewproductcategory' },
+              ],
+            },
+          ],
+        });
+      }
+    } else {
+      allowedLinks.push({ name: 'Login', url: '/login', subLinks: null });
+      allowedLinks.push({ name: 'Register', url: '/register', subLinks: null });
+    }
+    setLinks(allowedLinks);
+  }, [user]);
+
+  const toggleExpand = (sectionName) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [sectionName]: !prev[sectionName],
+    }));
+  };
+
+  return (
+    <>
+      <button
+        onClick={toggleSidebar}
+        className={`toggle-button ${isSidebarOpen ? 'sidebar-open-button' : 'sidebar-closed-button'}`}
+      >
+        <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} className="icon-size" />
+      </button>
+
+      <div className={`sidebar ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+        <div className="flex h-full flex-col bg-gray-800 text-white">
+          <div className="border-b border-gray-700 p-5 " style={{ backgroundColor: '#273a8a' }}>
+            <h3 className="welcome-div mobile-nav">Welcome</h3>
+          </div>
+          <nav className="mobile-nav flex-grow p-5" style={{ backgroundColor: '#34313f' }}>
+            {links.map((link) => (
+              <div key={link.name}>
+                {link.subLinks && link.subLinks.length > 0 ? (
+                  <>
+                    <button
+                      onClick={() => toggleExpand(link.name)}
+                      className="flex w-full items-center justify-between p-2 text-left hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
+                      aria-expanded={expandedSections[link.name]}
+                    >
+                      <p className="mobile-button mobile-nav">{link.name}</p>
+                      <span>{expandedSections[link.name] ? '▼' : '▶'}</span>
+                    </button>
+                    {expandedSections[link.name] && (
+                      <div className="pl-4">
+                        {link.subLinks.map((subLink) => (
+                          <div key={subLink.name}>
+                            {subLink.subLinks && subLink.subLinks.length > 0 ? (
+                              <>
+                                <button
+                                  onClick={() => toggleExpand(subLink.name)}
+                                  className="flex w-full items-center justify-between p-2 text-left hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
+                                  aria-expanded={expandedSections[subLink.name]}
+                                >
+                                  <p className="mobile-button mobile-nav">{subLink.name}</p>
+                                  <span>{expandedSections[subLink.name] ? '▼' : '▶'}</span>
+                                </button>
+                                {expandedSections[subLink.name] && (
+                                  <div className="pl-4">
+                                    {subLink.subLinks.map((nestedLink) => (
+                                      <Link
+                                        key={nestedLink.name}
+                                        href={nestedLink.url || '#'}
+                                        passHref
+                                      >
+                                        <button className="mobile-button mobile-nav w-full p-2 text-left hover:text-gray-300">
+                                          {nestedLink.name}
+                                        </button>
+                                      </Link>
+                                    ))}
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <Link href={subLink.url || '#'} passHref>
+                                <button className="mobile-button mobile-nav w-full p-2 text-left hover:text-gray-300">
+                                  {subLink.name}
+                                </button>
+                              </Link>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <Link href={link.url} passHref>
+                    <button className="mobile-button w-full p-2 text-left hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white">
+                      {link.name}
+                    </button>
+                  </Link>
+                )}
+              </div>
+            ))}
+          </nav>
+
+          {user && user?.user_id && user.user_id.length > 0 ? (
+            <div className="mt-auto p-5" style={{ backgroundColor: '#273a8a' }}>
+              <button
+                onClick={handleLogout}
+                className="w-full px-4 py-2 text-left text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                style={{ backgroundColor: '#273a8a', transition: 'background-color 0.3s ease' }}
+              >
+                Logout
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default HeaderManagement;
