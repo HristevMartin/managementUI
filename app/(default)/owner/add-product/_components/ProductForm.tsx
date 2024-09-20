@@ -673,7 +673,7 @@ const ProductForm = () => {
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
-                  stroke-width="2"
+                  // stroke-width="2"
                   d="M19 9l-7 7-7-7"
                 ></path>
               </svg>
@@ -875,104 +875,114 @@ const ProductForm = () => {
           )} */}
 
           <h1>Fill out the custom fields below to add the product.</h1>
-            
-          {customFields.map((field, index) => {
-            if (
-              field.name === "name" ||
-              field.name === "images" ||
-              field.name === "price" ||
-              field.name === "hotelname"
-            ) {
-              return null;
-            }
+          {isLoading ? (
+            <div className="col-span-2 flex justify-center items-center">
+              <div className="spinner"></div>
+            </div>
+          ) : (
+            customFields.map((field, index) => {
+              if (
+                field.name === "name" ||
+                field.name === "images" ||
+                field.name === "price" ||
+                field.name === "hotelname"
+              ) {
+                return null;
+              }
 
-            if (field.options) {
-              const transformedOptions = field.options.map((option) => ({
-                value: option.id,
-                label: option.name,
-              }));
+              if (field.options) {
+                const transformedOptions = field.options.map((option) => ({
+                  value: option.id,
+                  label: option.name,
+                }));
+
+                return (
+                  <div
+                    key={index}
+                    className="col-span-2 grid grid-cols-2 gap-6"
+                  >
+                    <div className="flex justify-end items-center ">
+                      {field.name === "addOns" && (
+                        <p htmlFor={`customField-${index}`}>Select Add Onns:</p>
+                      )}
+                      {field.name === "transport" && (
+                        <label htmlFor={`customField-${index}`}>
+                          Select Transportation:
+                        </label>
+                      )}
+                      {field.name === "accommodation" && (
+                        <label htmlFor={`customField-${index}`}>
+                          Select Accomodation:
+                        </label>
+                      )}
+                    </div>
+
+                    <Select
+                      id={`customField-${index}`}
+                      styles={customStyles}
+                      isMulti={field.name === "transport"}
+                      options={transformedOptions}
+                      menuPortalTarget={document.body}
+                      className="basic-multi-select dropdown-high-z"
+                      classNamePrefix="select"
+                      onChange={(selectedOptions) => {
+                        console.log("selectedOptions", selectedOptions);
+                        const optionsArray = Array.isArray(selectedOptions)
+                          ? selectedOptions
+                          : [selectedOptions];
+                        const values = optionsArray.map(
+                          (option) => option.value
+                        );
+                        handleCustomFieldChange(index, values.join(","));
+                      }}
+                      value={transformedOptions.filter((option) =>
+                        field.value.split(",").includes(option.value.toString())
+                      )}
+                    />
+                  </div>
+                );
+              }
 
               return (
                 <div key={index} className="col-span-2 grid grid-cols-2 gap-6">
-                  <div className="flex justify-end items-center ">
-                    {field.name === "addOns" && (
-                      <p htmlFor={`customField-${index}`}>Select Add Onns:</p>
-                    )}
-                    {field.name === "transport" && (
-                      <label htmlFor={`customField-${index}`}>
-                        Select Flights:
-                      </label>
-                    )}
-                    {field.name === "accommodation" && (
-                      <label htmlFor={`customField-${index}`}>
-                        Select Accomodation:
-                      </label>
-                    )}
+                  <div className="relative">
+                    <input
+                      id={`customName-${index}`}
+                      type="text"
+                      value={field.name}
+                      readOnly
+                      className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor={`customName-${index}`}
+                      className="absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-blue-600 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4 dark:bg-gray-900 dark:text-gray-400 peer-focus:dark:text-blue-500"
+                    >
+                      Custom Field Key
+                    </label>
                   </div>
-
-                  <Select
-                    id={`customField-${index}`}
-                    styles={customStyles}
-                    isMulti={field.name === "transport"}
-                    options={transformedOptions}
-                    menuPortalTarget={document.body}
-                    className="basic-multi-select dropdown-high-z"
-                    classNamePrefix="select"
-                    onChange={(selectedOptions) => {
-                      console.log("selectedOptions", selectedOptions);
-                      const optionsArray = Array.isArray(selectedOptions)
-                        ? selectedOptions
-                        : [selectedOptions];
-                      const values = optionsArray.map((option) => option.value);
-                      handleCustomFieldChange(index, values.join(","));
-                    }}
-                    value={transformedOptions.filter((option) =>
-                      field.value.split(",").includes(option.value.toString())
-                    )}
-                  />
+                  <div className="relative">
+                    <input
+                      id={`customValue-${index}`}
+                      type="text"
+                      placeholder="Enter value"
+                      value={field.value || ""}
+                      onChange={(e) =>
+                        handleCustomFieldChange(index, e.target.value)
+                      }
+                      disabled={field.external}
+                      className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
+                    />
+                    <label
+                      htmlFor={`customValue-${index}`}
+                      className="absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-blue-600 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4 dark:bg-gray-900 dark:text-gray-400 peer-focus:dark:text-blue-500"
+                    >
+                      Custom Field Value
+                    </label>
+                  </div>
                 </div>
               );
-            }
-
-            return (
-              <div key={index} className="col-span-2 grid grid-cols-2 gap-6">
-                <div className="relative">
-                  <input
-                    id={`customName-${index}`}
-                    type="text"
-                    value={field.name}
-                    readOnly
-                    className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor={`customName-${index}`}
-                    className="absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-blue-600 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4 dark:bg-gray-900 dark:text-gray-400 peer-focus:dark:text-blue-500"
-                  >
-                    Custom Field Key
-                  </label>
-                </div>
-                <div className="relative">
-                  <input
-                    id={`customValue-${index}`}
-                    type="text"
-                    placeholder="Enter value"
-                    value={field.value || ""}
-                    onChange={(e) =>
-                      handleCustomFieldChange(index, e.target.value)
-                    }
-                    disabled={field.external}
-                    className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
-                  />
-                  <label
-                    htmlFor={`customValue-${index}`}
-                    className="absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-blue-600 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4 dark:bg-gray-900 dark:text-gray-400 peer-focus:dark:text-blue-500"
-                  >
-                    Custom Field Value
-                  </label>
-                </div>
-              </div>
-            );
-          })}
+            })
+          )}
         </div>
 
         {/* pop up window for external fields */}
