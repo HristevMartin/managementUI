@@ -20,6 +20,7 @@ import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
 import { MdRemoveCircle } from "react-icons/md";
 import "./page.css";
 import { useAuthJHipster } from "@/context/JHipsterContext";
+import Select from "react-select";
 
 const ProductForm = () => {
   const [productName, setProductName] = useState("");
@@ -467,6 +468,45 @@ const ProductForm = () => {
 
   const priceField = customFields.find((field) => field.name === "price");
 
+  const customStyles = {
+    control: (base) => ({
+      ...base,
+      minHeight: "56px",
+    }),
+    valueContainer: (base) => ({
+      ...base,
+      height: "56px",
+      padding: "0 16px",
+    }),
+    input: (base) => ({
+      ...base,
+      margin: "0px",
+    }),
+    option: (base, state) => ({
+      ...base,
+      backgroundColor: state.isFocused ? "lightgray" : "white",
+      color: "black",
+    }),
+    multiValue: (base) => ({
+      ...base,
+      backgroundColor: "lightblue",
+    }),
+    multiValueLabel: (base) => ({
+      ...base,
+      color: "black",
+    }),
+    multiValueRemove: (base) => ({
+      ...base,
+      color: "red",
+      ":hover": {
+        backgroundColor: "red",
+        color: "white",
+      },
+    }),
+    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+    menu: (base) => ({ ...base, zIndex: 9999 }),
+  };
+
   return (
     <div className="bg-opacity-none flex min-h-screen flex-col items-center justify-center bg-gray-100">
       <div className="ml-40 text-2xl font-bold mt-3">Add Product</div>
@@ -834,57 +874,50 @@ const ProductForm = () => {
             }
 
             if (field.options) {
-              return (
-                <>
-                  {console.log("show me the field.options", field.options)}
+              const transformedOptions = field.options.map((option) => ({
+                value: option.id,
+                label: option.name,
+              }));
 
-                  <div
-                    key={index}
-                    className="col-span-2 grid grid-cols-2 gap-6"
-                  >
-                    <div className="flex justify-center items-center">
-                      {field.name === "addOns" && (
-                        <p htmlFor={`customField-${index}`}>Select Add Onns:</p>
-                      )}
-                      {field.name === "transport" && (
-                        <label htmlFor={`customField-${index}`}>
-                          Select Flights:
-                        </label>
-                      )}
-                      {field.name === "accommodation" && (
-                        <label htmlFor={`customField-${index}`}>
-                          Select Accomodation:
-                        </label>
-                      )}
-                    </div>
-                    <div>
-                      <select
-                        style={{ width: "100%" }}
-                        multiple={field.options && field.options.length > 1}
-                        id={`customField-${index}`}
-                        value={field.value.split(",")}
-                        onChange={(e) => {
-                          const selectedOptions = Array.from(
-                            e.target.selectedOptions,
-                            (option) => option.value
-                          );
-                          const isMultiSelect = e.target.multiple;
-                          const newValue = isMultiSelect
-                            ? selectedOptions.join(",")
-                            : selectedOptions[0] || "";
-                          handleCustomFieldChange(index, newValue);
-                        }}
-                        className="block w-1/2 mx-auto border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                      >
-                        {field.options.map((option) => (
-                          <option key={option.id} value={option.id}>
-                            {option.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
+              return (
+                <div key={index} className="col-span-2 grid grid-cols-2 gap-6">
+                  <div className="flex justify-end items-center ">
+                    {field.name === "addOns" && (
+                      <p htmlFor={`customField-${index}`}>Select Add Onns:</p>
+                    )}
+                    {field.name === "transport" && (
+                      <label htmlFor={`customField-${index}`}>
+                        Select Flights:
+                      </label>
+                    )}
+                    {field.name === "accommodation" && (
+                      <label htmlFor={`customField-${index}`}>
+                        Select Accomodation:
+                      </label>
+                    )}
                   </div>
-                </>
+
+                  <Select
+                    id={`customField-${index}`}
+                    styles={customStyles}
+                    isMulti={field.name === "transport"}
+                    options={transformedOptions}
+                    menuPortalTarget={document.body}
+                    className="basic-multi-select dropdown-high-z"
+                    classNamePrefix="select"
+                    onChange={(selectedOptions) => {
+                      console.log("selectedOptions", selectedOptions);
+                      const optionsArray = Array.isArray(selectedOptions)
+                        ? selectedOptions
+                        : [selectedOptions];
+                      const values = optionsArray.map((option) => option.value);
+                      handleCustomFieldChange(index, values.join(","));
+                    }}
+                    value={transformedOptions.filter((option) =>
+                      field.value.split(",").includes(option.value.toString())
+                    )}
+                  />
+                </div>
               );
             }
 
