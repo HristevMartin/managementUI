@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faInfoCircle } from '@fortawesome/free-solid-svg-icons';
-import React, { useState, useEffect } from 'react';
-import './ProductForm.css';
-import AlertDialogSlide from './AlertDialogSlide';
-import { mapProductTypesToCustomFields } from '@/services/productFormService';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
+import React, { useState, useEffect } from "react";
+import "./ProductForm.css";
+import AlertDialogSlide from "./AlertDialogSlide";
+import { mapProductTypesToCustomFields } from "@/services/productFormService";
+import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import {
   Dialog,
   DialogActions,
@@ -15,43 +15,48 @@ import {
   Button,
   TextField,
   IconButton,
-} from '@mui/material';
-import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import { MdRemoveCircle } from 'react-icons/md';
-import './page.css'
-import { useAuthJHipster } from '@/context/JHipsterContext';
+} from "@mui/material";
+import AddCircleOutlineIcon from "@mui/icons-material/AddCircleOutline";
+import { MdRemoveCircle } from "react-icons/md";
+import "./page.css";
+import { useAuthJHipster } from "@/context/JHipsterContext";
 
 const ProductForm = () => {
-  const [productName, setProductName] = useState('');
-  const [productType, setProductType] = useState('');
-  const [price, setPrice] = useState('');
+  const [productName, setProductName] = useState("");
+  const [productType, setProductType] = useState("");
+  const [price, setPrice] = useState("");
   const [productTypes, setProductTypes] = useState([]);
-  const [customFields, setCustomFields] = useState([{ key: '', value: '' }]);
+  const [customFields, setCustomFields] = useState([{ key: "", value: "" }]);
   const [openDialog, setOpenDialog] = useState(false);
-  const [categoryId, setCategoryId] = useState('');
+  const [categoryId, setCategoryId] = useState("");
 
   const [dynamicInventory, setDynamicInventory] = useState(false);
-  const [apiURLInventory, setApiURLInventory] = useState('');
-  const [apiHeadersInventory, setApiHeadersInventory] = useState([{ key: '', value: '' }]);
-  const [payloadBodyInventory, setPayloadBodyInventory] = useState('');
+  const [apiURLInventory, setApiURLInventory] = useState("");
+  const [apiHeadersInventory, setApiHeadersInventory] = useState([
+    { key: "", value: "" },
+  ]);
+  const [payloadBodyInventory, setPayloadBodyInventory] = useState("");
 
   const [dynamicPrice, setDynamicPrice] = useState(false);
-  const [apiURLPrice, setApiURLPrice] = useState('');
-  const [apiHeadersPrice, setApiHeadersPrice] = useState([{ key: '', value: '' }]);
-  const [payloadBodyPrice, setPayloadBodyPrice] = useState('');
-  const [imageUrls, setImageUrls] = useState(['']);
+  const [apiURLPrice, setApiURLPrice] = useState("");
+  const [apiHeadersPrice, setApiHeadersPrice] = useState([
+    { key: "", value: "" },
+  ]);
+  const [payloadBodyPrice, setPayloadBodyPrice] = useState("");
+  const [imageUrls, setImageUrls] = useState([""]);
 
   const [categoryDetails, setCategoryDetails] = useState([]);
   const [showSubmitButton, setShowSubmitButton] = useState(false);
-  const [hotelCategoryId, setHotelCategoryId] = useState('');
+  const [hotelCategoryId, setHotelCategoryId] = useState("");
 
   // state for external images..
   const [openDialogExternal, setOpenDialogExternal] = useState(false);
-  const [externalData, setExternalData] = useState('');
+  const [externalData, setExternalData] = useState("");
 
-  const [apiUrls, setApiUrls] = useState('');
-  const [payloadBody, setPayloadBody] = useState('');
-  const [headers, setHeaders] = useState([{ key: '', value: '' }]);
+  const [apiUrls, setApiUrls] = useState("");
+  const [payloadBody, setPayloadBody] = useState("");
+  const [headers, setHeaders] = useState([{ key: "", value: "" }]);
+  const [optionsMap, setOptionsMap] = useState({});
 
   const handleOpenDialogExternal = () => {
     setOpenDialogExternal(true);
@@ -76,7 +81,7 @@ const ProductForm = () => {
     const fetchData = async () => {
       try {
         const data = await mapProductTypesToCustomFields(jHipsterAuthToken);
-        console.log('data!?!?!:', data);
+        console.log("data!?!?!:", data);
         if (data && data.length > 0) {
           setCategoryDetails(data);
           setProductTypes(data.map((category) => category.categoryName));
@@ -85,21 +90,98 @@ const ProductForm = () => {
           setCustomFields(
             data[0].customFields.map((field) => ({
               name: field.name,
-              value: '',
+              value: "",
               external: field.external,
-            })),
+            }))
           );
         }
       } catch (error) {
-        console.error('Failed to fetch category details:', error);
+        console.error("Failed to fetch category details:", error);
       }
     };
     fetchData();
   }, [jHipsterAuthToken]);
 
-  const [selectedHotel, setSelectedHotel] = useState('');
+  const [selectedHotel, setSelectedHotel] = useState("");
   const [hotels, setHotels] = useState([]);
-  console.log('customFields!?!?!:', customFields);
+
+  // i have created this for now...
+  // useEffect(() => {
+  //   if (productType === "Bundle") {
+  //     const newCustomFields = customFields.map((field) => {
+  //       if (field.name === "addons") {
+  //         return {
+  //           ...field,
+  //           options: ["insurance", "car rental", "activities"],
+  //           value: "",
+  //         };
+  //       } else if (field.name === "transport") {
+
+  //         return {
+  //           ...field,
+  //           options: [
+  //             "London (LHR) to Paris (CDG)",
+  //             "New York (JFK) to Los Angeles (LAX)",
+  //           ],
+  //           value: field.value || "",
+  //         };
+  //       } else if (field.name === "accommodation") {
+  //         return {
+  //           ...field,
+  //           options: ["Hôtel de la Tour Eiffel", "Hôtel de la Tour Eiffel 3"],
+  //           value: field.value || "",
+  //         };
+  //       }
+  //       return field;
+  //     });
+
+  //     setCustomFields(newCustomFields);
+  //   }
+  // }, [productType]);
+
+  useEffect(() => {
+    const fetchProductDetails = async (fieldName) => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/travel/populate-package-details?package_type=${fieldName}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`Failed to fetch details for ${fieldName}`);
+        }
+        const data = await response.json();
+        
+        console.log('the data madafaka is', data);
+
+        return data.map((product) => product.product_name); 
+      } catch (error) {
+        console.error(`Error fetching details for ${fieldName}:`, error);
+        return []; 
+      }
+    };
+
+    if (productType === "Bundle") {
+      Promise.all(
+        customFields.map(async (field) => {
+          if (["addons", "transport", "accommodation"].includes(field.name)) {
+            const options = await fetchProductDetails(field.name);
+            return { ...field, options, value: field.value || "" };
+          }
+          return field;
+        })
+      ).then((newCustomFields) => {
+        setCustomFields(newCustomFields);
+      });
+    }
+  }, [productType]);
+
+  console.log("customFields{}", customFields);
+
   const SPRING_URL = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
   useEffect(() => {
@@ -108,20 +190,20 @@ const ProductForm = () => {
         const url = `${SPRING_URL}/api/jdl/hotel-details?categoryId=${hotelCategoryId}`;
         try {
           const response = await fetch(url, {
-            method: 'GET',
+            method: "GET",
             headers: {
-              'Content-Type': 'application/json',
+              "Content-Type": "application/json",
               Authorization: `Bearer ${jHipsterAuthToken}`,
             },
           });
-          if (!response.ok) throw new Error('Failed to fetch hotel details');
+          if (!response.ok) throw new Error("Failed to fetch hotel details");
           const hotelData = await response.json();
           setHotels(hotelData);
           if (hotelData.length > 0) {
             setSelectedHotel(hotelData[0].name);
           }
         } catch (error) {
-          console.error('Error fetching hotel details:', error);
+          console.error("Error fetching hotel details:", error);
           setHotels([]);
         }
       };
@@ -131,7 +213,7 @@ const ProductForm = () => {
   }, [hotelCategoryId]);
 
   const addImageUrl = () => {
-    setImageUrls([...imageUrls, '']);
+    setImageUrls([...imageUrls, ""]);
   };
 
   const updateImageUrl = (index, value) => {
@@ -145,28 +227,32 @@ const ProductForm = () => {
     setProductType(selectedType);
 
     const selectedCategory = categoryDetails.find(
-      (category) => category.categoryName === selectedType,
+      (category) => category.categoryName === selectedType
     );
 
     if (selectedCategory) {
-      setCustomFields(selectedCategory.customFields.map((field) => ({ ...field, value: '' })));
+      setCustomFields(
+        selectedCategory.customFields.map((field) => ({ ...field, value: "" }))
+      );
       setCategoryId(selectedCategory.categoryId);
 
-      if (selectedType === 'Room') {
-        const hotelCategory = categoryDetails.find((category) => category.categoryName === 'Hotel');
+      if (selectedType === "Room") {
+        const hotelCategory = categoryDetails.find(
+          (category) => category.categoryName === "Hotel"
+        );
         if (hotelCategory) {
           setHotelCategoryId(hotelCategory.categoryId);
         }
       } else {
-        setSelectedHotel('');
-        setHotelCategoryId('');
+        setSelectedHotel("");
+        setHotelCategoryId("");
       }
     } else {
-      console.error('No category found for the selected type:', selectedType);
+      console.error("No category found for the selected type:", selectedType);
       setCustomFields([]);
-      setCategoryId('');
-      setSelectedHotel('');
-      setHotelCategoryId('');
+      setCategoryId("");
+      setSelectedHotel("");
+      setHotelCategoryId("");
     }
   };
 
@@ -184,37 +270,49 @@ const ProductForm = () => {
     // let customFieldsPayload = aggregatedCustomFields;
     let customFieldsPayload = { ...aggregatedCustomFields };
 
-    const imageField = customFields.find((field) => field.name === 'images' && field.external);
-    const description = customFields.find((field) => field.name === 'description');
-    console.log('description:', description?.value);
+    const imageField = customFields.find(
+      (field) => field.name === "images" && field.external
+    );
+    const description = customFields.find(
+      (field) => field.name === "description"
+    );
+    console.log("description:", description?.value);
     let imagePayload;
 
-    imagePayload = imageUrls.filter((url) => url !== '');
+    imagePayload = imageUrls.filter((url) => url !== "");
 
-    if (productType === 'Room' && selectedHotel) {
-      customFieldsPayload = { ...customFieldsPayload, hotelName: selectedHotel };
+    if (productType === "Room" && selectedHotel) {
+      customFieldsPayload = {
+        ...customFieldsPayload,
+        hotelName: selectedHotel,
+      };
       delete customFieldsPayload.hotelname;
       delete customFieldsPayload.name;
-    } else if (productType === 'Hotel') {
+    } else if (productType === "Hotel") {
       delete customFieldsPayload.name;
       delete customFieldsPayload.images;
-    } else if (productType === 'Flight') {
+    } else if (productType === "Flight") {
       delete customFieldsPayload.name;
-    } else if (productType === 'Adon') {
+    } else if (productType === "Adon") {
       delete customFieldsPayload.images;
-    } else if (productType === 'Bundle') {
+    } else if (productType === "Bundle") {
       delete customFieldsPayload.name;
       delete customFieldsPayload.images;
-    } else if (productType === 'TravelInsurance' || productType === 'Travel Insurance') {
+    } else if (
+      productType === "TravelInsurance" ||
+      productType === "Travel Insurance"
+    ) {
       // delete customFieldsPayload.images;
-      let newAddOnType = productType.replace(/\s+/g, '').replace(/([a-z])([A-Z])/g, '$1 $2');
+      let newAddOnType = productType
+        .replace(/\s+/g, "")
+        .replace(/([a-z])([A-Z])/g, "$1 $2");
       customFieldsPayload.addOnType = newAddOnType;
-      console.log('passing');
+      console.log("passing");
     }
 
     customFieldsPayload.price = price;
 
-    console.log('show me the productName', productName);
+    console.log("show me the productName", productName);
 
     customFieldsPayload.name = productName;
 
@@ -235,29 +333,29 @@ const ProductForm = () => {
       ...(dynamicPrice && { apiURLPrice, apiHeadersPrice, payloadBodyPrice }),
     };
 
-    console.log('Form Data:', formData);
+    console.log("Form Data:", formData);
 
     try {
       const response = await fetch(`${apiUrlSpring}/api/jdl/create-product`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${jHipsterAuthToken}`,
         },
         body: JSON.stringify([formData]),
       });
 
       // tmp as running the spring api locally is returning error at the part of running the jhipster entity create
-      alert('Product added successfully');
+      alert("Product added successfully");
 
       if (!response.ok) {
-        throw new Error('Network response was not ok');
+        throw new Error("Network response was not ok");
       }
 
       // const result = await response.json();
-      console.log('Product added successfully:', result);
+      console.log("Product added successfully:", result);
     } catch (error) {
-      console.error('There was a problem with the fetch operation:', error);
+      console.error("There was a problem with the fetch operation:", error);
     }
   };
 
@@ -272,7 +370,7 @@ const ProductForm = () => {
   };
 
   const handleAddHeaderFieldInventory = () => {
-    setApiHeadersInventory([...apiHeadersInventory, { key: '', value: '' }]);
+    setApiHeadersInventory([...apiHeadersInventory, { key: "", value: "" }]);
   };
 
   const handleHeaderChangeInventory = (index, type, value) => {
@@ -286,7 +384,7 @@ const ProductForm = () => {
   };
 
   const handleAddHeaderFieldPrice = () => {
-    setApiHeadersPrice([...apiHeadersPrice, { key: '', value: '' }]);
+    setApiHeadersPrice([...apiHeadersPrice, { key: "", value: "" }]);
   };
 
   const handleHeaderChangePrice = (index, type, value) => {
@@ -304,12 +402,12 @@ const ProductForm = () => {
   const handleSubmitFile = async () => {
     if (file) {
       const formData = new FormData();
-      formData.append('file', file);
-      formData.append('categoryId', categoryId);
+      formData.append("file", file);
+      formData.append("categoryId", categoryId);
 
       try {
         const response = await fetch(`${apiUrl}/product-bulk-upload`, {
-          method: 'POST',
+          method: "POST",
           body: formData,
         });
 
@@ -318,13 +416,13 @@ const ProductForm = () => {
         }
 
         if (response.status === 201) {
-          alert('File uploaded successfully');
+          alert("File uploaded successfully");
         }
       } catch (error) {
-        console.error('Upload error:', error);
+        console.error("Upload error:", error);
       }
     } else {
-      console.log('No file selected');
+      console.log("No file selected");
     }
   };
 
@@ -334,7 +432,7 @@ const ProductForm = () => {
   };
 
   const addHeader = () => {
-    setHeaders([...headers, { key: '', value: '' }]);
+    setHeaders([...headers, { key: "", value: "" }]);
   };
 
   const removeHeader = (index) => {
@@ -350,14 +448,17 @@ const ProductForm = () => {
   const handleSaveExternalData = () => {
     const externalData = {
       apiUrl,
-      headers: headers.reduce((acc, cur) => ({ ...acc, [cur.key]: cur.value }), {}),
+      headers: headers.reduce(
+        (acc, cur) => ({ ...acc, [cur.key]: cur.value }),
+        {}
+      ),
       payloadBody,
     };
-    console.log('External Data:', externalData);
+    console.log("External Data:", externalData);
     handleCloseDialogExternal();
   };
 
-  const priceField = customFields.find((field) => field.name === 'price');
+  const priceField = customFields.find((field) => field.name === "price");
 
   return (
     <div className="bg-opacity-none flex min-h-screen flex-col items-center justify-center bg-gray-100">
@@ -405,13 +506,17 @@ const ProductForm = () => {
                     onChange={(e) => updateImageUrl(index, e.target.value)}
                     className="peer flex-grow border border-gray-200 px-4 text-base placeholder:text-gray-500 hover:border-primary focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:bg-gray-100 disabled:hover:border-gray-200"
                     required={
-                      !customFields.find((field) => field.name === 'images' && field.external)
+                      !customFields.find(
+                        (field) => field.name === "images" && field.external
+                      )
                     }
                   />
                   <label htmlFor={`imageUrl-${index}`}>
-                    {customFields.find((field) => field.name === 'images' && field.external)
-                      ? 'Press the plus icon to fill out the External API Parameters'
-                      : 'Image URL'}
+                    {customFields.find(
+                      (field) => field.name === "images" && field.external
+                    )
+                      ? "Press the plus icon to fill out the External API Parameters"
+                      : "Image URL"}
                   </label>
                   {/* {index === imageUrls.length - 1 && (
                     <button
@@ -497,6 +602,7 @@ const ProductForm = () => {
             >
               Travel Product Type
             </label>
+
             <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
               <svg
                 className="h-5 w-5 text-gray-500"
@@ -533,11 +639,14 @@ const ProductForm = () => {
           </div>
 
           {/* room type */}
-          {productType === 'Room' && (
+          {productType === "Room" && (
             <div className="relative col-span-2 flex flex-col">
-              {' '}
+              {" "}
               {/* Adjusted for full width if needed */}
-              <label htmlFor="hotelSelect" className="text-sm font-medium text-gray-700">
+              <label
+                htmlFor="hotelSelect"
+                className="text-sm font-medium text-gray-700"
+              >
                 Select Hotel
               </label>
               <select
@@ -709,12 +818,57 @@ const ProductForm = () => {
 
           {customFields.map((field, index) => {
             if (
-              field.name === 'name' ||
-              field.name === 'images' ||
-              field.name === 'price' ||
-              field.name === 'hotelname'
+              field.name === "name" ||
+              field.name === "images" ||
+              field.name === "price" ||
+              field.name === "hotelname"
             ) {
               return null;
+            }
+
+            if (field.options) {
+              return (
+                <>
+                  {console.log("show me the field.options", field.options)}
+
+                  <div
+                    key={index}
+                    className="col-span-2 grid grid-cols-2 gap-6"
+                  >
+                    <div className="flex justify-center items-center">
+                      {field.name === "addons" && (
+                        <p htmlFor={`customField-${index}`}>Select Add Onns:</p>
+                      )}
+                      {field.name === "transport" && (
+                        <label htmlFor={`customField-${index}`}>
+                          Select Flights:
+                        </label>
+                      )}
+                      {field.name === "accommodation" && (
+                        <label htmlFor={`customField-${index}`}>
+                          Select Accomodation:
+                        </label>
+                      )}
+                    </div>
+                    <div>
+                      <select
+                        id={`customField-${index}`}
+                        value={field.value}
+                        onChange={(e) =>
+                          handleCustomFieldChange(index, e.target.value)
+                        }
+                        className="block w-1/2 mx-auto border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      >
+                        {field.options.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </>
+              );
             }
 
             return (
@@ -739,8 +893,10 @@ const ProductForm = () => {
                     id={`customValue-${index}`}
                     type="text"
                     placeholder="Enter value"
-                    value={field.value || ''}
-                    onChange={(e) => handleCustomFieldChange(index, e.target.value)}
+                    value={field.value || ""}
+                    onChange={(e) =>
+                      handleCustomFieldChange(index, e.target.value)
+                    }
                     disabled={field.external}
                     className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
                   />
@@ -805,22 +961,30 @@ const ProductForm = () => {
             {headers.map((header, index) => (
               <div
                 key={index}
-                style={{ display: 'flex', alignItems: 'center', marginBottom: '10px' }}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: "10px",
+                }}
               >
                 <TextField
                   margin="dense"
                   label="Header Key"
                   type="text"
                   value={header.key}
-                  onChange={(e) => handleHeaderChange(index, 'key', e.target.value)}
-                  style={{ marginRight: '10px' }}
+                  onChange={(e) =>
+                    handleHeaderChange(index, "key", e.target.value)
+                  }
+                  style={{ marginRight: "10px" }}
                 />
                 <TextField
                   margin="dense"
                   label="Header Value"
                   type="text"
                   value={header.value}
-                  onChange={(e) => handleHeaderChange(index, 'value', e.target.value)}
+                  onChange={(e) =>
+                    handleHeaderChange(index, "value", e.target.value)
+                  }
                 />
                 <IconButton onClick={() => removeHeader(index)}>
                   <MdRemoveCircle />
@@ -877,7 +1041,12 @@ const ProductForm = () => {
             className="cursor-pointer rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             Upload File
-            <input id="file-upload" type="file" className="hidden" onChange={handleFileChange} />
+            <input
+              id="file-upload"
+              type="file"
+              className="hidden"
+              onChange={handleFileChange}
+            />
           </label>
           {showSubmitButton && (
             <button
@@ -890,7 +1059,10 @@ const ProductForm = () => {
           )}
         </div>
       </form>
-      <AlertDialogSlide open={openDialog} handleClose={() => setOpenDialog(false)} />
+      <AlertDialogSlide
+        open={openDialog}
+        handleClose={() => setOpenDialog(false)}
+      />
     </div>
   );
 };
