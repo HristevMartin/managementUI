@@ -106,40 +106,6 @@ const ProductForm = () => {
   const [selectedHotel, setSelectedHotel] = useState("");
   const [hotels, setHotels] = useState([]);
 
-  // i have created this for now...
-  // useEffect(() => {
-  //   if (productType === "Bundle") {
-  //     const newCustomFields = customFields.map((field) => {
-  //       if (field.name === "addons") {
-  //         return {
-  //           ...field,
-  //           options: ["insurance", "car rental", "activities"],
-  //           value: "",
-  //         };
-  //       } else if (field.name === "transport") {
-
-  //         return {
-  //           ...field,
-  //           options: [
-  //             "London (LHR) to Paris (CDG)",
-  //             "New York (JFK) to Los Angeles (LAX)",
-  //           ],
-  //           value: field.value || "",
-  //         };
-  //       } else if (field.name === "accommodation") {
-  //         return {
-  //           ...field,
-  //           options: ["Hôtel de la Tour Eiffel", "Hôtel de la Tour Eiffel 3"],
-  //           value: field.value || "",
-  //         };
-  //       }
-  //       return field;
-  //     });
-
-  //     setCustomFields(newCustomFields);
-  //   }
-  // }, [productType]);
-
   useEffect(() => {
     const fetchProductDetails = async (fieldName) => {
       try {
@@ -897,6 +863,7 @@ const ProductForm = () => {
                     )}
                   </div>
 
+
                   <Select
                     id={`customField-${index}`}
                     styles={customStyles}
@@ -916,6 +883,8 @@ const ProductForm = () => {
                     value={transformedOptions.filter((option) =>
                       field.value.split(",").includes(option.value.toString())
                     )}
+
+                    
                   />
                 </div>
               );
