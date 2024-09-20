@@ -57,7 +57,7 @@ const ProductForm = () => {
   const [apiUrls, setApiUrls] = useState("");
   const [payloadBody, setPayloadBody] = useState("");
   const [headers, setHeaders] = useState([{ key: "", value: "" }]);
-  const [optionsMap, setOptionsMap] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleOpenDialogExternal = () => {
     setOpenDialogExternal(true);
@@ -65,13 +65,6 @@ const ProductForm = () => {
 
   const handleCloseDialogExternal = () => {
     setOpenDialogExternal(false);
-    // setApiUrls('');
-    // setHeaders([{ key: '', value: '' }]);
-    // setPayloadBody('');
-  };
-
-  const handleExternalDataChange = (event) => {
-    setExternalData(event.target.value);
   };
 
   const { jHipsterAuthToken } = useAuthJHipster();
@@ -79,17 +72,71 @@ const ProductForm = () => {
   useEffect(() => {
     if (!jHipsterAuthToken) return;
 
+    setIsLoading(true);
+
+    const fetchProductDetails = async (fieldName) => {
+      try {
+        const response = await fetch(
+          `http://localhost:5000/travel/populate-package-details?package_type=${fieldName}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        if (!response.ok) {
+          throw new Error(`Failed to fetch details for ${fieldName}`);
+        }
+        const data = await response.json();
+        return data.map((product) => ({
+          id: product.product_id,
+          name: product.product_name,
+        }));
+      } catch (error) {
+        console.error(`Error fetching details for ${fieldName}:`, error);
+        return [];
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
     const fetchData = async () => {
       try {
         const data = await mapProductTypesToCustomFields(jHipsterAuthToken);
         console.log("data!?!?!:", data);
         if (data && data.length > 0) {
-          setCategoryDetails(data);
-          setProductTypes(data.map((category) => category.categoryName));
-          setProductType(data[0].categoryName);
-          setCategoryId(data[0].categoryId);
+          //
+          const detailedCategories = await Promise.all(
+            data.map(async (category) => {
+              const customFieldsWithDetails = await Promise.all(
+                category.customFields.map(async (field) => {
+                  if (
+                    category.categoryName === "Bundle" &&
+                    ["addOns", "transport", "accommodation"].includes(
+                      field.name
+                    )
+                  ) {
+                    const options = await fetchProductDetails(field.name);
+                    return { ...field, options };
+                  }
+                  return field;
+                })
+              );
+              return { ...category, customFields: customFieldsWithDetails };
+            })
+          );
+
+          console.log("detailedCategories:", detailedCategories);
+          //
+          setCategoryDetails(detailedCategories);
+          setProductTypes(
+            detailedCategories.map((category) => category.categoryName)
+          );
+          setProductType(detailedCategories[0].categoryName);
+          setCategoryId(detailedCategories[0].categoryId);
           setCustomFields(
-            data[0].customFields.map((field) => ({
+            detailedCategories[0].customFields.map((field) => ({
               name: field.name,
               value: "",
               external: field.external,
@@ -106,50 +153,50 @@ const ProductForm = () => {
   const [selectedHotel, setSelectedHotel] = useState("");
   const [hotels, setHotels] = useState([]);
 
-  useEffect(() => {
-    const fetchProductDetails = async (fieldName) => {
-      try {
-        const response = await fetch(
-          `http://localhost:5000/travel/populate-package-details?package_type=${fieldName}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error(`Failed to fetch details for ${fieldName}`);
-        }
-        const data = await response.json();
+  // useEffect(() => {
+  //   const fetchProductDetails = async (fieldName) => {
+  //     try {
+  //       const response = await fetch(
+  //         `http://localhost:5000/travel/populate-package-details?package_type=${fieldName}`,
+  //         {
+  //           method: "GET",
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //           },
+  //         }
+  //       );
+  //       if (!response.ok) {
+  //         throw new Error(`Failed to fetch details for ${fieldName}`);
+  //       }
+  //       const data = await response.json();
 
-        console.log("the data madafaka is", data);
-        let res = data.map((product) => ({
-          id: product.product_id,
-          name: product.product_name,
-        }));
-        console.log("show me the  res", res);
-        return res;
-      } catch (error) {
-        console.error(`Error fetching details for ${fieldName}:`, error);
-        return [];
-      }
-    };
+  //       console.log("the data madafaka is", data);
+  //       let res = data.map((product) => ({
+  //         id: product.product_id,
+  //         name: product.product_name,
+  //       }));
+  //       console.log("show me the  res", res);
+  //       return res;
+  //     } catch (error) {
+  //       console.error(`Error fetching details for ${fieldName}:`, error);
+  //       return [];
+  //     }
+  //   };
 
-    if (productType === "Bundle") {
-      Promise.all(
-        customFields.map(async (field) => {
-          if (["addOns", "transport", "accommodation"].includes(field.name)) {
-            const options = await fetchProductDetails(field.name);
-            return { ...field, options, value: field.value || "" };
-          }
-          return field;
-        })
-      ).then((newCustomFields) => {
-        setCustomFields(newCustomFields);
-      });
-    }
-  }, [productType]);
+  //   if (productType === "Bundle") {
+  //     Promise.all(
+  //       customFields.map(async (field) => {
+  //         if (["addOns", "transport", "accommodation"].includes(field.name)) {
+  //           const options = await fetchProductDetails(field.name);
+  //           return { ...field, options, value: field.value || "" };
+  //         }
+  //         return field;
+  //       })
+  //     ).then((newCustomFields) => {
+  //       setCustomFields(newCustomFields);
+  //     });
+  //   }
+  // }, [productType]);
 
   console.log("customFields{}", customFields);
 
@@ -828,7 +875,7 @@ const ProductForm = () => {
           )} */}
 
           <h1>Fill out the custom fields below to add the product.</h1>
-
+            
           {customFields.map((field, index) => {
             if (
               field.name === "name" ||
@@ -863,7 +910,6 @@ const ProductForm = () => {
                     )}
                   </div>
 
-
                   <Select
                     id={`customField-${index}`}
                     styles={customStyles}
@@ -883,8 +929,6 @@ const ProductForm = () => {
                     value={transformedOptions.filter((option) =>
                       field.value.split(",").includes(option.value.toString())
                     )}
-
-                    
                   />
                 </div>
               );
