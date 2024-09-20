@@ -161,7 +161,7 @@ const ProductForm = () => {
           id: product.product_id,
           name: product.product_name,
         }));
-        console.log('show me the  res', res);
+        console.log("show me the  res", res);
         return res;
       } catch (error) {
         console.error(`Error fetching details for ${fieldName}:`, error);
@@ -366,7 +366,10 @@ const ProductForm = () => {
   const handleCustomFieldChange = (index, newValue) => {
     const updatedFields = customFields.map((field, idx) => {
       if (idx === index) {
-        return { ...field, value: newValue };
+        return {
+          ...field,
+          value: newValue,
+        };
       }
       return field;
     });
@@ -856,20 +859,27 @@ const ProductForm = () => {
                     </div>
                     <div>
                       <select
+                        style={{ width: "100%" }}
+                        multiple={field.options && field.options.length > 1}
                         id={`customField-${index}`}
-                        value={field.value}
-                        onChange={(e) =>
-                          handleCustomFieldChange(index, e.target.value)
-                        }
+                        value={field.value.split(",")}
+                        onChange={(e) => {
+                          const selectedOptions = Array.from(
+                            e.target.selectedOptions,
+                            (option) => option.value
+                          );
+                          const isMultiSelect = e.target.multiple;
+                          const newValue = isMultiSelect
+                            ? selectedOptions.join(",")
+                            : selectedOptions[0] || "";
+                          handleCustomFieldChange(index, newValue);
+                        }}
                         className="block w-1/2 mx-auto border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       >
                         {field.options.map((option) => (
-                          <>
-                            {console.log("option", option)}
-                            <option key={option.id} value={option.id}>
-                              {option.name}
-                            </option>
-                          </>
+                          <option key={option.id} value={option.id}>
+                            {option.name}
+                          </option>
                         ))}
                       </select>
                     </div>
