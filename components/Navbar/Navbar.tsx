@@ -28,8 +28,8 @@ const HeaderManagement = () => {
     let allowedLinks = [];
     if (user.user_id) {
       allowedLinks.push({ name: 'Home', url: '/management', subLinks: [] });
-      if (hasRequiredRole(user.role, 'Admin')) {
-        allowedLinks.push({ name: 'Admin', url: '/adminview', subLinks: [] });
+      if (hasRequiredRole(user.role, 'admin')) {
+        allowedLinks.push({ name: 'Admin', url: '/admin', subLinks: [] });
       }
       if (hasRequiredRole(user.role, 'ProductOwner')) {
         allowedLinks.push({

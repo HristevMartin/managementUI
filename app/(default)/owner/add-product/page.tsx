@@ -6,9 +6,11 @@ import hasRequiredRole from '@/utils/checkRole';
 import ProductForm from './_components/ProductForm';
 
 const ProductOwner = () => {
-  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
+  let { user } = useAuth();
+
+  console.log('user is ', user)
 
   useEffect(() => {
     if (user) {

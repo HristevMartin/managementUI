@@ -1,18 +1,21 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/router';
-import { useAuth } from '@/context/AuthContext';
-import hasRequiredRole from '@/utils/checkRole';
+import { useEffect, useState } from "react";
+import hasRequiredRole from "@/utils/checkRole";
+import { useAuth } from "@/context/AuthContext";
 
 const AdminPage = () => {
-  const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [hasAccess, setHasAccess] = useState(false);
 
+  const { user } = useAuth();
+  console.log("the user is ", user);
+
   useEffect(() => {
-    if (user) {
-      if (hasRequiredRole(user.roles, 'Admin')) {
+    if (user.access_token) {
+      console.log('heree')
+      console.log('user.access_token is ', user.access_token);
+      if (hasRequiredRole(user.role, "admin")) {
         setHasAccess(true);
       }
       setLoading(false);
@@ -24,7 +27,11 @@ const AdminPage = () => {
   }
 
   if (!hasAccess) {
-    return <div style={{color: 'red'}}>You do not have access to view this page.</div>;
+    return (
+      <div style={{ color: "red" }}>
+        You do not have access to view this page.
+      </div>
+    );
   }
 
   return (
