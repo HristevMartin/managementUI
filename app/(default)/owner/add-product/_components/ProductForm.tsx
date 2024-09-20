@@ -161,7 +161,7 @@ const ProductForm = () => {
           id: product.product_id,
           name: product.product_name,
         }));
-
+        console.log('show me the  res', res);
         return res;
       } catch (error) {
         console.error(`Error fetching details for ${fieldName}:`, error);
@@ -172,7 +172,7 @@ const ProductForm = () => {
     if (productType === "Bundle") {
       Promise.all(
         customFields.map(async (field) => {
-          if (["addons", "transport", "accommodation"].includes(field.name)) {
+          if (["addOns", "transport", "accommodation"].includes(field.name)) {
             const options = await fetchProductDetails(field.name);
             return { ...field, options, value: field.value || "" };
           }
@@ -840,7 +840,7 @@ const ProductForm = () => {
                     className="col-span-2 grid grid-cols-2 gap-6"
                   >
                     <div className="flex justify-center items-center">
-                      {field.name === "addons" && (
+                      {field.name === "addOns" && (
                         <p htmlFor={`customField-${index}`}>Select Add Onns:</p>
                       )}
                       {field.name === "transport" && (
@@ -864,9 +864,12 @@ const ProductForm = () => {
                         className="block w-1/2 mx-auto border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       >
                         {field.options.map((option) => (
-                          <option key={option.id} value={option.id}>
-                            {option.name}
-                          </option>
+                          <>
+                            {console.log("option", option)}
+                            <option key={option.id} value={option.id}>
+                              {option.name}
+                            </option>
+                          </>
                         ))}
                       </select>
                     </div>
