@@ -77,7 +77,7 @@ const ProductForm = () => {
     const fetchProductDetails = async (fieldName) => {
       try {
         const response = await fetch(
-          `http://localhost:5000/travel/populate-package-details?package_type=${fieldName}`,
+          `${apiUrl}/populate-package-details?package_type=${fieldName}`,
           {
             method: "GET",
             headers: {
@@ -153,54 +153,8 @@ const ProductForm = () => {
   const [selectedHotel, setSelectedHotel] = useState("");
   const [hotels, setHotels] = useState([]);
 
-  // useEffect(() => {
-  //   const fetchProductDetails = async (fieldName) => {
-  //     try {
-  //       const response = await fetch(
-  //         `http://localhost:5000/travel/populate-package-details?package_type=${fieldName}`,
-  //         {
-  //           method: "GET",
-  //           headers: {
-  //             "Content-Type": "application/json",
-  //           },
-  //         }
-  //       );
-  //       if (!response.ok) {
-  //         throw new Error(`Failed to fetch details for ${fieldName}`);
-  //       }
-  //       const data = await response.json();
-
-  //       console.log("the data madafaka is", data);
-  //       let res = data.map((product) => ({
-  //         id: product.product_id,
-  //         name: product.product_name,
-  //       }));
-  //       console.log("show me the  res", res);
-  //       return res;
-  //     } catch (error) {
-  //       console.error(`Error fetching details for ${fieldName}:`, error);
-  //       return [];
-  //     }
-  //   };
-
-  //   if (productType === "Bundle") {
-  //     Promise.all(
-  //       customFields.map(async (field) => {
-  //         if (["addOns", "transport", "accommodation"].includes(field.name)) {
-  //           const options = await fetchProductDetails(field.name);
-  //           return { ...field, options, value: field.value || "" };
-  //         }
-  //         return field;
-  //       })
-  //     ).then((newCustomFields) => {
-  //       setCustomFields(newCustomFields);
-  //     });
-  //   }
-  // }, [productType]);
-
-  console.log("customFields{}", customFields);
-
   const SPRING_URL = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
+  let apiUrl = process.env.NEXT_PUBLIC_LOCAL_BASE_URL;
 
   useEffect(() => {
     if (hotelCategoryId) {
@@ -274,8 +228,6 @@ const ProductForm = () => {
     }
   };
 
-  let apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
-  let apiUrl = process.env.NEXT_PUBLIC_LOCAL_BASE_URL;
 
   const aggregatedCustomFields = customFields.reduce((acc, field) => {
     acc[field.name] = field.value;
@@ -354,7 +306,7 @@ const ProductForm = () => {
     console.log("Form Data:", formData);
 
     try {
-      const response = await fetch(`${apiUrlSpring}/api/jdl/create-product`, {
+      const response = await fetch(`${SPRING_URL}/api/jdl/create-product`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
