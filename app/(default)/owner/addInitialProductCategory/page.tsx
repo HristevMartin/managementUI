@@ -362,7 +362,7 @@ const AddProductCategoryPage = () => {
           headers: field.apiDetails.headers,
           payload: field.apiDetails.payloadBody ? JSON.parse(field.apiDetails.payloadBody.trim()) : {},
           responseParser: field.apiDetails.responseParser,
-          mockup: true,
+          mockup: false,
         });
       }
     });
