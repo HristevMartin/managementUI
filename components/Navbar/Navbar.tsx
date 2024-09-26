@@ -48,6 +48,9 @@ const HeaderManagement = () => {
               subLinks: [
                 { name: 'Product', url: '/owner/add-product' },
                 { name: 'UI Component', url: '/owner/viewproductcategory' },
+                { name: 'Rule Management', url: '/owner/RuleForm' },
+                { name: 'Rule Management', url: '/owner/RuleGrid' },
+                
               ],
             },
           ],
