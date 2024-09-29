@@ -35,6 +35,7 @@ const RuleGrid: React.FC = () => {
     const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
     const [hotels, setHotels] = useState<Hotel[]>([]);
 
+    const DROOLS_SERVER_URL = process.env.NEXT_PUBLIC_DROOLS_SERVER_URL;
     useEffect(() => {
         loadHotels();
         fetchRules();
@@ -42,8 +43,8 @@ const RuleGrid: React.FC = () => {
 
     const loadHotels = async () => {
         try {
-            const response = await axios.get("http://localhost:8080/api/hotel/allHotels");
-            setHotels(response.data); // Set hotels data
+          const response = await axios.get(`${DROOLS_SERVER_URL}/api/hotel/allHotels`);
+          setHotels(response.data); // Set hotels data
         } catch (error) {
             console.error("Error fetching hotels:", error);
         }
@@ -51,7 +52,7 @@ const RuleGrid: React.FC = () => {
 
     const fetchRules = async () => {
         try {
-            const response = await axios.get("http://localhost:8080/api/hotel/rules");
+            const response = await axios.get(`${DROOLS_SERVER_URL}/api/hotel/rules`);
             setRules(response.data);
         } catch (error) {
             console.error("Error fetching rules:", error);
@@ -85,7 +86,7 @@ const RuleGrid: React.FC = () => {
     const handleDelete = async (id: string) => {
         if (confirmDeleteId) {
             try {
-                await axios.delete(`http://localhost:8080/api/hotel/rules/${confirmDeleteId}`);
+                await axios.delete(`${DROOLS_SERVER_URL}/api/hotel/rules/${confirmDeleteId}`);
                 setRules(rules.filter((rule) => rule.id !== confirmDeleteId));
                 setSuccessMessage("Rule deleted successfully.");
                 setConfirmDeleteId(null);
@@ -129,7 +130,7 @@ const RuleGrid: React.FC = () => {
 
         try {
             const response = await axios.put(
-                `http://localhost:8080/api/hotel/rules/${editingRule.id}`,
+                `${DROOLS_SERVER_URL}/api/hotel/rules/${editingRule.id}`,
                 updatedRule
             );
 
@@ -163,7 +164,7 @@ const RuleGrid: React.FC = () => {
 
         try {
             const response = await axios.post(
-                "http://localhost:8080/api/hotel/rules",
+                `${DROOLS_SERVER_URL}/api/hotel/rules`,
                 newRule
             );
             setRules([...rules, response.data]);
