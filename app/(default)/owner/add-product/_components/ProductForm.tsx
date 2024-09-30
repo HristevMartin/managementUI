@@ -110,27 +110,6 @@ const ProductForm = () => {
 
         console.log("data!?!?!:", data);
         if (data && data.length > 0) {
-          //
-          // const detailedCategories = await Promise.all(
-          //   data.map(async (category) => {
-          //     const customFieldsWithDetails = await Promise.all(
-          //       category.customFields.map(async (field) => {
-          //         if (
-          //           category.categoryName === "Bundle" &&
-          //           ["addOns", "transport", "accommodation"].includes(
-          //             field.name
-          //           )
-          //         ) {
-          //           const options = await fetchProductDetails(field.name);
-          //           return { ...field, options };
-          //         }
-          //         return field;
-          //       })
-          //     );
-          //     return { ...category, customFields: customFieldsWithDetails };
-          //   })
-          // );
-
           console.log("detailedCategories:", data);
           //
           setCategoryDetails(data);

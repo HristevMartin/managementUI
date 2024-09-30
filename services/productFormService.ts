@@ -108,6 +108,66 @@ const parseField = (fieldString) => {
   };
 };
 
+// const fetchRelationshipDetails = async (relationshipTo, apiToken) => {
+//   console.log("fetching relationship details for:", relationshipTo);
+//   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
+//   const endpoint = `${relationshipTo.toLowerCase()}s`;
+
+//   try {
+//     const response = await fetch(`${apiUrlSpring}/api/${endpoint}`, {
+//       method: "GET",
+//       headers: {
+//         "Content-Type": "application/json",
+//         Authorization: `Bearer ${apiToken}`,
+//       },
+//     });
+
+//     if (!response.ok) {
+//       console.error(
+//         `Failed to fetch relationship details for ${relationshipTo}, returning empty data.`
+//       );
+//       return []; // Return an empty array on failure
+//     }
+
+//     let res = await response.json();
+//     let res2 = res.map((x) => ({ id: x.id, name: x.name })); // Transforming the data as needed
+//     console.log("Transformed relationship details:", res2);
+//     return res2; // Return transformed data
+//   } catch (error) {
+//     console.error("Error fetching data:", error.message);
+//     return []; // Return an empty array in case of any error
+//   }
+// };
+
+const fetchRelationshipDetails = async (relationshipTo, apiToken) => {
+  console.log("fetching relationship details for:", relationshipTo);
+  const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
+  const endpoint = `${relationshipTo.toLowerCase()}s`;
+
+  try {
+    const response = await fetch(`${apiUrlSpring}/api/${endpoint}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiToken}`,
+      },
+    });
+
+    if (!response.ok) {
+      console.error(
+        `Failed to fetch relationship details for ${relationshipTo}, returning empty data.`
+      );
+      return [];
+    }
+
+    let res = await response.json();
+    return res.map((x) => ({ id: x.id, name: x.name })); // Transforming the data as needed
+  } catch (error) {
+    console.error("Error fetching data:", error.message);
+    return []; // Return an empty array in case of any error
+  }
+};
+
 export const mapProductTypesToCustomFields = async (apiToken) => {
   try {
     const entities = await fetchAllEntities(apiToken);
@@ -116,8 +176,43 @@ export const mapProductTypesToCustomFields = async (apiToken) => {
     const detailsPromises = entities.map((entity) =>
       fetchEntityDetails(entity.id, apiToken)
     );
+
     const details = await Promise.all(detailsPromises);
     console.log("details", details);
+
+    let detailedCategories = [];
+
+    try {
+       detailedCategories = await Promise.all(
+        details.map(async (category) => {
+          console.log("Processing category:", category);
+
+          // Directly fetch relationship data if the category is "Bundle" and relationships exist
+          let options = [];
+          if (
+            category.entityName === "Bundle" &&
+            category.relationships.length > 0
+          ) {
+            options = await Promise.all(
+              category.relationships.map(async (relationship) => {
+                console.log("Fetching relationship details for:", relationship);
+                return {
+                  data: await fetchRelationshipDetails(
+                    relationship.relationshipTo,
+                    apiToken
+                  ),
+                };
+              })
+            );
+          }
+        })
+      );
+    } catch (error) {
+      console.error("Error fetching relationship details:", error);
+      return [];
+    }
+
+    console.log("Detailed Categories:", detailedCategories);
 
     const transformedData = details.map((detail) => ({
       categoryName: detail.entityName,
@@ -133,3 +228,4 @@ export const mapProductTypesToCustomFields = async (apiToken) => {
     return [];
   }
 };
+
