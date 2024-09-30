@@ -164,7 +164,7 @@ const ManageMetaCategory = () => {
             }
           );
           let entities = await response.json();
-          console.log("raw data:", entities);
+          console.log("entities", entities);
 
           const detailsRequests = entities.map((entity) =>
             fetch(`${apiUrlSpring}/api/jdl/get-entity-by-id/${entity.id}`, {
@@ -185,6 +185,7 @@ const ManageMetaCategory = () => {
             newEntityName: detail.newEntityName,
           }));
 
+          console.log('raw data:', data);
           data = transformMetaCategoryData(data);
           console.log("the data:", data);
           // check external data here
