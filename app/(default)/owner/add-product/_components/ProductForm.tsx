@@ -58,6 +58,7 @@ const ProductForm = () => {
   const [payloadBody, setPayloadBody] = useState("");
   const [headers, setHeaders] = useState([{ key: "", value: "" }]);
   const [isLoading, setIsLoading] = useState(false);
+  const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
   const handleOpenDialogExternal = () => {
     setOpenDialogExternal(true);
@@ -74,81 +75,95 @@ const ProductForm = () => {
 
     setIsLoading(true);
 
-    const fetchProductDetails = async (fieldName) => {
-      try {
-        const response = await fetch(
-          `${apiUrl}/populate-package-details?package_type=${fieldName}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error(`Failed to fetch details for ${fieldName}`);
-        }
-        const data = await response.json();
-        return data.map((product) => ({
-          id: product.product_id,
-          name: product.product_name,
-        }));
-      } catch (error) {
-        console.error(`Error fetching details for ${fieldName}:`, error);
-        return [];
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // const fetchProductDetails = async (fieldName) => {
+    //   try {
+    //     const response = await fetch(
+    //       `${apiUrl}/populate-package-details?package_type=${fieldName}`,
+    //       {
+    //         method: "GET",
+    //         headers: {
+    //           "Content-Type": "application/json",
+    //         },
+    //       }
+    //     );
+    //     if (!response.ok) {
+    //       throw new Error(`Failed to fetch details for ${fieldName}`);
+    //     }
+    //     const data = await response.json();
+    //     return data.map((product) => ({
+    //       id: product.product_id,
+    //       name: product.product_name,
+    //     }));
+    //   } catch (error) {
+    //     console.error(`Error fetching details for ${fieldName}:`, error);
+    //     return [];
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // };
 
     const fetchData = async () => {
+      if (!jHipsterAuthToken) return;
+
       try {
         const data = await mapProductTypesToCustomFields(jHipsterAuthToken);
+
         console.log("data!?!?!:", data);
         if (data && data.length > 0) {
           //
-          const detailedCategories = await Promise.all(
-            data.map(async (category) => {
-              const customFieldsWithDetails = await Promise.all(
-                category.customFields.map(async (field) => {
-                  if (
-                    category.categoryName === "Bundle" &&
-                    ["addOns", "transport", "accommodation"].includes(
-                      field.name
-                    )
-                  ) {
-                    const options = await fetchProductDetails(field.name);
-                    return { ...field, options };
-                  }
-                  return field;
-                })
-              );
-              return { ...category, customFields: customFieldsWithDetails };
-            })
-          );
+          // const detailedCategories = await Promise.all(
+          //   data.map(async (category) => {
+          //     const customFieldsWithDetails = await Promise.all(
+          //       category.customFields.map(async (field) => {
+          //         if (
+          //           category.categoryName === "Bundle" &&
+          //           ["addOns", "transport", "accommodation"].includes(
+          //             field.name
+          //           )
+          //         ) {
+          //           const options = await fetchProductDetails(field.name);
+          //           return { ...field, options };
+          //         }
+          //         return field;
+          //       })
+          //     );
+          //     return { ...category, customFields: customFieldsWithDetails };
+          //   })
+          // );
 
-          console.log("detailedCategories:", detailedCategories);
+          console.log("detailedCategories:", data);
           //
-          setCategoryDetails(detailedCategories);
-          setProductTypes(
-            detailedCategories.map((category) => category.categoryName)
-          );
-          setProductType(detailedCategories[0].categoryName);
-          setCategoryId(detailedCategories[0].categoryId);
+          setCategoryDetails(data);
+          console.log("here..!!!.");
+          setProductTypes(data.map((category) => category.categoryName));
+          console.log("here...");
+          setProductType(data[0].categoryName);
+          console.log("data[0].categoryName:", data[0].categoryName);
+          console.log("here...1");
+          setCategoryId(data[0].categoryId);
+          console.log("data[0].categoryId:", data[0].categoryId);
+          console.log("here...2");
           setCustomFields(
-            detailedCategories[0].customFields.map((field) => ({
+            data[0].customFields.map((field) => ({
               name: field.name,
               value: "",
               external: field.external,
             }))
           );
+          console.log("here...3");
+          console.log("data>>>", data);
+          console.log("data[0].customFields:", data[0].customFields);
         }
       } catch (error) {
         console.error("Failed to fetch category details:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
   }, [jHipsterAuthToken]);
+
+  console.log("cuustom fields:", customFields);
 
   const [selectedHotel, setSelectedHotel] = useState("");
   const [hotels, setHotels] = useState([]);
@@ -227,7 +242,6 @@ const ProductForm = () => {
       setHotelCategoryId("");
     }
   };
-
 
   const aggregatedCustomFields = customFields.reduce((acc, field) => {
     acc[field.name] = field.value;
