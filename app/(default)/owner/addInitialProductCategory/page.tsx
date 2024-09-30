@@ -415,6 +415,7 @@ const AddProductCategoryPage = () => {
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
   const handleSubmitApi = (e) => {
+
     e.preventDefault();
     if (!/^[A-Z]/.test(categoryName)) {
       categoryName =
