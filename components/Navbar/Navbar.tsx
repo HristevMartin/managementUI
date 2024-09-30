@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/context/AuthContext';
-import hasRequiredRole from '@/utils/checkRole';
-import './sidenav.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBars, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { useSidebar } from '@/context/SidebarContext';
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useAuth } from "@/context/AuthContext";
+import hasRequiredRole from "@/utils/checkRole";
+import "./sidenav.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { useSidebar } from "@/context/SidebarContext";
 
 const HeaderManagement = () => {
   const { user, logout } = useAuth();
@@ -27,38 +27,45 @@ const HeaderManagement = () => {
   useEffect(() => {
     let allowedLinks = [];
     if (user?.user_id) {
-      allowedLinks.push({ name: 'Home', url: '/management', subLinks: [] });
-      if (hasRequiredRole(user.role, 'admin')) {
-        allowedLinks.push({ name: 'Admin', url: '/admin', subLinks: [] });
+      allowedLinks.push({ name: "Home", url: "/management", subLinks: [] });
+      if (hasRequiredRole(user?.role, "admin")) {
+        allowedLinks.push({ name: "Admin", url: "/admin", subLinks: [] });
       }
-      if (hasRequiredRole(user.role, 'ProductOwner')) {
+      if (hasRequiredRole(user?.role, "ProductOwner")) {
         allowedLinks.push({
-          name: 'Products',
-          url: '#',
+          name: "Products",
+          url: "#",
           subLinks: [
             {
-              name: 'Type Definition',
+              name: "Type Definition",
               subLinks: [
-                { name: 'UI Component', url: '/owner/productcategory' },
-                { name: 'Product Type', url: '/owner/addInitialProductCategory' },
+                { name: "UI Component", url: "/owner/productcategory" },
+                {
+                  name: "Product Type",
+                  url: "/owner/addInitialProductCategory",
+                },
               ],
             },
             {
-              name: 'Manage Data',
+              name: "Manage Data",
               subLinks: [
-                { name: 'Product', url: '/owner/add-product' },
-                { name: 'UI Component', url: '/owner/viewproductcategory' },
-                { name: 'Rule Management', url: '/owner/RuleForm' },
-                { name: 'Rule Management', url: '/owner/RuleGrid' },
-                
+                { name: "Product", url: "/owner/add-product" },
+                { name: "UI Component", url: "/owner/viewproductcategory" },
               ],
             },
           ],
         });
       }
+      if (hasRequiredRole(user?.role, "ProductOwner")) {
+        allowedLinks.push({
+          name: "Rule Management",
+          url: "/RuleGrid",
+          sublinks: [],
+        });
+      }
     } else {
-      allowedLinks.push({ name: 'Login', url: '/login', subLinks: null });
-      allowedLinks.push({ name: 'Register', url: '/register', subLinks: null });
+      allowedLinks.push({ name: "Login", url: "/login", subLinks: null });
+      allowedLinks.push({ name: "Register", url: "/register", subLinks: null });
     }
     setLinks(allowedLinks);
   }, [user]);
@@ -74,17 +81,32 @@ const HeaderManagement = () => {
     <>
       <button
         onClick={toggleSidebar}
-        className={`toggle-button ${isSidebarOpen ? 'sidebar-open-button' : 'sidebar-closed-button'}`}
+        className={`toggle-button ${
+          isSidebarOpen ? "sidebar-open-button" : "sidebar-closed-button"
+        }`}
       >
-        <FontAwesomeIcon icon={isSidebarOpen ? faTimes : faBars} className="icon-size" />
+        <FontAwesomeIcon
+          icon={isSidebarOpen ? faTimes : faBars}
+          className="icon-size"
+        />
       </button>
 
-      <div className={`sidebar ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+      <div
+        className={`sidebar ${
+          isSidebarOpen ? "sidebar-open" : "sidebar-closed"
+        }`}
+      >
         <div className="flex h-full flex-col bg-gray-800 text-white">
-          <div className="border-b border-gray-700 p-5 " style={{ backgroundColor: '#273a8a' }}>
+          <div
+            className="border-b border-gray-700 p-5 "
+            style={{ backgroundColor: "#273a8a" }}
+          >
             <h3 className="welcome-div mobile-nav">Welcome</h3>
           </div>
-          <nav className="mobile-nav flex-grow p-5" style={{ backgroundColor: '#34313f' }}>
+          <nav
+            className="mobile-nav flex-grow p-5"
+            style={{ backgroundColor: "#34313f" }}
+          >
             {links.map((link) => (
               <div key={link.name}>
                 {link.subLinks && link.subLinks.length > 0 ? (
@@ -95,7 +117,7 @@ const HeaderManagement = () => {
                       aria-expanded={expandedSections[link.name]}
                     >
                       <p className="mobile-button mobile-nav">{link.name}</p>
-                      <span>{expandedSections[link.name] ? '▼' : '▶'}</span>
+                      <span>{expandedSections[link.name] ? "▼" : "▶"}</span>
                     </button>
                     {expandedSections[link.name] && (
                       <div className="pl-4">
@@ -108,15 +130,19 @@ const HeaderManagement = () => {
                                   className="flex w-full items-center justify-between p-2 text-left hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
                                   aria-expanded={expandedSections[subLink.name]}
                                 >
-                                  <p className="mobile-button mobile-nav">{subLink.name}</p>
-                                  <span>{expandedSections[subLink.name] ? '▼' : '▶'}</span>
+                                  <p className="mobile-button mobile-nav">
+                                    {subLink.name}
+                                  </p>
+                                  <span>
+                                    {expandedSections[subLink.name] ? "▼" : "▶"}
+                                  </span>
                                 </button>
                                 {expandedSections[subLink.name] && (
                                   <div className="pl-4">
                                     {subLink.subLinks.map((nestedLink) => (
                                       <Link
                                         key={nestedLink.name}
-                                        href={nestedLink.url || '#'}
+                                        href={nestedLink.url || "#"}
                                         passHref
                                       >
                                         <button className="mobile-button mobile-nav w-full p-2 text-left hover:text-gray-300">
@@ -128,7 +154,7 @@ const HeaderManagement = () => {
                                 )}
                               </>
                             ) : (
-                              <Link href={subLink.url || '#'} passHref>
+                              <Link href={subLink.url || "#"} passHref>
                                 <button className="mobile-button mobile-nav w-full p-2 text-left hover:text-gray-300">
                                   {subLink.name}
                                 </button>
@@ -151,11 +177,14 @@ const HeaderManagement = () => {
           </nav>
 
           {user && user?.user_id && user.user_id.length > 0 ? (
-            <div className="mt-auto p-5" style={{ backgroundColor: '#273a8a' }}>
+            <div className="mt-auto p-5" style={{ backgroundColor: "#273a8a" }}>
               <button
                 onClick={handleLogout}
                 className="w-full px-4 py-2 text-left text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                style={{ backgroundColor: '#273a8a', transition: 'background-color 0.3s ease' }}
+                style={{
+                  backgroundColor: "#273a8a",
+                  transition: "background-color 0.3s ease",
+                }}
               >
                 Logout
               </button>
