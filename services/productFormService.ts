@@ -1,21 +1,6 @@
 let apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 console.log("this is the api url", apiUrlSpring);
 
-// const fetchProductTypes = async (apiToken) => {
-
-//   const response = await fetch(`${apiUrlSpring}/api/jdl/product-types`, {
-//     method: 'GET',
-//     headers: {
-//       'Content-Type': 'application/json',
-//       Authorization: `Bearer ${apiToken}`,
-//     },
-//   });
-
-//   console.log('calling fetchProductTypes');
-//   if (!response.ok) throw new Error("Failed to fetch product types");
-//   return response.json();
-// };
-
 const fetchAllEntities = async (apiToken) => {
   const response = await fetch(`${apiUrlSpring}/api/jdl/get-all-entities`, {
     headers: {
@@ -44,56 +29,6 @@ const fetchEntityDetails = async (entityId, apiToken) => {
   let res = response.json();
 
   return res;
-};
-
-const fetchMetadataForType = async (productTypeId, apiToken) => {
-  console.log("calling fetchMetadataForType");
-
-  const response = await fetch(
-    `${apiUrlSpring}/api/jdl/product-types-metadata?categoryId=${productTypeId}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiToken}`,
-      },
-    }
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      `Failed to fetch metadata for product type ID ${productTypeId}`
-    );
-  }
-  let data = await response.json();
-  console.log("data is????", data);
-
-  const metadata = data.data.map((entry) => ({
-    ...entry,
-    parsedValue: safeParseJSON(entry.value),
-  }));
-
-  console.log("metadata!?! is:", metadata);
-
-  return metadata;
-};
-
-const isJsonString = (str) => {
-  try {
-    JSON.parse(str);
-  } catch (e) {
-    return false;
-  }
-  return true;
-};
-
-const safeParseJSON = (jsonString) => {
-  try {
-    return JSON.parse(jsonString);
-  } catch (error) {
-    console.error("Failed to parse JSON:", jsonString, error);
-    return null;
-  }
 };
 
 const parseField = async (fieldString, relationshipFields, apiToken) => {
@@ -132,10 +67,23 @@ const parseField = async (fieldString, relationshipFields, apiToken) => {
   return results;
 };
 
+function getPluralForm(singular: String) {
+  const irregulars = {
+    ancillary: "ancillaries",
+    ticketselection: "ticket-selections",
+    seatingarea: "seating-areas",
+  };
+  if (irregulars[singular.toLowerCase()]) {
+    return irregulars[singular.toLowerCase()];
+  }
+  return singular.toLowerCase() + "s";
+}
+
 const fetchRelationshipDetails = async (relationshipTo, apiToken) => {
   console.log("fetching relationship details for:", relationshipTo);
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
-  const endpoint = `${relationshipTo.toLowerCase()}s`;
+  // const endpoint = `${relationshipTo.toLowerCase()}s`;
+  const endpoint = getPluralForm(relationshipTo);
 
   try {
     const response = await fetch(`${apiUrlSpring}/api/${endpoint}`, {
@@ -174,14 +122,20 @@ export const mapProductTypesToCustomFields = async (apiToken) => {
     const details = await Promise.all(detailsPromises);
     console.log("Fetched entity details:", details);
 
-    const transformedData = await Promise.all(details.map(async detail => {
-      let customFields = await parseField(detail.fields, detail.relationships, apiToken);
-      return {
-        categoryName: detail.entityName,
-        customFields: customFields,
-        categoryId: [detail.id],
-      };
-    }));
+    const transformedData = await Promise.all(
+      details.map(async (detail) => {
+        let customFields = await parseField(
+          detail.fields,
+          detail.relationships,
+          apiToken
+        );
+        return {
+          categoryName: detail.entityName,
+          customFields: customFields,
+          categoryId: [detail.id],
+        };
+      })
+    );
 
     console.log("Transformed Custom Fields Data:", transformedData);
 

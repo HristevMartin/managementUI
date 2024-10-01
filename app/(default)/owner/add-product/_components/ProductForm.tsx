@@ -308,7 +308,7 @@ const ProductForm = () => {
         body: JSON.stringify([formData]),
       });
 
-      // tmp as running the spring api locally is returning error at the part of running the jhipster entity create
+      // tmp as running the spring api locally is returning error at the part of running the jhipster entity create process
       alert("Product added successfully");
 
       if (!response.ok) {
@@ -616,8 +616,8 @@ const ProductForm = () => {
                 viewBox="0 0 24 24"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   // stroke-width="2"
                   d="M19 9l-7 7-7-7"
                 ></path>
@@ -835,7 +835,10 @@ const ProductForm = () => {
                 return null;
               }
 
-              if (field.options) {
+              if (field?.options) {
+                console.log("field.name:", field.name);
+                console.log("field.options:", field.options);
+
                 const transformedOptions = field.options.map((option) => ({
                   value: option.id,
                   label: option.name,
@@ -847,19 +850,7 @@ const ProductForm = () => {
                     className="col-span-2 grid grid-cols-2 gap-6"
                   >
                     <div className="flex justify-end items-center ">
-                      {field.name === "addOns" && (
-                        <p htmlFor={`customField-${index}`}>Select Add Onns:</p>
-                      )}
-                      {field.name === "transport" && (
-                        <label htmlFor={`customField-${index}`}>
-                          Select Transportation:
-                        </label>
-                      )}
-                      {field.name === "accommodation" && (
-                        <label htmlFor={`customField-${index}`}>
-                          Select Accomodation:
-                        </label>
-                      )}
+                      <p htmlFor={`customField-${index}`}>{field.name}</p>
                     </div>
 
                     <Select
