@@ -95,7 +95,7 @@ export const AuthContextProvider = ({ children }) => {
       setUser(initialUserState);
       const isManagement = user.role.includes("management");
 
-      router.push("/login");
+      router.push("/backoffice/login");
      
     } catch (error) {
       console.error("Logout failed", error);

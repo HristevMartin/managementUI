@@ -14,7 +14,7 @@ const AuthCheck = () => {
     if (user && user.jwt) {
       router.push('/'); 
     } else {
-      router.push('/register'); 
+      router.push('/backoffice/register'); 
     }
   }, [user, router]);
 
