@@ -5,7 +5,10 @@ import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import React, { useState, useEffect } from "react";
 import "./ProductForm.css";
 import AlertDialogSlide from "./AlertDialogSlide";
-import { mapProductTypesToCustomFields } from "@/services/productFormService";
+import {
+  getPluralForm,
+  mapProductTypesToCustomFields,
+} from "@/services/productFormService";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import {
   Dialog,
@@ -21,6 +24,7 @@ import { MdRemoveCircle } from "react-icons/md";
 import "./page.css";
 import { useAuthJHipster } from "@/context/JHipsterContext";
 import Select from "react-select";
+import { transformPayloadSubmitProduct } from "@/utils/managementFormUtils";
 
 const ProductForm = () => {
   const [productName, setProductName] = useState("");
@@ -111,17 +115,15 @@ const ProductForm = () => {
         console.log("data!?!?!:", data);
         if (data && data.length > 0) {
           console.log("detailedCategories:", data);
-          //
+
           setCategoryDetails(data);
-          console.log("here..!!!.");
+
           setProductTypes(data.map((category) => category.categoryName));
-          console.log("here...");
+
           setProductType(data[0].categoryName);
-          console.log("data[0].categoryName:", data[0].categoryName);
-          console.log("here...1");
+
           setCategoryId(data[0].categoryId);
-          console.log("data[0].categoryId:", data[0].categoryId);
-          console.log("here...2");
+
           setCustomFields(
             data[0].customFields.map((field) => ({
               name: field.name,
@@ -129,9 +131,6 @@ const ProductForm = () => {
               external: field.external,
             }))
           );
-          console.log("here...3");
-          console.log("data>>>", data);
-          console.log("data[0].customFields:", data[0].customFields);
         }
       } catch (error) {
         console.error("Failed to fetch category details:", error);
@@ -240,9 +239,9 @@ const ProductForm = () => {
       (field) => field.name === "description"
     );
     console.log("description:", description?.value);
-    let imagePayload;
+    // let imagePayload;
 
-    imagePayload = imageUrls.filter((url) => url !== "");
+    // imagePayload = imageUrls.filter((url) => url !== "");
 
     if (productType === "Room" && selectedHotel) {
       customFieldsPayload = {
@@ -286,7 +285,7 @@ const ProductForm = () => {
       description: description?.value,
       categoryId,
       // imageUrls,
-      images: imagePayload,
+      // images: imagePayload,
       customFields: customFieldsPayload,
       ...(dynamicInventory && {
         apiURLInventory,
@@ -296,17 +295,24 @@ const ProductForm = () => {
       ...(dynamicPrice && { apiURLPrice, apiHeadersPrice, payloadBodyPrice }),
     };
 
-    console.log("Form Data:", formData);
+    let correctedEndpointPathName = getPluralForm(productType);
+    console.log("correctedEndpointPathName", correctedEndpointPathName);
+
+    let transformedFormData = transformPayloadSubmitProduct(formData);
+    console.log('transformedFormData:', transformedFormData);
 
     try {
-      const response = await fetch(`${SPRING_URL}/api/jdl/create-product`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${jHipsterAuthToken}`,
-        },
-        body: JSON.stringify([formData]),
-      });
+      const response = await fetch(
+        `${SPRING_URL}/api/${correctedEndpointPathName}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${jHipsterAuthToken}`,
+          },
+          body: JSON.stringify(transformedFormData),
+        }
+      );
 
       // tmp as running the spring api locally is returning error at the part of running the jhipster entity create process
       alert("Product added successfully");
@@ -316,7 +322,6 @@ const ProductForm = () => {
       }
 
       // const result = await response.json();
-      console.log("Product added successfully:", result);
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
     }
@@ -494,7 +499,7 @@ const ProductForm = () => {
             </label>
           </div>
 
-          <div className="relative col-span-2 mb-4 flex flex-col">
+          {/* <div className="relative col-span-2 mb-4 flex flex-col">
             <div className="form-input">
               {imageUrls.map((url, index) => (
                 <div key={index} className="relative mb-2 flex items-center">
@@ -502,11 +507,6 @@ const ProductForm = () => {
                     id={`imageUrl-${index}`}
                     type="text"
                     name={`imageUrl-${index}`}
-                    // placeholder={
-                    //   customFields.find((field) => field.name === 'images' && field.external)
-                    //     ? 'Fill out external parameters'
-                    //     : 'Enter Image URL'
-                    // }
                     value={url}
                     onChange={(e) => updateImageUrl(index, e.target.value)}
                     className="peer flex-grow border border-gray-200 px-4 text-base placeholder:text-gray-500 hover:border-primary focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:bg-gray-100 disabled:hover:border-gray-200"
@@ -523,51 +523,6 @@ const ProductForm = () => {
                       ? "Press the plus icon to fill out the External API Parameters"
                       : "Image URL"}
                   </label>
-                  {/* {index === imageUrls.length - 1 && (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        addImageUrl();
-                      }}
-                      className="ml-2 text-blue-500 hover:text-blue-700"
-                      aria-label="Add another image URL"
-                    >
-                      <FontAwesomeIcon icon={faPlus} />
-                    </button>
-                  )}
-
-                  {customFields.find((field) => field.name === 'images' && field.external) && (
-                    <IconButton
-                      onClick={handleOpenDialogExternal}
-                      aria-label="Add API specification"
-                    >
-                      <AddCircleOutlineIcon />
-                    </IconButton>
-                  )} */}
-                  {/* Check if images field is external;*/}
-                  {/* {customFields.find((field) => field.name === 'images' && field.external) ? (
-                    <IconButton
-                      color="primary"
-                      onClick={handleOpenDialogExternal}
-                      aria-label="Add API specification"
-                    >
-                      <AddCircleOutlineIcon />
-                    </IconButton>
-                  ) : (
-                    index === imageUrls.length - 1 && (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          addImageUrl();
-                        }}
-                        className="ml-2 text-blue-500 hover:text-blue-700"
-                        aria-label="Add another image URL"
-                      >
-                        <FontAwesomeIcon icon={faPlus} />
-                      </button>
-                    )
-                  )} */}
-
                   <button
                     onClick={(e) => {
                       e.preventDefault();
@@ -581,7 +536,7 @@ const ProductForm = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           <div className="relative flex flex-col">
             <select
@@ -856,7 +811,7 @@ const ProductForm = () => {
                     <Select
                       id={`customField-${index}`}
                       styles={customStyles}
-                      isMulti={field.name === "transport"}
+                      isMulti={true}
                       options={transformedOptions}
                       menuPortalTarget={document.body}
                       className="basic-multi-select dropdown-high-z"

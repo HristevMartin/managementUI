@@ -67,7 +67,7 @@ const parseField = async (fieldString, relationshipFields, apiToken) => {
   return results;
 };
 
-function getPluralForm(singular: String) {
+export function getPluralForm(singular: String) {
   const irregulars = {
     ancillary: "ancillaries",
     ticketselection: "ticket-selections",

@@ -156,3 +156,46 @@ export function parseMetaCategoryDataTypes(data, productType) {
   }
   return res;
 }
+
+
+export function transformPayloadSubmitProduct(oldPayload) {
+  const mapIdsToArray = (ids) =>
+    ids ? ids.split(",").map((id) => ({ id: id.trim() })) : [];
+
+  const result = {
+    name: oldPayload.productName,
+    price: parseFloat(oldPayload.price),
+    title: oldPayload.customFields.title,
+    contentImageUrl: oldPayload.customFields.contentImageUrl,
+    summary: oldPayload.customFields.summary,
+    packageDetails: oldPayload.customFields.packageDetails,
+    highlightsImages: oldPayload.customFields.highlightsImages,
+    highlightsDetails: oldPayload.customFields.highlightsDetails,
+    month: oldPayload.customFields.month,
+    minNights: oldPayload.customFields.minNights,
+    numberOfNights: oldPayload.customFields.numberOfNights,
+    location: oldPayload.customFields.location,
+  };
+
+  if (oldPayload.customFields.Hotel && oldPayload.customFields.Hotel.trim()) {
+    result.hotels = mapIdsToArray(oldPayload.customFields.Hotel);
+  }
+
+  if (
+    oldPayload.customFields.TicketSelection &&
+    oldPayload.customFields.TicketSelection.trim()
+  ) {
+    result.ticketSelections = mapIdsToArray(
+      oldPayload.customFields.TicketSelection
+    );
+  }
+
+  if (
+    oldPayload.customFields.Ancillary &&
+    oldPayload.customFields.Ancillary.trim()
+  ) {
+    result.ancillaries = mapIdsToArray(oldPayload.customFields.Ancillary);
+  }
+
+  return result;
+}
