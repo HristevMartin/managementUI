@@ -27,9 +27,9 @@ const HeaderManagement = () => {
   useEffect(() => {
     let allowedLinks = [];
     if (user?.user_id) {
-      allowedLinks.push({ name: "Home", url: "/management", subLinks: [] });
-      if (hasRequiredRole(user?.role, "admin")) {
-        allowedLinks.push({ name: "Admin", url: "/admin", subLinks: [] });
+      allowedLinks.push({ name: "Home", url: "/backoffice/management", subLinks: [] });
+      if (hasRequiredRole(user?.role, "/backoffice/admin")) {
+        allowedLinks.push({ name: "Admin", url: "/backoffice/admin", subLinks: [] });
       }
       if (hasRequiredRole(user?.role, "ProductOwner")) {
         allowedLinks.push({
@@ -39,18 +39,18 @@ const HeaderManagement = () => {
             {
               name: "Type Definition",
               subLinks: [
-                { name: "UI Component", url: "/owner/productcategory" },
+                { name: "UI Component", url: "/backoffice/owner/productcategory" },
                 {
                   name: "Product Type",
-                  url: "/owner/addInitialProductCategory",
+                  url: "/backoffice/owner/addInitialProductCategory",
                 },
               ],
             },
             {
               name: "Manage Data",
               subLinks: [
-                { name: "Product", url: "/owner/add-product" },
-                { name: "UI Component", url: "/owner/viewproductcategory" },
+                { name: "Product", url: "/backoffice/owner/add-product" },
+                { name: "UI Component", url: "/backoffice/owner/viewproductcategory" },
               ],
             },
           ],
@@ -59,13 +59,13 @@ const HeaderManagement = () => {
       if (hasRequiredRole(user?.role, "ProductOwner")) {
         allowedLinks.push({
           name: "Rule Management",
-          url: "/RuleGrid",
+          url: "/backoffice/RuleGrid",
           sublinks: [],
         });
       }
     } else {
-      allowedLinks.push({ name: "Login", url: "/login", subLinks: null });
-      allowedLinks.push({ name: "Register", url: "/register", subLinks: null });
+      allowedLinks.push({ name: "Login", url: "/backoffice/login", subLinks: null });
+      allowedLinks.push({ name: "Register", url: "/backoffice/register", subLinks: null });
     }
     setLinks(allowedLinks);
   }, [user]);

@@ -164,7 +164,7 @@ const Register: React.FC = () => {
         const result = await registerUser(registrationData);
         if (result.success) {
           alert('Registration successful');
-          router.push('/login');
+          router.push('/backoffice/login');
         } else {
           console.log('Registration failed:', result.error);
           setErrors((prev) => ({ ...prev, email: result.error }));

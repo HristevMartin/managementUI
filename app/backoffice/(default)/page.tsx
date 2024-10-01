@@ -12,9 +12,9 @@ const AuthCheck = () => {
   useEffect(() => {
 
     if (user && user.jwt) {
-      router.push('/'); 
+      router.push('/backoffice/management'); 
     } else {
-      router.push('/register'); 
+      router.push('/backoffice/register'); 
     }
   }, [user, router]);
 
