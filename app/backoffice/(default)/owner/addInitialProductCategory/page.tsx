@@ -556,7 +556,7 @@ const AddProductCategoryPage = () => {
   };
 
   const handlePressManageButton = () => {
-    router.push("/owner/addInitialProductCategory/manage-meta-category");
+    router.push("/backoffice/owner/addInitialProductCategory/manage-meta-category");
   };
 
   const addParser = () => {
