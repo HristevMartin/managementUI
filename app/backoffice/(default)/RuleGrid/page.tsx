@@ -331,6 +331,7 @@ const RuleGrid: React.FC = () => {
                                     Edit
                                 </button>
                                 <button
+                                    style={{marginTop:"10px"}}
                                     onClick={() => handleConfirmDelete(rule.id)}
                                     className="table-button delete-button"
                                 >
