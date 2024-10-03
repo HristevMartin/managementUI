@@ -23,7 +23,7 @@ const Login: React.FC = () => {
       const result = await loginUser(loginData);
       if (result.success) {
         login(result.message);
-        router.push('/management');
+        router.push('/backoffice/management');
       } else {
         setError(result.error || 'Login failed');
       }

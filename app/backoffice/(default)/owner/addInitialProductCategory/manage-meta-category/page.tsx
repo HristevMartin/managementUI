@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   Container,
   Table,
@@ -20,14 +20,17 @@ import {
   DialogContentText,
   DialogTitle,
   Autocomplete,
-} from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Cancel';
-import { useAuthJHipster } from '@/context/JHipsterContext';
-import { transformMetaCategoryData, transformPayload } from '@/utils/managementFormUtils';
-import './page.css'
+} from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import EditIcon from "@mui/icons-material/Edit";
+import SaveIcon from "@mui/icons-material/Save";
+import CancelIcon from "@mui/icons-material/Cancel";
+import { useAuthJHipster } from "@/context/JHipsterContext";
+import {
+  transformMetaCategoryData,
+  transformPayload,
+} from "@/utils/managementFormUtils";
+import "./page.css";
 
 const ManageMetaCategory = () => {
   const [productTypes, setProductTypes] = useState([]);
@@ -36,31 +39,28 @@ const ManageMetaCategory = () => {
   const [editFieldIndex, setEditFieldIndex] = useState(null);
   const [fieldEdits, setFieldEdits] = useState({});
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
   const [showAddField, setShowAddField] = useState(false);
   const [showBulkDeleteDialog, setShowBulkDeleteDialog] = useState(false);
-  const [selectedCategoriesForDeletion, setSelectedCategoriesForDeletion] = useState([]);
+  const [selectedCategoriesForDeletion, setSelectedCategoriesForDeletion] =
+    useState([]);
   const { jHipsterAuthToken } = useAuthJHipster();
   const [isApiModalOpen, setIsApiModalOpen] = useState(false);
   const [currentFieldIndex, setCurrentFieldIndex] = useState(null);
   const [apiDetails, setApiDetails] = useState({
-    apiUrl: '',
+    apiUrl: "",
     headers: [],
     parsers: [],
-    // payloadBody: JSON.stringify({}, null, 2),
     payloadBody: {},
   });
   const [tempApiChanges, setTempApiChanges] = useState({});
   const [currentEditingFieldKey, setCurrentEditingFieldKey] = useState(null);
 
-  console.log('tempApiChanges:', tempApiChanges);
+  console.log("tempApiChanges:", tempApiChanges);
 
   const saveModalChanges = () => {
     try {
-      // const parsedPayload =
-      //   apiDetails.payloadBody !== '' ? JSON.parse(apiDetails.payloadBody) : {};
-
       const newApiDetails = {
         ...apiDetails,
         payload: apiDetails.payloadBody,
@@ -75,21 +75,21 @@ const ManageMetaCategory = () => {
         mockup: false,
       });
 
-      console.log('Saving modal changes:', newApiDetails);
+      console.log("Saving modal changes:", newApiDetails);
       setIsApiModalOpen(false);
     } catch (error) {
-      console.error('Failed to parse JSON for payload:', error);
+      console.error("Failed to parse JSON for payload:", error);
     }
   };
 
-  console.log('Temporary API changes saved:', tempApiChanges);
+  console.log("Temporary API changes saved:", tempApiChanges);
 
-  console.log('isApiModalOpen:', isApiModalOpen);
+  console.log("isApiModalOpen:", isApiModalOpen);
 
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
   async function apiDeleteCategories(categoriesToDelete) {
-    console.log('categoriesToDelete:', categoriesToDelete);
+    console.log("categoriesToDelete:", categoriesToDelete);
     const payloads = categoriesToDelete.map((category) => ({
       entityName: category.entityName,
       categoryId: category.categoryId,
@@ -97,31 +97,32 @@ const ManageMetaCategory = () => {
 
     try {
       const response = await fetch(`${apiUrlSpring}/api/jdl/delete-entity`, {
-        method: 'DELETE',
+        method: "DELETE",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           Authorization: `Bearer ${jHipsterAuthToken}`,
         },
         body: JSON.stringify(payloads),
       });
       if (!response.ok) {
-        console.log('Failed to delete categories:', response);
+        console.log("Failed to delete categories:", response);
         // throw new Error('Failed to delete categories:', response.statusText);
       }
-      console.log('Delete response:', data);
+      console.log("Delete response:", data);
     } catch (error) {
-      console.error('Failed to delete categories:', error);
+      console.error("Failed to delete categories:", error);
     }
   }
 
   const handleBulkDelete = async () => {
     const categoriesToDelete = selectedCategoriesForDeletion;
-    console.log('Deleting categories:', categoriesToDelete);
+    console.log("Deleting categories:", categoriesToDelete);
 
     await apiDeleteCategories(categoriesToDelete);
 
     const remainingCategories = productTypes.filter(
-      (type) => !categoriesToDelete.some((cat) => cat.categoryId === type.categoryId),
+      (type) =>
+        !categoriesToDelete.some((cat) => cat.categoryId === type.categoryId)
     );
 
     setProductTypes(remainingCategories);
@@ -138,11 +139,11 @@ const ManageMetaCategory = () => {
   };
 
   const [newField, setNewField] = useState({
-    key: '',
-    type: '',
+    key: "",
+    type: "",
     required: false,
-    min: '',
-    max: '',
+    min: "",
+    max: "",
     unique: false,
   });
 
@@ -152,134 +153,51 @@ const ManageMetaCategory = () => {
       const fetchData = async () => {
         setLoading(true);
         try {
-          console.log('sending..');
-          const response = await fetch(`${apiUrlSpring}/api/jdl/entities`, {
-            method: 'GET',
-            headers: {
-              Authorization: `Bearer ${jHipsterAuthToken}`,
-            },
-          });
-          let data = await response.json();
+          console.log("sending..");
+          const response = await fetch(
+            `${apiUrlSpring}/api/jdl/get-all-entities`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${jHipsterAuthToken}`,
+              },
+            }
+          );
+          let entities = await response.json();
+          console.log("entities", entities);
+
+          const detailsRequests = entities.map((entity) =>
+            fetch(`${apiUrlSpring}/api/jdl/get-entity-by-id/${entity.id}`, {
+              method: "GET",
+              headers: { Authorization: `Bearer ${jHipsterAuthToken}` },
+            }).then((res) => res.json())
+          );
+
+          const entitiesDetails = await Promise.all(detailsRequests);
+
+          let data = entitiesDetails.map((detail) => ({
+            entityName: detail.entityName,
+            fields: detail.fields,
+            relationships: detail.relationships || [],
+            externalAttributesMetaData: detail.externalAttributesMetaData || [],
+            categoryId: detail.categoryId || 0,
+            oldEntityName: detail.oldEntityName,
+            newEntityName: detail.newEntityName,
+          }));
+
           console.log('raw data:', data);
-
-          // temp
-          // let data2 = [
-          //   {
-          //     entityName: 'Flight',
-          //     fields: [
-          //       'name String required unique',
-          //       'price BigDecimal',
-          //       'flightId String required unique',
-          //       'flightNumber String required',
-          //       'origin String required',
-          //       'destination String required',
-          //       'departureDate String required',
-          //       'departureTime String required',
-          //       'arrivalDate String required',
-          //       'arrivalTime String required',
-          //       'Duration String',
-          //       'carrier String',
-          //       'carrierLogo String',
-          //     ],
-          //     relationships: [],
-          //     externalAttributesMetaData: null,
-          //     categoryId: 0,
-          //     oldEntityName: null,
-          //     newEntityName: null,
-          //   },
-          //   {
-          //     entityName: 'Room',
-          //     fields: [
-          //       'name String required unique',
-          //       'price Double required',
-          //       'images String',
-          //       'guestCount Integer required',
-          //       'size String',
-          //       'facilities String',
-          //       'hotelName String required',
-          //       'description String',
-          //     ],
-          //     relationships: [],
-          //     externalAttributesMetaData: null,
-          //     categoryId: 0,
-          //     oldEntityName: null,
-          //     newEntityName: null,
-          //   },
-          //   {
-          //     entityName: 'AddOn',
-          //     fields: [
-          //       'name String required unique',
-          //       'description String',
-          //       'images String',
-          //       'destination String',
-          //       'addOnType String',
-          //       'price Double required',
-          //       'tags String',
-          //     ],
-          //     relationships: [],
-          //     externalAttributesMetaData: null,
-          //     categoryId: 0,
-          //     oldEntityName: null,
-          //     newEntityName: null,
-          //   },
-          //   {
-          //     entityName: 'Bundle',
-          //     fields: [
-          //       'name String required unique',
-          //       'description String',
-          //       'origin String',
-          //       'destination String',
-          //       'images String',
-          //       'transport String',
-          //       'accommodation String',
-          //       'addOns String',
-          //       'tags String',
-          //       'price Double',
-          //     ],
-          //     relationships: [],
-          //     externalAttributesMetaData: null,
-          //     categoryId: 0,
-          //     oldEntityName: null,
-          //     newEntityName: null,
-          //   },
-          //   {
-          //     entityName: 'Hotel',
-          //     fields: [
-          //       'name String required unique',
-          //       'price Double required',
-          //       'city String required',
-          //       'address String',
-          //       'postalcode String',
-          //       'facilities String',
-          //       'images String',
-          //       'guests Integer required',
-          //       'locationid String',
-          //       'checkintime String',
-          //       'checkouttime String',
-          //       'description String',
-          //       'reviews String',
-          //     ],
-          //     relationships: [],
-          //     externalAttributesMetaData: [],
-          //     categoryId: 0,
-          //     oldEntityName: null,
-          //     newEntityName: null,
-          //   },
-          // ];
-          // temp
-
           data = transformMetaCategoryData(data);
-          console.log('the data:', data);
+          console.log("the data:", data);
           // check external data here
           setProductTypes(data);
           if (data.length > 0) {
             setSelectedProductType(data[0]);
-            console.log('data[0].customFields', data[0].customFields);
+            console.log("data[0].customFields", data[0].customFields);
             setSelectedFields(data[0].customFields || []);
             // add the external attributes as well.
           }
         } catch (err) {
-          setError('There is not data available');
+          setError("There is not data available");
           console.error(err);
         }
         setLoading(false);
@@ -287,7 +205,7 @@ const ManageMetaCategory = () => {
 
       fetchData();
     } else {
-      console.log('Token not available, fetching token...');
+      console.log("Token not available, fetching token...");
       // Potentially trigger token fetch or wait for token to be set
     }
   }, [jHipsterAuthToken]);
@@ -295,35 +213,40 @@ const ManageMetaCategory = () => {
   const handleDelete = (index) => {
     setOpenDeleteDialog(true);
     setEditFieldIndex(index);
-    console.log('index:', index);
+    console.log("index:", index);
   };
 
   const deleteField = async () => {
     if (editFieldIndex !== null) {
-      const updatedFields = selectedFields.filter((_, idx) => idx !== editFieldIndex);
+      const updatedFields = selectedFields.filter(
+        (_, idx) => idx !== editFieldIndex
+      );
       setSelectedFields(updatedFields);
       setOpenDeleteDialog(false);
       setEditFieldIndex(null);
 
       // send this payload to api.
-      console.log('updatedFields:', updatedFields);
+      console.log("updatedFields:", updatedFields);
       // give me the field that's being deleted
-      console.log('selectedFields[editFieldIndex]:', selectedFields[editFieldIndex]);
+      console.log(
+        "selectedFields[editFieldIndex]:",
+        selectedFields[editFieldIndex]
+      );
     }
 
     // send request to api to delete field
   };
 
   const handleEditChange = (key, value) => {
-    if (key === 'type') {
+    if (key === "type") {
       const newValidations = {};
-      if (validationRules[value].includes('min')) {
-        newValidations.min = fieldEdits.validations.min || '';
+      if (validationRules[value].includes("min")) {
+        newValidations.min = fieldEdits.validations.min || "";
       }
-      if (validationRules[value].includes('max')) {
-        newValidations.max = fieldEdits.validations.max || '';
+      if (validationRules[value].includes("max")) {
+        newValidations.max = fieldEdits.validations.max || "";
       }
-      newValidations.unique = validationRules[value].includes('unique')
+      newValidations.unique = validationRules[value].includes("unique")
         ? fieldEdits.validations.unique
         : false;
 
@@ -332,8 +255,8 @@ const ManageMetaCategory = () => {
         type: value,
         validations: newValidations,
       }));
-    } else if (key.startsWith('validations.')) {
-      const validationKey = key.split('.')[1];
+    } else if (key.startsWith("validations.")) {
+      const validationKey = key.split(".")[1];
       setFieldEdits((prev) => ({
         ...prev,
         validations: {
@@ -354,28 +277,38 @@ const ManageMetaCategory = () => {
     setSelectedFields(updatedFields);
     setEditFieldIndex(null);
 
-    const allExternalAttributes = selectedProductType.externalAttributes.map((attr) => {
-      if (attr.attributeName === tempApiChanges.attributeName) {
-        console.log(`Applying changes for ${attr.attributeName}:`, tempApiChanges);
-        return { ...attr, ...tempApiChanges };
+    const allExternalAttributes = selectedProductType.externalAttributes.map(
+      (attr) => {
+        if (attr.attributeName === tempApiChanges.attributeName) {
+          console.log(
+            `Applying changes for ${attr.attributeName}:`,
+            tempApiChanges
+          );
+          return { ...attr, ...tempApiChanges };
+        }
+        return attr;
       }
-      return attr;
-    });
+    );
 
-    console.log('Merged External Attributes:', JSON.stringify(allExternalAttributes, null, 2));
+    console.log(
+      "Merged External Attributes:",
+      JSON.stringify(allExternalAttributes, null, 2)
+    );
 
     const payload = {
       entityName: selectedProductType.entityName,
       fields: updatedFields.map(
         (field) =>
-          `${field.key} ${field.type}${field.required ? ' required' : ''}${field.external ? ' external' : ''}`,
+          `${field.key} ${field.type}${field.required ? " required" : ""}${
+            field.external ? " external" : ""
+          }`
       ),
       externalAttributesMetaData: allExternalAttributes.map((attr) => {
-        if (typeof attr.payload === 'string') {
+        if (typeof attr.payload === "string") {
           try {
             attr.payload = JSON.parse(attr.payload);
           } catch (error) {
-            console.error('Failed to parse payload:', error);
+            console.error("Failed to parse payload:", error);
             attr.payload = {};
           }
         }
@@ -384,17 +317,17 @@ const ManageMetaCategory = () => {
       relationships: [],
     };
 
-    console.log('Final Transformed Payload:', JSON.stringify(payload, null, 2));
+    console.log("Final Transformed Payload:", JSON.stringify(payload, null, 2));
 
     const response = await fetch(`${apiUrlSpring}/api/jdl/update-entity`, {
-      method: 'PUT',
+      method: "PUT",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
         Authorization: `Bearer ${jHipsterAuthToken}`,
       },
       body: JSON.stringify([payload]),
     });
-    console.log('response!?!!:', response);
+    console.log("response!?!!:", response);
   };
 
   const cancelEdit = () => {
@@ -414,51 +347,58 @@ const ManageMetaCategory = () => {
     let updatedFields = [...selectedFields, newField];
     setSelectedFields(updatedFields);
     setShowAddField(false);
-    setNewField({ key: '', type: '', min: '', max: '', unique: false, required: false });
+    setNewField({
+      key: "",
+      type: "",
+      min: "",
+      max: "",
+      unique: false,
+      required: false,
+    });
 
     // send this payload to api.
-    console.log('updatedFields:', updatedFields);
+    console.log("updatedFields:", updatedFields);
     // send request to api to save new custom field
   };
 
   const typeOptions = [
-    'String',
-    'Integer',
-    'Long',
-    'BigDecimal',
-    'Float',
-    'Double',
-    'Enum',
-    'Boolean',
-    'LocalDate',
-    'ZonedDateTime',
-    'Instant',
-    'Duration',
-    'UUID',
-    'Blob',
-    'AnyBlob',
-    'ImageBlob',
-    'TextBlob',
+    "String",
+    "Integer",
+    "Long",
+    "BigDecimal",
+    "Float",
+    "Double",
+    "Enum",
+    "Boolean",
+    "LocalDate",
+    "ZonedDateTime",
+    "Instant",
+    "Duration",
+    "UUID",
+    "Blob",
+    "AnyBlob",
+    "ImageBlob",
+    "TextBlob",
   ];
 
   const validationRules = {
-    String: ['min', 'max', 'unique'],
-    Integer: ['min', 'max', 'unique'],
-    Long: ['min', 'max', 'unique'],
-    BigDecimal: ['min', 'max', 'unique'],
-    Float: ['min', 'max', 'unique'],
-    Double: ['min', 'max', 'unique'],
-    Enum: ['unique'],
-    Boolean: ['unique'],
-    LocalDate: ['unique'],
-    ZonedDateTime: ['unique'],
-    Instant: ['unique'],
-    Duration: ['unique'],
-    UUID: ['unique'],
-    Blob: ['unique'],
-    AnyBlob: ['unique'],
-    ImageBlob: ['unique'],
-    TextBlob: ['unique'],
+    String: ["min", "max", "unique"],
+    Integer: ["min", "max", "unique"],
+    Long: ["min", "max", "unique"],
+    BigDecimal: ["min", "max", "unique"],
+    Float: ["min", "max", "unique"],
+    Double: ["min", "max", "unique"],
+    Enum: ["unique"],
+    Boolean: ["unique"],
+    LocalDate: ["unique"],
+    ZonedDateTime: ["unique"],
+    Instant: ["unique"],
+    Duration: ["unique"],
+    UUID: ["unique"],
+    Blob: ["unique"],
+    AnyBlob: ["unique"],
+    ImageBlob: ["unique"],
+    TextBlob: ["unique"],
   };
 
   const handleExternalToggle = (index) => {
@@ -470,7 +410,7 @@ const ManageMetaCategory = () => {
     }
 
     externalDetails = selectedProductType.externalAttributes.find(
-      (attr) => attr.attributeName === field.key,
+      (attr) => attr.attributeName === field.key
     );
 
     field.external = !field.external;
@@ -479,9 +419,9 @@ const ManageMetaCategory = () => {
       if (!externalDetails) {
         externalDetails = {
           attributeName: field.key,
-          externalUrl: '',
+          externalUrl: "",
           headers: [],
-          payload: '',
+          payload: "",
           responseParser: [],
           mockup: false,
         };
@@ -509,7 +449,9 @@ const ManageMetaCategory = () => {
 
   const handleSelectCategory = (category) => {
     setSelectedCategoriesForDeletion((prevSelected) => {
-      const index = prevSelected.findIndex((cat) => cat.categoryId === category.categoryId);
+      const index = prevSelected.findIndex(
+        (cat) => cat.categoryId === category.categoryId
+      );
       if (index >= 0) {
         return prevSelected.filter((_, i) => i !== index);
       } else {
@@ -531,7 +473,7 @@ const ManageMetaCategory = () => {
   const addHeader = () => {
     setApiDetails((prev) => ({
       ...prev,
-      headers: [...prev.headers, { key: '', value: '' }],
+      headers: [...prev.headers, { key: "", value: "" }],
     }));
   };
 
@@ -545,7 +487,7 @@ const ManageMetaCategory = () => {
   const addParser = () => {
     setApiDetails((prev) => ({
       ...prev,
-      parsers: [...prev.parsers, { key: '', value: '' }],
+      parsers: [...prev.parsers, { key: "", value: "" }],
     }));
   };
 
@@ -589,10 +531,10 @@ const ManageMetaCategory = () => {
   return (
     <Container
       sx={{
-        width: '900px',
+        width: "900px",
       }}
       maxWidth="md"
-      className='input-form-move'
+      className="input-form-move"
     >
       <Typography variant="h4" sx={{ mb: 2 }}>
         Manage Meta Product Types
@@ -607,20 +549,22 @@ const ManageMetaCategory = () => {
           setSelectedFields(newValue.customFields || []);
         }}
         disableClearable
-        renderInput={(params) => <TextField {...params} label="Select Category" />}
+        renderInput={(params) => (
+          <TextField {...params} label="Select Category" />
+        )}
       />
       <Paper sx={{ p: 2 }}>
         <Table>
           <TableHead>
             <TableRow>
-              <TableCell sx={{ fontWeight: 'bold' }}>Key</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Data Type</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Min</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Max</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Unique</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Required</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>External</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Key</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Data Type</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Min</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Max</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Unique</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Required</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>External</TableCell>
+              <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -631,7 +575,9 @@ const ManageMetaCategory = () => {
                     <TableCell>
                       <TextField
                         value={fieldEdits.key}
-                        onChange={(e) => handleEditChange('key', e.target.value)}
+                        onChange={(e) =>
+                          handleEditChange("key", e.target.value)
+                        }
                         size="small"
                       />
                     </TableCell>
@@ -640,10 +586,12 @@ const ManageMetaCategory = () => {
                       <TextField
                         select
                         value={fieldEdits.type}
-                        onChange={(e) => handleEditChange('type', e.target.value)}
+                        onChange={(e) =>
+                          handleEditChange("type", e.target.value)
+                        }
                         fullWidth
                         size="small"
-                        style={{ width: '100px' }}
+                        style={{ width: "100px" }}
                         variant="outlined"
                         SelectProps={{
                           native: true,
@@ -658,33 +606,42 @@ const ManageMetaCategory = () => {
                     </TableCell>
 
                     <TableCell>
-                      {validationRules[fieldEdits.type]?.includes('min') && (
+                      {validationRules[fieldEdits.type]?.includes("min") && (
                         <TextField
                           label="Min"
                           type="number"
                           size="small"
-                          value={fieldEdits.validations.min || ''}
-                          onChange={(e) => handleEditChange('validations.min', e.target.value)}
+                          value={fieldEdits.validations.min || ""}
+                          onChange={(e) =>
+                            handleEditChange("validations.min", e.target.value)
+                          }
                         />
                       )}
                     </TableCell>
                     <TableCell>
-                      {validationRules[fieldEdits.type]?.includes('max') && (
+                      {validationRules[fieldEdits.type]?.includes("max") && (
                         <TextField
                           label="Max"
                           type="number"
                           size="small"
-                          value={fieldEdits.validations.max || ''}
-                          onChange={(e) => handleEditChange('validations.max', e.target.value)}
+                          value={fieldEdits.validations.max || ""}
+                          onChange={(e) =>
+                            handleEditChange("validations.max", e.target.value)
+                          }
                         />
                       )}
                     </TableCell>
 
                     <TableCell>
-                      {validationRules[fieldEdits.type]?.includes('unique') && (
+                      {validationRules[fieldEdits.type]?.includes("unique") && (
                         <Checkbox
                           checked={fieldEdits.validations.unique || false}
-                          onChange={(e) => handleEditChange('validations.unique', e.target.checked)}
+                          onChange={(e) =>
+                            handleEditChange(
+                              "validations.unique",
+                              e.target.checked
+                            )
+                          }
                         />
                       )}
                     </TableCell>
@@ -692,7 +649,9 @@ const ManageMetaCategory = () => {
                     <TableCell>
                       <Checkbox
                         checked={fieldEdits.required || false}
-                        onChange={(e) => handleEditChange('required', e.target.checked)}
+                        onChange={(e) =>
+                          handleEditChange("required", e.target.checked)
+                        }
                       />
                     </TableCell>
                     <TableCell>
@@ -748,7 +707,10 @@ const ManageMetaCategory = () => {
                       fullWidth
                       value={apiDetails.apiUrl}
                       onChange={(e) =>
-                        setApiDetails((prev) => ({ ...prev, apiUrl: e.target.value }))
+                        setApiDetails((prev) => ({
+                          ...prev,
+                          apiUrl: e.target.value,
+                        }))
                       }
                       margin="dense"
                     />
@@ -757,22 +719,26 @@ const ManageMetaCategory = () => {
                         <div
                           key={index}
                           style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            marginBottom: '10px',
-                            marginTop: '14px',
+                            display: "flex",
+                            alignItems: "center",
+                            marginBottom: "10px",
+                            marginTop: "14px",
                           }}
                         >
                           <TextField
                             label="Header Key"
                             value={header.key}
-                            onChange={(e) => handleHeaderChange(index, 'key', e.target.value)}
-                            style={{ marginRight: '10px' }}
+                            onChange={(e) =>
+                              handleHeaderChange(index, "key", e.target.value)
+                            }
+                            style={{ marginRight: "10px" }}
                           />
                           <TextField
                             label="Header Value"
                             value={header.value}
-                            onChange={(e) => handleHeaderChange(index, 'value', e.target.value)}
+                            onChange={(e) =>
+                              handleHeaderChange(index, "value", e.target.value)
+                            }
                           />
                           <IconButton onClick={() => removeHeader(index)}>
                             <DeleteIcon />
@@ -783,27 +749,31 @@ const ManageMetaCategory = () => {
                         Add Header
                       </Button>
                     </div>
-                    <div style={{ marginTop: '8px', marginBottom: '8px' }}>
+                    <div style={{ marginTop: "8px", marginBottom: "8px" }}>
                       {apiDetails.parsers.map((parser, index) => (
                         <div
                           key={index}
                           style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            marginBottom: '10px',
-                            marginTop: '14px',
+                            display: "flex",
+                            alignItems: "center",
+                            marginBottom: "10px",
+                            marginTop: "14px",
                           }}
                         >
                           <TextField
                             label="Parser Key"
                             value={parser.key}
-                            onChange={(e) => updateParser(index, 'key', e.target.value)}
-                            style={{ marginRight: '10px' }}
+                            onChange={(e) =>
+                              updateParser(index, "key", e.target.value)
+                            }
+                            style={{ marginRight: "10px" }}
                           />
                           <TextField
                             label="Parser Value"
                             value={parser.value}
-                            onChange={(e) => updateParser(index, 'value', e.target.value)}
+                            onChange={(e) =>
+                              updateParser(index, "value", e.target.value)
+                            }
                           />
                           <IconButton onClick={() => removeParser(index)}>
                             <DeleteIcon />
@@ -840,7 +810,9 @@ const ManageMetaCategory = () => {
                 <TableCell>
                   <TextField
                     value={newField.key}
-                    onChange={(e) => setNewField({ ...newField, key: e.target.value })}
+                    onChange={(e) =>
+                      setNewField({ ...newField, key: e.target.value })
+                    }
                     size="small"
                     fullWidth
                   />
@@ -848,8 +820,10 @@ const ManageMetaCategory = () => {
                 <TableCell>
                   <TextField
                     select
-                    onChange={(e) => setNewField({ ...newField, type: e.target.value })}
-                    style={{ width: '120px' }}
+                    onChange={(e) =>
+                      setNewField({ ...newField, type: e.target.value })
+                    }
+                    style={{ width: "120px" }}
                     size="small"
                     SelectProps={{
                       native: true,
@@ -864,13 +838,16 @@ const ManageMetaCategory = () => {
                 </TableCell>
 
                 <TableCell>
-                  {validationRules[newField.type]?.includes('min') && (
+                  {validationRules[newField.type]?.includes("min") && (
                     <TextField
-                      value={newField.validations?.min || ''}
+                      value={newField.validations?.min || ""}
                       onChange={(e) =>
                         setNewField({
                           ...newField,
-                          validations: { ...newField.validations, min: e.target.value },
+                          validations: {
+                            ...newField.validations,
+                            min: e.target.value,
+                          },
                         })
                       }
                       size="small"
@@ -879,13 +856,16 @@ const ManageMetaCategory = () => {
                   )}
                 </TableCell>
                 <TableCell>
-                  {validationRules[newField.type]?.includes('max') && (
+                  {validationRules[newField.type]?.includes("max") && (
                     <TextField
-                      value={newField.validations?.max || ''}
+                      value={newField.validations?.max || ""}
                       onChange={(e) =>
                         setNewField({
                           ...newField,
-                          validations: { ...newField.validations, max: e.target.value },
+                          validations: {
+                            ...newField.validations,
+                            max: e.target.value,
+                          },
                         })
                       }
                       size="small"
@@ -899,7 +879,10 @@ const ManageMetaCategory = () => {
                     onChange={(e) =>
                       setNewField({
                         ...newField,
-                        validations: { ...newField.validations, unique: e.target.checked },
+                        validations: {
+                          ...newField.validations,
+                          unique: e.target.checked,
+                        },
                       })
                     }
                   />
@@ -908,14 +891,19 @@ const ManageMetaCategory = () => {
                 <TableCell>
                   <Checkbox
                     checked={newField.required}
-                    onChange={(e) => setNewField({ ...newField, required: e.target.checked })}
+                    onChange={(e) =>
+                      setNewField({ ...newField, required: e.target.checked })
+                    }
                   />
                 </TableCell>
                 <TableCell>
                   <Button onClick={handleSaveNewField} color="primary">
                     Save
                   </Button>
-                  <Button onClick={() => setShowAddField(false)} color="secondary">
+                  <Button
+                    onClick={() => setShowAddField(false)}
+                    color="secondary"
+                  >
                     Cancel
                   </Button>
                 </TableCell>
@@ -924,7 +912,11 @@ const ManageMetaCategory = () => {
           </TableBody>
         </Table>
         <div className="flex justify-between">
-          <Button onClick={(e) => setShowAddField(true)} variant="contained" sx={{ mt: 2 }}>
+          <Button
+            onClick={(e) => setShowAddField(true)}
+            variant="contained"
+            sx={{ mt: 2 }}
+          >
             Add New Field
           </Button>
           <Button
@@ -935,7 +927,10 @@ const ManageMetaCategory = () => {
           >
             Bulk Delete
           </Button>
-          <Dialog open={showBulkDeleteDialog} onClose={() => setShowBulkDeleteDialog(false)}>
+          <Dialog
+            open={showBulkDeleteDialog}
+            onClose={() => setShowBulkDeleteDialog(false)}
+          >
             <DialogTitle>Select Categories to Delete</DialogTitle>
             <DialogContent>
               {productTypes.map((type) => (
@@ -943,7 +938,7 @@ const ManageMetaCategory = () => {
                   <TableCell>
                     <Checkbox
                       checked={selectedCategoriesForDeletion.some(
-                        (cat) => cat.categoryId === type.categoryId,
+                        (cat) => cat.categoryId === type.categoryId
                       )}
                       onChange={() => handleSelectCategory(type)}
                     />
@@ -953,7 +948,10 @@ const ManageMetaCategory = () => {
               ))}
             </DialogContent>
             <DialogActions>
-              <Button onClick={() => setShowBulkDeleteDialog(false)} color="primary">
+              <Button
+                onClick={() => setShowBulkDeleteDialog(false)}
+                color="primary"
+              >
                 Cancel
               </Button>
               <Button onClick={handleBulkDelete} color="primary">
@@ -969,7 +967,7 @@ const ManageMetaCategory = () => {
         aria-labelledby="alert-dialog-title"
         aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="alert-dialog-title">{'Confirm Deletion'}</DialogTitle>
+        <DialogTitle id="alert-dialog-title">{"Confirm Deletion"}</DialogTitle>
         <DialogContent>
           <DialogContentText id="alert-dialog-description">
             Are you sure you want to delete this field?

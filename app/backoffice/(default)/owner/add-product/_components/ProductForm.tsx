@@ -5,7 +5,10 @@ import { faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import React, { useState, useEffect } from "react";
 import "./ProductForm.css";
 import AlertDialogSlide from "./AlertDialogSlide";
-import { mapProductTypesToCustomFields } from "@/services/productFormService";
+import {
+  getPluralForm,
+  mapProductTypesToCustomFields,
+} from "@/services/productFormService";
 import { faPlus } from "@fortawesome/free-solid-svg-icons";
 import {
   Dialog,
@@ -21,6 +24,7 @@ import { MdRemoveCircle } from "react-icons/md";
 import "./page.css";
 import { useAuthJHipster } from "@/context/JHipsterContext";
 import Select from "react-select";
+import { transformPayloadSubmitProduct } from "@/utils/managementFormUtils";
 
 const ProductForm = () => {
   const [productName, setProductName] = useState("");
@@ -58,6 +62,7 @@ const ProductForm = () => {
   const [payloadBody, setPayloadBody] = useState("");
   const [headers, setHeaders] = useState([{ key: "", value: "" }]);
   const [isLoading, setIsLoading] = useState(false);
+  const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
   const handleOpenDialogExternal = () => {
     setOpenDialogExternal(true);
@@ -74,69 +79,53 @@ const ProductForm = () => {
 
     setIsLoading(true);
 
-    const fetchProductDetails = async (fieldName) => {
-      try {
-        const response = await fetch(
-          `${apiUrl}/populate-package-details?package_type=${fieldName}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        if (!response.ok) {
-          throw new Error(`Failed to fetch details for ${fieldName}`);
-        }
-        const data = await response.json();
-        return data.map((product) => ({
-          id: product.product_id,
-          name: product.product_name,
-        }));
-      } catch (error) {
-        console.error(`Error fetching details for ${fieldName}:`, error);
-        return [];
-      } finally {
-        setIsLoading(false);
-      }
-    };
+    // const fetchProductDetails = async (fieldName) => {
+    //   try {
+    //     const response = await fetch(
+    //       `${apiUrl}/populate-package-details?package_type=${fieldName}`,
+    //       {
+    //         method: "GET",
+    //         headers: {
+    //           "Content-Type": "application/json",
+    //         },
+    //       }
+    //     );
+    //     if (!response.ok) {
+    //       throw new Error(`Failed to fetch details for ${fieldName}`);
+    //     }
+    //     const data = await response.json();
+    //     return data.map((product) => ({
+    //       id: product.product_id,
+    //       name: product.product_name,
+    //     }));
+    //   } catch (error) {
+    //     console.error(`Error fetching details for ${fieldName}:`, error);
+    //     return [];
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // };
 
     const fetchData = async () => {
+      if (!jHipsterAuthToken) return;
+
       try {
         const data = await mapProductTypesToCustomFields(jHipsterAuthToken);
+
         console.log("data!?!?!:", data);
         if (data && data.length > 0) {
-          //
-          const detailedCategories = await Promise.all(
-            data.map(async (category) => {
-              const customFieldsWithDetails = await Promise.all(
-                category.customFields.map(async (field) => {
-                  if (
-                    category.categoryName === "Bundle" &&
-                    ["addOns", "transport", "accommodation"].includes(
-                      field.name
-                    )
-                  ) {
-                    const options = await fetchProductDetails(field.name);
-                    return { ...field, options };
-                  }
-                  return field;
-                })
-              );
-              return { ...category, customFields: customFieldsWithDetails };
-            })
-          );
+          console.log("detailedCategories:", data);
 
-          console.log("detailedCategories:", detailedCategories);
-          //
-          setCategoryDetails(detailedCategories);
-          setProductTypes(
-            detailedCategories.map((category) => category.categoryName)
-          );
-          setProductType(detailedCategories[0].categoryName);
-          setCategoryId(detailedCategories[0].categoryId);
+          setCategoryDetails(data);
+
+          setProductTypes(data.map((category) => category.categoryName));
+
+          setProductType(data[0].categoryName);
+
+          setCategoryId(data[0].categoryId);
+
           setCustomFields(
-            detailedCategories[0].customFields.map((field) => ({
+            data[0].customFields.map((field) => ({
               name: field.name,
               value: "",
               external: field.external,
@@ -145,10 +134,14 @@ const ProductForm = () => {
         }
       } catch (error) {
         console.error("Failed to fetch category details:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
     fetchData();
   }, [jHipsterAuthToken]);
+
+  console.log("cuustom fields:", customFields);
 
   const [selectedHotel, setSelectedHotel] = useState("");
   const [hotels, setHotels] = useState([]);
@@ -228,7 +221,6 @@ const ProductForm = () => {
     }
   };
 
-
   const aggregatedCustomFields = customFields.reduce((acc, field) => {
     acc[field.name] = field.value;
     return acc;
@@ -247,9 +239,9 @@ const ProductForm = () => {
       (field) => field.name === "description"
     );
     console.log("description:", description?.value);
-    let imagePayload;
+    // let imagePayload;
 
-    imagePayload = imageUrls.filter((url) => url !== "");
+    // imagePayload = imageUrls.filter((url) => url !== "");
 
     if (productType === "Room" && selectedHotel) {
       customFieldsPayload = {
@@ -293,7 +285,7 @@ const ProductForm = () => {
       description: description?.value,
       categoryId,
       // imageUrls,
-      images: imagePayload,
+      // images: imagePayload,
       customFields: customFieldsPayload,
       ...(dynamicInventory && {
         apiURLInventory,
@@ -303,19 +295,26 @@ const ProductForm = () => {
       ...(dynamicPrice && { apiURLPrice, apiHeadersPrice, payloadBodyPrice }),
     };
 
-    console.log("Form Data:", formData);
+    let correctedEndpointPathName = getPluralForm(productType);
+    console.log("correctedEndpointPathName", correctedEndpointPathName);
+
+    let transformedFormData = transformPayloadSubmitProduct(formData);
+    console.log('transformedFormData:', transformedFormData);
 
     try {
-      const response = await fetch(`${SPRING_URL}/api/jdl/create-product`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${jHipsterAuthToken}`,
-        },
-        body: JSON.stringify([formData]),
-      });
+      const response = await fetch(
+        `${SPRING_URL}/api/${correctedEndpointPathName}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${jHipsterAuthToken}`,
+          },
+          body: JSON.stringify(transformedFormData),
+        }
+      );
 
-      // tmp as running the spring api locally is returning error at the part of running the jhipster entity create
+      // tmp as running the spring api locally is returning error at the part of running the jhipster entity create process
       alert("Product added successfully");
 
       if (!response.ok) {
@@ -323,7 +322,6 @@ const ProductForm = () => {
       }
 
       // const result = await response.json();
-      console.log("Product added successfully:", result);
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
     }
@@ -501,7 +499,7 @@ const ProductForm = () => {
             </label>
           </div>
 
-          <div className="relative col-span-2 mb-4 flex flex-col">
+          {/* <div className="relative col-span-2 mb-4 flex flex-col">
             <div className="form-input">
               {imageUrls.map((url, index) => (
                 <div key={index} className="relative mb-2 flex items-center">
@@ -509,11 +507,6 @@ const ProductForm = () => {
                     id={`imageUrl-${index}`}
                     type="text"
                     name={`imageUrl-${index}`}
-                    // placeholder={
-                    //   customFields.find((field) => field.name === 'images' && field.external)
-                    //     ? 'Fill out external parameters'
-                    //     : 'Enter Image URL'
-                    // }
                     value={url}
                     onChange={(e) => updateImageUrl(index, e.target.value)}
                     className="peer flex-grow border border-gray-200 px-4 text-base placeholder:text-gray-500 hover:border-primary focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:bg-gray-100 disabled:hover:border-gray-200"
@@ -530,51 +523,6 @@ const ProductForm = () => {
                       ? "Press the plus icon to fill out the External API Parameters"
                       : "Image URL"}
                   </label>
-                  {/* {index === imageUrls.length - 1 && (
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        addImageUrl();
-                      }}
-                      className="ml-2 text-blue-500 hover:text-blue-700"
-                      aria-label="Add another image URL"
-                    >
-                      <FontAwesomeIcon icon={faPlus} />
-                    </button>
-                  )}
-
-                  {customFields.find((field) => field.name === 'images' && field.external) && (
-                    <IconButton
-                      onClick={handleOpenDialogExternal}
-                      aria-label="Add API specification"
-                    >
-                      <AddCircleOutlineIcon />
-                    </IconButton>
-                  )} */}
-                  {/* Check if images field is external;*/}
-                  {/* {customFields.find((field) => field.name === 'images' && field.external) ? (
-                    <IconButton
-                      color="primary"
-                      onClick={handleOpenDialogExternal}
-                      aria-label="Add API specification"
-                    >
-                      <AddCircleOutlineIcon />
-                    </IconButton>
-                  ) : (
-                    index === imageUrls.length - 1 && (
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          addImageUrl();
-                        }}
-                        className="ml-2 text-blue-500 hover:text-blue-700"
-                        aria-label="Add another image URL"
-                      >
-                        <FontAwesomeIcon icon={faPlus} />
-                      </button>
-                    )
-                  )} */}
-
                   <button
                     onClick={(e) => {
                       e.preventDefault();
@@ -588,7 +536,7 @@ const ProductForm = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </div> */}
 
           <div className="relative flex flex-col">
             <select
@@ -623,8 +571,8 @@ const ProductForm = () => {
                 viewBox="0 0 24 24"
               >
                 <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   // stroke-width="2"
                   d="M19 9l-7 7-7-7"
                 ></path>
@@ -842,7 +790,10 @@ const ProductForm = () => {
                 return null;
               }
 
-              if (field.options) {
+              if (field?.options) {
+                console.log("field.name:", field.name);
+                console.log("field.options:", field.options);
+
                 const transformedOptions = field.options.map((option) => ({
                   value: option.id,
                   label: option.name,
@@ -854,25 +805,13 @@ const ProductForm = () => {
                     className="col-span-2 grid grid-cols-2 gap-6"
                   >
                     <div className="flex justify-end items-center ">
-                      {field.name === "addOns" && (
-                        <p htmlFor={`customField-${index}`}>Select Add Onns:</p>
-                      )}
-                      {field.name === "transport" && (
-                        <label htmlFor={`customField-${index}`}>
-                          Select Transportation:
-                        </label>
-                      )}
-                      {field.name === "accommodation" && (
-                        <label htmlFor={`customField-${index}`}>
-                          Select Accomodation:
-                        </label>
-                      )}
+                      <p htmlFor={`customField-${index}`}>{field.name}</p>
                     </div>
 
                     <Select
                       id={`customField-${index}`}
                       styles={customStyles}
-                      isMulti={field.name === "transport"}
+                      isMulti={true}
                       options={transformedOptions}
                       menuPortalTarget={document.body}
                       className="basic-multi-select dropdown-high-z"
