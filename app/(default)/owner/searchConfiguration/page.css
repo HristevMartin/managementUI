@@ -1,0 +1,244 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f4f4f4;
+  color: #000;
+}
+
+header {
+  background-color: #333;
+  color: #fff;
+  padding: 10px 0;
+  text-align: center;
+}
+
+header .logo {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+nav ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+}
+
+nav ul li {
+  margin: 0 15px;
+}
+
+nav ul li a {
+  color: #fff;
+  text-decoration: none;
+}
+
+nav ul li input {
+  padding: 5px;
+}
+
+main {
+  padding: 20px;
+  width: 70%; /* Set width to 70% */
+  margin: 0 auto; /* Center the main element */
+}
+
+.search-config {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 5px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.search-config label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.search-config select,
+.search-config input[type="text"],
+.search-config textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.search-config fieldset {
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  padding: 10px;
+  margin-bottom: 20px;
+}
+
+.search-config legend {
+  font-weight: bold;
+}
+
+.search-config button {
+  background-color: transparent; /* Transparent background */
+  color: #1976d2; /* Text color */
+  padding: 10px 20px;
+  border: 2px solid #1976d2; /* Border color */
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.search-config button:hover {
+  background-color: #1976d2; /* Blue background on hover */
+  color: #fff; /* White text on hover */
+}
+
+footer {
+  background-color: #333;
+  color: #fff;
+  text-align: center;
+  padding: 10px 0;
+  position: fixed;
+  width: 100%;
+  bottom: 0;
+}
+
+footer .contact-info,
+footer .legal-links {
+  margin: 0;
+}
+
+footer .legal-links a {
+  color: #fff;
+  text-decoration: none;
+  margin: 0 10px;
+}
+
+/* Style for side-by-side checkboxes */
+.checkbox-group {
+  display: flex;
+  gap: 20px;
+}
+
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+}
+
+.checkbox-group input {
+  margin-right: 5px;
+}
+
+/* Accordion styles */
+.accordion {
+  background-color: #eee;
+  cursor: pointer;
+  padding: 10px;
+  width: 100%;
+  border: none;
+  text-align: left;
+  outline: none;
+  font-size: 15px;
+  transition: 0.4s;
+  margin-bottom: 10px; /* Add space between accordions */
+}
+
+.active, .accordion:hover {
+  background-color: #ccc;
+}
+
+.panel {
+  padding: 0 18px;
+  display: none;
+  background-color: white;
+  overflow: hidden;
+}
+
+/* Flexbox layout for form and accordion container */
+.form-container {
+  display: flex;
+  gap: 20px;
+}
+
+.form-section {
+  flex: 1;
+}
+
+.accordion-container {
+  flex: 1;
+  max-width: 600px; /* Increased width */
+}
+
+/* Margin between accordions */
+.accordion-item {
+  margin-bottom: 10px;
+}
+
+/* Blue color for the "Select Category:" text */
+#category-label {
+  color: #1976d2;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+  main {
+    width: 90%; /* Reduce width for smaller screens */
+  }
+
+  .form-container {
+    flex-direction: column; /* Stack form and accordion vertically */
+  }
+
+  .accordion-container {
+    max-width: 100%; /* Full width for accordion container */
+  }
+
+  .checkbox-group {
+    flex-direction: column; /* Stack checkboxes vertically */
+  }
+}
+
+@media (max-width: 480px) {
+  .search-config {
+    padding: 10px; /* Reduce padding for smaller screens */
+  }
+
+  .search-config select,
+  .search-config input[type="text"],
+  .search-config textarea {
+    padding: 5px; /* Reduce padding for inputs */
+  }
+
+  .search-config button {
+    padding: 5px 10px; /* Reduce padding for button */
+  }
+
+  .checkbox-group {
+    gap: 10px; /* Reduce gap between checkboxes */
+  }
+}
+
+/* Add space between buttons */
+.search-config button {
+  margin-right: 10px; /* Add space between buttons */
+}
+
+/* Style for the Delete button */
+#delete-button {
+  background-color: red; /* Red background */
+  color: white; /* White text */
+  border: 2px solid red; /* Red border */
+}
+
+#delete-button:hover {
+  background-color: darkred; /* Darker red on hover */
+  border-color: darkred; /* Darker red border on hover */
+}
+
+.header-inputs {
+  display: flex;
+  gap: 10px;
+}
+
+.header-inputs input[type="text"] {
+  flex: 1;
+}
