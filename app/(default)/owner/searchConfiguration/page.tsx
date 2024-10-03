@@ -52,6 +52,7 @@ const AddProductCategoryPage = () => {
         isChecked: rizz?.externalAttributesMetaData?.some(data => data.attributeName === attr.key)
       }));
       setAttributes(newAttributes);
+      setExternalAttributes(newAttributes);
     } else {
       setAttributes([]);
       setExternalAttributes([]);
