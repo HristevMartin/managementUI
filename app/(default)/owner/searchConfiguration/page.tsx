@@ -4,8 +4,10 @@ import './page.css'; // Import the CSS file
 import axios from 'axios';
 import { Button, IconButton, TextField } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useAuthJHipster } from "@/context/JHipsterContext"; // Import the context
 
 const AddProductCategoryPage = () => {
+  const { jHipsterAuthToken } = useAuthJHipster(); // Get the token from context
   const [category, setCategory] = useState('');
   const [categoryNames, setCategoryNames] = useState([]);
   const [searchType, setSearchType] = useState('');
@@ -114,7 +116,7 @@ const AddProductCategoryPage = () => {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-names-list`, {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
+            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
           }
         });
         setCategoryNames(response.data);
@@ -123,10 +125,10 @@ const AddProductCategoryPage = () => {
       }
     };
 
-    fetchCategoryNames();
-  }, []);
-
-
+    if (jHipsterAuthToken) {
+      fetchCategoryNames();
+    }
+  }, [jHipsterAuthToken]);
 
   useEffect(() => {
     if (category) {
@@ -135,7 +137,7 @@ const AddProductCategoryPage = () => {
           const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${category}`, {
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
+              Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
             }
           });
           const data = response.data;
@@ -144,7 +146,7 @@ const AddProductCategoryPage = () => {
             type: attr.type,
             required: attr.required,
             validations: attr.validations,
-            isChecked: false
+            isChecked: data.externalAttributesMetaData.some(dataAttr => dataAttr.attributeName === attr.attributeName)
           }));
           setAttributes(newAttributes);
           setExternalAttributes(newAttributes);
@@ -153,9 +155,11 @@ const AddProductCategoryPage = () => {
         }
       };
 
-      fetchAttributes();
+      if (jHipsterAuthToken) {
+        fetchAttributes();
+      }
     }
-  }, [category]);
+  }, [category, jHipsterAuthToken]);
 
   const handleCategoryChange = async (e) => {
     // const { value } = e.target;
@@ -164,7 +168,7 @@ const AddProductCategoryPage = () => {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${value}`, {
         headers: {
           'Content-Type': 'application/json',
-          Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
+          Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
         }
       });
       const data = response.data;
@@ -269,7 +273,7 @@ const AddProductCategoryPage = () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
+            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
           }
         }
       );
@@ -286,7 +290,7 @@ const handleDelete = async () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
+            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
           }
         }
       );
@@ -305,7 +309,7 @@ const handleUpdate = async () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
+            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
           }
         }
       );
@@ -323,7 +327,7 @@ const checkIfDataPresent = async () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
+            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
           }
         }
       );
