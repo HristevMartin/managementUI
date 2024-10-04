@@ -44,7 +44,6 @@ export function transformPayload(res) {
     entityType: res.entityType,
     parentEntityName: res.parentEntityName,
     fields: [],
-    relationships: [],
   };
 
   res.customFields.forEach((field) => {
@@ -52,10 +51,6 @@ export function transformPayload(res) {
 
     if (field.required) {
       fieldStr += " required";
-    }
-
-    if (field.external) {
-      fieldStr += " external";
     }
 
     if (field.validations) {
@@ -84,7 +79,6 @@ export function transformMetaCategoryData(data) {
   return data.map((item) => {
     const {
       fields,
-      externalAttributesMetaData,
       categoryId,
       ...desiredProperties
     } = item;
@@ -95,11 +89,6 @@ export function transformMetaCategoryData(data) {
         key: parts[0],
         type: parts[1],
         required: parts[2] === "required",
-        external:
-          Array.isArray(externalAttributesMetaData) &&
-          externalAttributesMetaData.some(
-            (attr) => attr.attributeName === parts[0]
-          ),
         validations: {
           min: parts[3]?.match(/\d+/)?.[0] ?? "",
           max: parts[4]?.match(/\d+/)?.[0] ?? "",
@@ -112,7 +101,6 @@ export function transformMetaCategoryData(data) {
       ...desiredProperties,
       customFields,
       categoryId,
-      externalAttributes: externalAttributesMetaData,
     };
   });
 }

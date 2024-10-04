@@ -24,7 +24,6 @@ const CustomTable = ({
   typeOptions,
   validationRules,
   mode,
-  toggleApiDialog,
   setApiFieldIndex,
   handleOpenApiDialog,
 }) => {
@@ -43,7 +42,6 @@ const CustomTable = ({
           <TableCell sx={{ fontWeight: 'bold' }}>Max</TableCell>
           <TableCell sx={{ fontWeight: 'bold' }}>Unique</TableCell>
           <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Required</TableCell>
-          <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>External</TableCell>
           {mode === 'fields' && <TableCell sx={{ fontWeight: 'bold' }}>Action</TableCell>}
         </TableRow>
       </TableHead>
@@ -137,25 +135,6 @@ const CustomTable = ({
                 />
               ) : (
                 <Checkbox checked={field.required} disabled />
-              )}
-            </TableCell>
-            <TableCell>
-              {mode === 'fields' ? (
-                // <Checkbox
-                //   checked={field.external}
-                //   onChange={(e) => handleFieldChange(index, 'external', e.target.checked)}
-                // />
-                <Checkbox
-                  checked={field.external}
-                  onChange={(e) => {
-                    handleFieldChange(index, 'external', e.target.checked);
-                    if (e.target.checked) {
-                      setApiFieldIndex(index);
-                    }
-                  }}
-                />
-              ) : (
-                <Checkbox checked={field.external} disabled />
               )}
             </TableCell>
             {mode === 'fields' && (
