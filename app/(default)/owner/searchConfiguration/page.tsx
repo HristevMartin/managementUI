@@ -2,19 +2,21 @@
 import React, { useState, useEffect } from 'react';
 import './page.css'; // Import the CSS file
 import axios from 'axios';
-import fieldTemplates from './fieldtemplates';
 import { Button, IconButton, TextField } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 const AddProductCategoryPage = () => {
   const [category, setCategory] = useState('');
+  const [categoryNames, setCategoryNames] = useState([]);
   const [searchType, setSearchType] = useState('');
   const [selectedAttributes, setSelectedAttributes] = useState([]);
   const [apiDetails, setApiDetails] = useState({
+    attribute: '',
     externalUrl: '',
     httpMethod: '',
     headers: [],
     payload: '',
+    responsePayload: [],
     responseParser: []
   });
   const [isDataPresent, setIsDataPresent] = useState(false);
@@ -22,20 +24,81 @@ const AddProductCategoryPage = () => {
   const [attributes, setAttributes] = useState([]);
   const [externalAttributes, setExternalAttributes] = useState([]);
 
-  const handleHeaderChange = (index, field, value) => {
+  const handleHeaderChange = (index, field, value, attribute) => {
     const updatedHeaders = apiDetails.headers.map((header, idx) => {
       if (idx === index) {
         return { ...header, [field]: value };
       }
       return header;
     });
+    const findD = selectedAttributes.find(e => e.attribute === attribute).headers.map((header, idx) => {
+      if (idx === index) {
+        return { ...header, [field]: value };
+      }
+      return header;
+    });
+
+    setSelectedAttributes(prev => {
+      return prev.map(attr =>
+        attr.attribute === attribute ? { ...attr, headers: findD } : attr
+      );
+    });
     setApiDetails((prev) => ({ ...prev, headers: updatedHeaders }));
   };
 
-  const removeHeader = (index) => {
+  const handleResponseParserChange = (index, field, value, attribute) => {
+    const updatedResponseParser = apiDetails.responseParser.map((responseParser, idx) => {
+      if (idx === index) {
+        return { ...responseParser, [field]: value };
+      }
+      return responseParser;
+    });
+
+    const findD = selectedAttributes.map(attr => {
+      if (attr.attribute === attribute) {
+        return {
+          ...attr,
+          responseParser: attr.responseParser.map((responseParser, idx) => {
+            if (idx === index) {
+              return { ...responseParser, [field]: value };
+            }
+            return responseParser;
+          })
+        };
+      }
+      return attr;
+    });
+
+    setSelectedAttributes(findD);
+    setApiDetails((prev) => ({ ...prev, responseParser: updatedResponseParser }));
+  };
+
+  const removeHeader = (index, attribute) => {
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === attribute) {
+          return { ...attr, headers: attr.headers.filter((_, idx) => idx !== index) };
+        }
+        return attr;
+      });
+    });
     setApiDetails((prev) => ({
       ...prev,
       headers: prev.headers.filter((_, idx) => idx !== index),
+    }));
+  };
+  const removeResponseParser = (index, attribute) => {
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === attribute) {
+          return { ...attr, responseParser: attr.responseParser.filter((_, idx) => idx !== index) };
+        }
+        return attr;
+      });
+    });
+    setApiDetails((prev) => ({
+      ...prev,
+      responseParser: prev.responseParser.filter((_, idx) => idx !== index),
     }));
   };
 
@@ -44,16 +107,80 @@ const AddProductCategoryPage = () => {
     handleCategoryChange();
   }, [category]);
 
-  const handleCategoryChange = (rizz) => {
-    const template = fieldTemplates[category];
-    if (template) {
-      const newAttributes = template.map(attr => ({
-        ...attr,
-        isChecked: rizz?.externalAttributesMetaData?.some(data => data.attributeName === attr.key)
+
+  useEffect(() => {
+    const fetchCategoryNames = async () => {
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-names-list`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
+          }
+        });
+        setCategoryNames(response.data);
+      } catch (error) {
+        console.error("Error fetching category names", error);
+      }
+    };
+
+    fetchCategoryNames();
+  }, []);
+
+
+
+  useEffect(() => {
+    if (category) {
+      const fetchAttributes = async () => {
+        try {
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${category}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
+            }
+          });
+          const data = response.data;
+          const newAttributes = data.externalAttributesMetaData.map(attr => ({
+            key: attr.attributeName,
+            type: attr.type,
+            required: attr.required,
+            validations: attr.validations,
+            isChecked: false
+          }));
+          setAttributes(newAttributes);
+          setExternalAttributes(newAttributes);
+        } catch (error) {
+          console.error("Error fetching attributes", error);
+        }
+      };
+
+      fetchAttributes();
+    }
+  }, [category]);
+
+  const handleCategoryChange = async (e) => {
+    // const { value } = e.target;
+    // setCategory(value);
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${value}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
+        }
+      });
+      const data = response.data;
+  
+      const newAttributes = data.externalAttributesMetaData.map(attr => ({
+        key: attr.attributeName,
+        type: attr.type,
+        required: attr.required,
+        validations: attr.validations,
+        isChecked: data.externalAttributesMetaData.some(dataAttr => dataAttr.attributeName === attr.attributeName)
       }));
+  
       setAttributes(newAttributes);
       setExternalAttributes(newAttributes);
-    } else {
+    } catch (error) {
+      console.error("Error fetching attributes", error);
       setAttributes([]);
       setExternalAttributes([]);
     }
@@ -61,18 +188,35 @@ const AddProductCategoryPage = () => {
 
   const handleSearchTypeChange = (e) => {
     const { value } = e.target;
+    setSelectedAttributes(p => [...p, { ...apiDetails, attribute: value }]);
     setSearchType(value);
-
-    if (value !== 'external') {
-      resetApiDetails();
-    } else {
-      setSelectedAttributes([]);
-    }
   };
 
   const handleExternalAttributesChange = (e) => {
     const { value, checked } = e.target;
-    setSelectedAttributes(prevState => checked ? [...prevState, value] : prevState.filter(attr => attr !== value));
+    setSelectedAttributes(prevState => {
+      if (checked) {
+        const existingAttribute = prevState.find(attr => attr.attribute === value || attr?.attributeName === value);
+        if (existingAttribute) {
+          return prevState.map(attr =>
+            attr.attribute === value || attr?.attributeName === value
+              ? { ...attr, attribute: value }
+              : attr
+          );
+        }
+        return [...prevState, {
+          attribute: value,
+          externalUrl: '',
+          httpMethod: '',
+          headers: [],
+          payload: '',
+          responsePayload:[],
+          responseParser: []
+        }];
+      } else {
+        return prevState.filter(attr => attr.attribute !== value);
+      }
+    });
   };
 
   const resetApiDetails = () => {
@@ -81,24 +225,37 @@ const AddProductCategoryPage = () => {
       httpMethod: '',
       headers: [],
       payload: '',
+      responsePayload:[],
       responseParser: []
     });
   };
-
   const createPayload = () => {
-    const externalAttributesMetaData = selectedAttributes.map(attribute => ({
-      attributeName: attribute,
-      externalUrl: apiDetails.externalUrl || '',
-      httpMethod: apiDetails.httpMethod || '',
-      headers: [apiDetails.headers.length ? apiDetails.headers[0] : []],
-      payload: apiDetails.payload || {},
-      responseParser: [apiDetails.responseParser.length ? apiDetails.responseParser[0] : []]
-    }));
-
+    const externalAttributesMetaData = selectedAttributes
+      .map(attribute => {
+        if (attribute.attribute === 'external') return null;
+        return {
+          attributeName: attribute.attribute, // Ensure attributeName is set correctly
+          externalUrl: attribute.externalUrl || '',
+          httpMethod: attribute.httpMethod || '',
+          headers: attribute.headers.filter(header => header.key && header.value) || [],
+          payload: attribute.payload || {},
+          responsePayload: attribute.responsePayload && Object.keys(attribute.responsePayload).length > 0 ? attribute.responsePayload : {},
+          responseParser: attribute.responseParser.filter(parser => parser.key && parser.value) || {}
+        };
+      })
+      .filter(attribute => attribute !== null);
+  
+    const entityData = selectedAttributes.find(e => e.attribute === searchType);
+  
     return {
       entityName: category,
       entitySearchType: searchType,
-      externalEntityMetaData: apiDetails,
+      externalEntityMetaData: {
+        ...entityData,
+        headers: entityData.headers.filter(header => header.key && header.value),
+        responseParser: entityData.responseParser.filter(parser => parser.key && parser.value),
+        responsePayload: entityData.responsePayload && Object.keys(entityData.responsePayload).length > 0 ? entityData.responsePayload : {}
+      },
       externalAttributesMetaData: externalAttributesMetaData
     };
   };
@@ -107,12 +264,12 @@ const AddProductCategoryPage = () => {
     const payload = createPayload();
     try {
       const response = await axios.post(
-        'http://localhost:8080/api/jdl/create-entity-search-configuration',
+        `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/create-entity-search-configuration`,
         payload,
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcyODA1MTU1MCwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzI3OTY1MTUwfQ.8racOUe6UJlJLfnnYo4GEtBW-vl4LSOm4HI3uHkhYjXV_1HUkalnC8Yv1JOuSStATSe-VQtOV7QrskCho3Kv4A'
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
           }
         }
       );
@@ -122,14 +279,14 @@ const AddProductCategoryPage = () => {
     }
   };
 
-  const handleDelete = async () => {
+const handleDelete = async () => {
     try {
       const response = await axios.delete(
-        `http://localhost:8080/api/jdl/delete-entity-search-configuration/${category}`,
+        `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/delete-entity-search-configuration/${category}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcyODA1MTU1MCwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzI3OTY1MTUwfQ.8racOUe6UJlJLfnnYo4GEtBW-vl4LSOm4HI3uHkhYjXV_1HUkalnC8Yv1JOuSStATSe-VQtOV7QrskCho3Kv4A'
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
           }
         }
       );
@@ -139,18 +296,16 @@ const AddProductCategoryPage = () => {
     }
   };
 
-  const handleUpdate = async () => {
+const handleUpdate = async () => {
     const payload = createPayload();
-    console.log("Current Data:", existingData);
-    console.log("Updated Data:", payload);
     try {
       const response = await axios.put(
-        'http://localhost:8080/api/jdl/update-entity-search-configuration',
+        `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/update-entity-search-configuration`,
         payload,
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcyODA1MTU1MCwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzI3OTY1MTUwfQ.8racOUe6UJlJLfnnYo4GEtBW-vl4LSOm4HI3uHkhYjXV_1HUkalnC8Yv1JOuSStATSe-VQtOV7QrskCho3Kv4A'
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
           }
         }
       );
@@ -160,15 +315,15 @@ const AddProductCategoryPage = () => {
     }
   };
 
-  const checkIfDataPresent = async () => {
+const checkIfDataPresent = async () => {
     if (!category) return;
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/jdl/get-entity-search-configuration/${category}`,
+        `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${category}`,
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTcyODA1MTU1MCwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzI3OTY1MTUwfQ.8racOUe6UJlJLfnnYo4GEtBW-vl4LSOm4HI3uHkhYjXV_1HUkalnC8Yv1JOuSStATSe-VQtOV7QrskCho3Kv4A'
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_AUTH_TOKEN}`
           }
         }
       );
@@ -177,9 +332,8 @@ const AddProductCategoryPage = () => {
       if (data) {
         setExistingData(data);
         setSearchType(data.entitySearchType);
-        setApiDetails(data.externalEntityMetaData);
-        setSelectedAttributes(data.externalAttributesMetaData.map(attr => attr.attributeName));
-        handleCategoryChange(data);
+        setSelectedAttributes([...data.externalAttributesMetaData, { ...data.externalEntityMetaData, attribute: 'external' }]);
+        // handleCategoryChange(data);
       }
     } catch (error) {
       console.error("Check data error", error);
@@ -188,21 +342,28 @@ const AddProductCategoryPage = () => {
   };
 
   const addHeader = () => {
+    setSelectedAttributes(p => p.map(e => ({ ...e, headers: [...e.headers, { key: '', value: '' }] })));
     setApiDetails((prev) => ({
       ...prev,
       headers: [...prev.headers, { key: '', value: '' }],
     }));
   };
 
-
+  const addResponseParser = () => {
+    setSelectedAttributes(p => p.map(e => ({ ...e, responseParser: [...e.responseParser, { key: '', value: '' }] })));
+    setApiDetails((prev) => ({
+      ...prev,
+      responseParser: [...prev.responseParser, { key: '', value: '' }],
+    }));
+  };
   return (
     <main>
       <section className="search-config">
         <label id="category-label" htmlFor="category">Select Category:</label>
         <select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
-          <option value="">Choose a category</option>
-          {Object.keys(fieldTemplates).map(cat => (
-            <option key={cat} value={cat}>{cat}</option>
+          <option value="">Select a category</option>
+          {categoryNames.map((name) => (
+            <option key={name} value={name}>{name}</option>
           ))}
         </select>
 
@@ -216,8 +377,8 @@ const AddProductCategoryPage = () => {
         </fieldset>
 
         <div id="searchType-accordion-container">
-          {searchType === 'external' && (
-            <Accordion attribute="API Details" existingData={existingData} setApiDetails={setApiDetails} handleHeaderChange={handleHeaderChange} removeHeader={removeHeader} apiDetails={apiDetails} addHeader={addHeader}/>
+          {selectedAttributes.find(e => (e.attribute === 'external' || e?.attributeName === 'external')) && (
+            <Accordion attribute={searchType} existingData={existingData} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange}  handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser}   apiDetails={selectedAttributes.find(e => e.attribute === 'external')} addHeader={addHeader} addResponseParser={addResponseParser}/>
           )}
         </div>
 
@@ -230,7 +391,7 @@ const AddProductCategoryPage = () => {
                   type="checkbox"
                   name="attributes"
                   value={attr.key}
-                  checked={selectedAttributes.includes(attr.key)}
+                  checked={selectedAttributes.some(e => e.attribute === attr.key || e?.attributeName === attr.key)}
                   onChange={handleExternalAttributesChange}
                 /> {attr.key}
               </label>
@@ -248,16 +409,17 @@ const AddProductCategoryPage = () => {
                   type="checkbox"
                   name="external-attributes"
                   value={attr.key}
-                  checked={selectedAttributes.includes(attr.key)}
+                  checked={selectedAttributes.find(e => e.attribute === attr.key || e?.attributeName === attr.key)}
                   onChange={handleExternalAttributesChange}
                 /> {attr.key}
               </label>
             ))}
           </div>
         </fieldset>
-        {searchType === 'external' && selectedAttributes.map(attr => (
-          <Accordion key={attr} attribute={attr} existingData={existingData} setApiDetails={setApiDetails} handleHeaderChange={handleHeaderChange} removeHeader={removeHeader} apiDetails={apiDetails} addHeader={addHeader}/>
-        ))}
+        {selectedAttributes.map(attr => {
+          if (attr.attribute === 'external' || attr?.attributeName === 'external') return;
+          return <Accordion key={attr.attribute} attribute={attr.attribute} existingData={attr} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange} handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser} apiDetails={attr} addHeader={addHeader}  addResponseParser={addResponseParser} />
+        })}
 
         <button type="submit" id="submit-button" onClick={handleSubmit}>Submit</button>
         <button type="button" id="delete-button" onClick={handleDelete}>Delete</button>
@@ -267,7 +429,7 @@ const AddProductCategoryPage = () => {
   );
 };
 
-const Accordion = ({ attribute, existingData, setApiDetails, isApiDetails, handleHeaderChange, removeHeader, apiDetails, addHeader }) => {
+const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange, removeHeader, apiDetails, addHeader,addResponseParser, handleResponseParserChange,removeResponseParser  }) => {
   const [error, setError] = useState('');
 
   const toggleAccordion = (e) => {
@@ -276,28 +438,45 @@ const Accordion = ({ attribute, existingData, setApiDetails, isApiDetails, handl
     panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
   };
 
-  const handleJsonChange = (e, key) => {
+  const handleJsonChange = (e, key, attribute) => {
     try {
       const parsedJson = JSON.parse(e.target.value);
-      setApiDetails(prev => ({ ...prev, [key]: [parsedJson] }));
+      setApiDetails(prev =>
+        prev.map(item =>
+          item.attribute === attribute
+            ? { ...item, [key]: [parsedJson] }
+            : item
+        )
+      )
       setError('');
     } catch (error) {
       setError('Invalid JSON format');
     }
   };
 
-  const existingAttributeData = isApiDetails ? existingData : existingData?.externalAttributesMetaData?.find(attr => attr.attributeName === attribute) || {};
-  console.log(existingAttributeData," anan");
+  existingData = apiDetails;
   return (
     <>
       <button className="accordion" onClick={toggleAccordion}>
-        {attribute}
+        {existingData?.attributeName || attribute}
       </button>
       <div className="panel" style={{ display: 'none' }}>
         <label htmlFor={`${attribute}-url`}>URL:</label>
-        <input type="text" id={`${attribute}-url`} placeholder="Enter API URL" defaultValue={existingAttributeData.externalUrl || ''} onChange={(e) => setApiDetails(prev => ({ ...prev, externalUrl: e.target.value }))} /><br />
+        <input type="text" id={`${attribute}-url`} placeholder="Enter API URL" defaultValue={existingData.externalUrl || ''} onChange={(e) => setApiDetails(prev =>
+          prev.map(item =>
+            item.attribute === attribute
+              ? { ...item, externalUrl: e.target.value }
+              : item
+          )
+        )} /><br />
         <label htmlFor={`${attribute}-httpMethod`}>HTTP Method:</label>
-        <select id={`${attribute}-httpMethod`} defaultValue={existingAttributeData.httpMethod || ''} onChange={(e) => setApiDetails(prev => ({ ...prev, httpMethod: e.target.value }))}>
+        <select id={`${attribute}-httpMethod`} defaultValue={existingData.httpMethod || ''} onChange={(e) => setApiDetails(prev =>
+          prev.map(item =>
+            item.attribute === attribute
+              ? { ...item, httpMethod: e.target.value }
+              : item
+          )
+        )}>
           <option value="">Select HTTP Method</option>
           <option value="POST">POST</option>
           <option value="GET">GET</option>
@@ -305,38 +484,79 @@ const Accordion = ({ attribute, existingData, setApiDetails, isApiDetails, handl
         </select><br />
         <label htmlFor={`${attribute}-headers`}>Headers:</label>
         {apiDetails?.headers.map((header, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            marginBottom: '10px',
-                            marginTop: '14px',
-                          }}
-                        >
-                          <TextField
-                            label="Header Key"
-                            value={header.key}
-                            onChange={(e) => handleHeaderChange(index, 'key', e.target.value)}
-                            style={{ marginRight: '10px' }}
-                          />
-                          <TextField
-                            label="Header Value"
-                            value={header.value}
-                            onChange={(e) => handleHeaderChange(index, 'value', e.target.value)}
-                          />
-                          <IconButton onClick={() => removeHeader(index)}>
-                          </IconButton>
-                        </div>
-                      ))}
-                       <Button onClick={() => addHeader()} variant="outlined">
-                        Add Header
-                      </Button>
-        {/* <textarea id={`${attribute}-headers`} placeholder="Enter headers in JSON format" defaultValue={existingAttributeData.headers ? JSON.stringify(existingAttributeData.headers[0]) : ''} onChange={(e) => handleJsonChange(e, 'headers')}></textarea><br /> */}
+          <div
+            key={index}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: '10px',
+              marginTop: '14px',
+            }}
+          >
+            <TextField
+              label="Header Key"
+              value={header.key}
+              onChange={(e) => handleHeaderChange(index, 'key', e.target.value, attribute)}
+              style={{ marginRight: '10px' }}
+            />
+            
+          
+            
+            <TextField
+              label="Header Value"
+              value={header.value}
+              onChange={(e) => handleHeaderChange(index, 'value', e.target.value, attribute)}
+            />
+            <div className='ml-6'>
+            <IconButton onClick={() => removeHeader(index, attribute)}>
+              <DeleteIcon />
+            </IconButton>
+            </div>
+          </div>
+        ))}
+        <Button onClick={() => addHeader(attribute)} variant="outlined">
+          Add Header
+        </Button>
         <label htmlFor={`${attribute}-payload`}>Payload:</label>
-        <textarea id={`${attribute}-payload`} placeholder="Enter payload details in JSON format" defaultValue={existingAttributeData.payload ? JSON.stringify(existingAttributeData.payload) : ''} onChange={(e) => handleJsonChange(e, 'payload')}></textarea><br />
-        <label htmlFor={`${attribute}-response-parser`}>Response Parser:</label>
-        <textarea id={`${attribute}-response-parser`} placeholder="Enter response parser details" defaultValue={existingAttributeData.responseParser ? JSON.stringify(existingAttributeData.responseParser[0]) : ''} onChange={(e) => handleJsonChange(e, 'responseParser')}></textarea><br />
+        <textarea id={`${attribute}-payload`} placeholder="Enter payload details in JSON format" defaultValue={existingData.payload ? JSON.stringify(existingData.payload) : ''} onChange={(e) => handleJsonChange(e, 'payload', attribute)}></textarea><br />
+        <label htmlFor={`${attribute}-responseParser`}>Response Parser</label>
+        {apiDetails?.responseParser.map((header, index) => (
+          <div
+            key={index}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              marginBottom: '10px',
+              marginTop: '14px',
+            }}
+          >
+            <TextField
+              label="Response Parser Key"
+              value={header.key}
+              onChange={(e) => handleResponseParserChange(index, 'key', e.target.value, attribute)}
+              style={{ marginRight: '10px' }}
+            />
+            
+          
+            
+            <TextField
+              label="Response Parser Value"
+              value={header.value}
+              onChange={(e) => handleResponseParserChange(index, 'value', e.target.value, attribute)}
+            />
+            <div className='ml-6'>
+            <IconButton onClick={() => removeResponseParser(index, attribute)}>
+              <DeleteIcon />
+            </IconButton>
+            </div>
+          </div>
+        ))}
+        <Button onClick={() => addResponseParser(attribute)} variant="outlined">
+          Add Response Parser
+        </Button>
+        
+        <label htmlFor={`${attribute}-response-payload`}>Response Payload:</label>
+        <textarea id={`${attribute}-response-payload`} placeholder="Enter response payload details" defaultValue={existingData.responsePayload ? JSON.stringify(existingData.responsePayload[0]) : ''} onChange={(e) => handleJsonChange(e, 'responsePayload', attribute)}></textarea><br />
         {error && <p style={{ color: 'red' }}>{error}</p>}
       </div>
     </>
