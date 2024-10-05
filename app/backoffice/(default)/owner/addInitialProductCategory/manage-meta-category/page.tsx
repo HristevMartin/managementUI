@@ -56,8 +56,8 @@ const ManageMetaCategory = () => {
   });
   const [tempApiChanges, setTempApiChanges] = useState({});
   const [currentEditingFieldKey, setCurrentEditingFieldKey] = useState(null);
-
-  console.log("tempApiChanges:", tempApiChanges);
+  const [selectedRelationship, setSelectedRelationship] = useState(null);
+  const [rawDataForRelationship, setRawDataForRelationship] = useState([]);
 
   const saveModalChanges = () => {
     try {
@@ -185,16 +185,19 @@ const ManageMetaCategory = () => {
             newEntityName: detail.newEntityName,
           }));
 
-          console.log('raw data:', data);
+          console.log("raw data:", data);
+          setRawDataForRelationship(data);
           data = transformMetaCategoryData(data);
           console.log("the data:", data);
+
           // check external data here
           setProductTypes(data);
+
           if (data.length > 0) {
             setSelectedProductType(data[0]);
             console.log("data[0].customFields", data[0].customFields);
             setSelectedFields(data[0].customFields || []);
-            // add the external attributes as well.
+            setSelectedRelationship(data[0]);
           }
         } catch (err) {
           setError("There is not data available");
@@ -209,6 +212,8 @@ const ManageMetaCategory = () => {
       // Potentially trigger token fetch or wait for token to be set
     }
   }, [jHipsterAuthToken]);
+
+  console.log("selectedRelationship!!!:", selectedRelationship);
 
   const handleDelete = (index) => {
     setOpenDeleteDialog(true);
@@ -528,6 +533,46 @@ const ManageMetaCategory = () => {
     }));
   };
 
+  function formatRelationshipFrom(relationshipFrom) {
+    return relationshipFrom.split("{")[0];
+  }
+
+  const handleDeleteRelationship = (index) => {
+    // const newRelationships = selectedRelationship.map((rel) => ({ ...rel }));
+
+    console.log("selectedRelationship", selectedRelationship);
+    console.log("selectedRelationship!?!?!", selectedRelationship[index]);
+    console.log("new relationship to be deleted", {
+      entityName: selectedProductType.entityName,
+      newRelationship: selectedRelationship[index],
+    });
+
+    let relationshipToRemove = selectedRelationship[index];
+    let currentProductType = selectedProductType.entityName;
+
+    console.log("rawDataForRelationship>>", rawDataForRelationship);
+
+    // Filter the rawDataForRelationship to get the object that matches the currentProductType
+
+    // Filter out the relationship directly from selectedRelationship (current state)
+    let newDataState = selectedRelationship.filter(
+      (rel) => rel.relationshipTo !== relationshipToRemove.relationshipTo
+    );
+
+    setSelectedRelationship(newDataState);
+
+    // whole object to the api..
+    
+    let filteredObject = rawDataForRelationship.filter(
+      (obj) => obj.entityName === currentProductType
+    );
+
+    filteredObject[0].relationships = newDataState;
+    console.log('filteredObject22', filteredObject);
+
+    // send filteredObject payload to api and also make sure that the rawDataForRelationship is reflected.
+  };
+
   return (
     <Container
       sx={{
@@ -546,7 +591,12 @@ const ManageMetaCategory = () => {
         value={selectedProductType}
         onChange={(event, newValue) => {
           setSelectedProductType(newValue);
-          setSelectedFields(newValue.customFields || []);
+          setSelectedFields(newValue?.customFields || []);
+          if (newValue && newValue.relationships) {
+            setSelectedRelationship(newValue?.relationships);
+          } else {
+            setSelectedRelationship([]);
+          }
         }}
         disableClearable
         renderInput={(params) => (
@@ -911,6 +961,46 @@ const ManageMetaCategory = () => {
             )}
           </TableBody>
         </Table>
+
+        {/* relationship table */}
+        {selectedRelationship.length > 0 && (
+          <Paper sx={{ mt: 4, p: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Relationships Selection
+            </Typography>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell style={{ fontWeight: "bold" }}>Type</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>From</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>To</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {selectedRelationship.map((rel, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{rel.relationshipType}</TableCell>
+                    <TableCell>
+                      {formatRelationshipFrom(rel.relationshipFrom)}
+                    </TableCell>
+                    <TableCell>{rel.relationshipTo}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        onClick={() => handleDeleteRelationship(index)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Paper>
+        )}
+
+        {/* ends relationship table */}
+
         <div className="flex justify-between">
           <Button
             onClick={(e) => setShowAddField(true)}
@@ -961,6 +1051,7 @@ const ManageMetaCategory = () => {
           </Dialog>
         </div>
       </Paper>
+
       <Dialog
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
