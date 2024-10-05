@@ -20,6 +20,10 @@ import {
   DialogContentText,
   DialogTitle,
   Autocomplete,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -46,17 +50,10 @@ const ManageMetaCategory = () => {
   const [selectedCategoriesForDeletion, setSelectedCategoriesForDeletion] =
     useState([]);
   const { jHipsterAuthToken } = useAuthJHipster();
-  const [isApiModalOpen, setIsApiModalOpen] = useState(false);
-  const [currentFieldIndex, setCurrentFieldIndex] = useState(null);
 
-  const [tempApiChanges, setTempApiChanges] = useState({});
-  const [currentEditingFieldKey, setCurrentEditingFieldKey] = useState(null);
   const [selectedRelationship, setSelectedRelationship] = useState(null);
   const [rawDataForRelationship, setRawDataForRelationship] = useState([]);
-
-  console.log("Temporary API changes saved:", tempApiChanges);
-
-  console.log("isApiModalOpen:", isApiModalOpen);
+  const [selectedEntityType, setSelectedEntityType] = useState(null);
 
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
@@ -146,9 +143,11 @@ const ManageMetaCategory = () => {
           );
 
           const entitiesDetails = await Promise.all(detailsRequests);
+          console.log("entitiesDetails", entitiesDetails);
 
           let data = entitiesDetails.map((detail) => ({
             entityName: detail.entityName,
+            entityType: detail.entityType,
             fields: detail.fields,
             relationships: detail.relationships || [],
             externalAttributesMetaData: detail.externalAttributesMetaData || [],
@@ -167,7 +166,7 @@ const ManageMetaCategory = () => {
 
           if (data.length > 0) {
             setSelectedProductType(data[0]);
-            console.log("data[0].customFields", data[0].customFields);
+            setSelectedEntityType(data[0].entityType);
             setSelectedFields(data[0].customFields || []);
             setSelectedRelationship(data[0]);
           }
@@ -251,6 +250,7 @@ const ManageMetaCategory = () => {
     console.log("selectedFields:", selectedFields);
     console.log("editFieldIndex:", editFieldIndex);
     console.log("fieldEdits", fieldEdits);
+
     const updatedFields = selectedFields.map((field, idx) => {
       return idx === editFieldIndex ? { ...fieldEdits } : field;
     });
@@ -263,15 +263,46 @@ const ManageMetaCategory = () => {
     console.log("passinghere");
 
     console.log("selectedProductType", selectedProductType);
+    console.log("selectedRelationshipM<", selectedRelationship);
+
+    if (selectedRelationship.length > 0) {
+      console.log("there are relationships", selectedRelationship);
+    } else {
+      console.log("no relationships", selectedRelationship);
+    }
+
+    console.log("updatedFieldsM<", updatedFields);
 
     const payload = {
       entityName: selectedProductType?.entityName,
-      fields: updatedFields.map(
-        (field) =>
-          `${field.key} ${field.type}${field.required ? " required" : ""}`
-      ),
-      relationships: [],
+      fields: updatedFields.map((field) => {
+        let fieldSpec = `${field.key} ${field.type}${
+          field.required ? " required" : ""
+        }`;
+
+        // check the of what needs to be the structure of the fieldSpec
+        // if (field.validations) {
+        //   const { min, max, unique } = field.validations;
+
+        //   fieldSpec += `${min ? ` min(${min})` : ""}`;
+        //   fieldSpec += `${max ? ` max(${max})` : ""}`;
+        //   fieldSpec += unique ? " unique" : "";
+        // }
+        // return fieldSpec;
+        return fieldSpec;
+      }),
+      relationships:
+        selectedRelationship.length > 0 ? selectedRelationship : [],
     };
+
+    console.log("payload.fields", payload);
+
+    payload.entityType = selectedEntityType;
+    payload.externalAttributesMetaData = [];
+    payload.parentEntityName = "";
+    payload.enableSearch = false;
+    payload.searchFields = [];
+    payload.externalFlag = false;
 
     console.log("Final Transformed Payload:", JSON.stringify(payload, null, 2));
 
@@ -374,7 +405,7 @@ const ManageMetaCategory = () => {
     return relationshipFrom.split("{")[0];
   }
 
-  const handleDeleteRelationship = (index) => {
+  const handleDeleteRelationship = async (index) => {
     // const newRelationships = selectedRelationship.map((rel) => ({ ...rel }));
 
     console.log("selectedRelationship", selectedRelationship);
@@ -406,9 +437,30 @@ const ManageMetaCategory = () => {
 
     filteredObject[0].relationships = newDataState;
     console.log("filteredObject22", filteredObject);
+    filteredObject[0].parentEntityName = "";
 
-    // send filteredObject payload to api and also make sure that the rawDataForRelationship is reflected.
+    const response = await fetch(`${apiUrlSpring}/api/jdl/update-entity`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jHipsterAuthToken}`,
+      },
+      body: JSON.stringify(filteredObject),
+    });
+
+    if (!response.ok) {
+      console.log("Failed to delete relationship:", response);
+    }
+
+    console.log("response", response);
+    alert("Relationship Deleted Successfully");
   };
+
+  console.log("selectedEntityType", selectedEntityType);
+
+  let entityTypeOptions = ["reference", "product", "variant"];
+
+  console.log("show me the selectedEntityType", selectedEntityType);
 
   return (
     <Container
@@ -429,6 +481,7 @@ const ManageMetaCategory = () => {
         onChange={(event, newValue) => {
           setSelectedProductType(newValue);
           setSelectedFields(newValue?.customFields || []);
+          setSelectedEntityType(newValue?.entityType || "");
           if (newValue && newValue.relationships) {
             setSelectedRelationship(newValue?.relationships);
           } else {
@@ -440,6 +493,25 @@ const ManageMetaCategory = () => {
           <TextField {...params} label="Select Category" />
         )}
       />
+      {console.log("selectedEntityType", selectedEntityType)}
+
+      <FormControl fullWidth sx={{ mt: 2, mb: 4 }}>
+        <InputLabel id="entity-type-label">Entity Type</InputLabel>
+        <Select
+          labelId="entity-type-label"
+          id="entity-type-select"
+          value={selectedEntityType}
+          label="Entity Type"
+          onChange={(event) => setSelectedEntityType(event.target.value)}
+        >
+          {/* Assuming you have a list of possible entity types */}
+          {entityTypeOptions.map((type) => (
+            <MenuItem key={type} value={type}>
+              {type}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
 
       <Paper sx={{ p: 2 }}>
         <Table>
