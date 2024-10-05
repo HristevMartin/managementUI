@@ -48,39 +48,11 @@ const ManageMetaCategory = () => {
   const { jHipsterAuthToken } = useAuthJHipster();
   const [isApiModalOpen, setIsApiModalOpen] = useState(false);
   const [currentFieldIndex, setCurrentFieldIndex] = useState(null);
-  const [apiDetails, setApiDetails] = useState({
-    apiUrl: "",
-    headers: [],
-    parsers: [],
-    payloadBody: {},
-  });
+
   const [tempApiChanges, setTempApiChanges] = useState({});
   const [currentEditingFieldKey, setCurrentEditingFieldKey] = useState(null);
   const [selectedRelationship, setSelectedRelationship] = useState(null);
   const [rawDataForRelationship, setRawDataForRelationship] = useState([]);
-
-  const saveModalChanges = () => {
-    try {
-      const newApiDetails = {
-        ...apiDetails,
-        payload: apiDetails.payloadBody,
-      };
-
-      setTempApiChanges({
-        attributeName: currentEditingFieldKey,
-        externalUrl: newApiDetails.apiUrl,
-        headers: newApiDetails.headers,
-        payload: newApiDetails.payload,
-        responseParser: newApiDetails.parsers,
-        mockup: false,
-      });
-
-      console.log("Saving modal changes:", newApiDetails);
-      setIsApiModalOpen(false);
-    } catch (error) {
-      console.error("Failed to parse JSON for payload:", error);
-    }
-  };
 
   console.log("Temporary API changes saved:", tempApiChanges);
 
@@ -275,50 +247,29 @@ const ManageMetaCategory = () => {
   };
 
   const saveEdit = async () => {
+    console.log("here..");
+    console.log("selectedFields:", selectedFields);
+    console.log("editFieldIndex:", editFieldIndex);
+    console.log("fieldEdits", fieldEdits);
     const updatedFields = selectedFields.map((field, idx) => {
       return idx === editFieldIndex ? { ...fieldEdits } : field;
     });
 
+    console.log("beehere");
+
     setSelectedFields(updatedFields);
     setEditFieldIndex(null);
 
-    const allExternalAttributes = selectedProductType.externalAttributes.map(
-      (attr) => {
-        if (attr.attributeName === tempApiChanges.attributeName) {
-          console.log(
-            `Applying changes for ${attr.attributeName}:`,
-            tempApiChanges
-          );
-          return { ...attr, ...tempApiChanges };
-        }
-        return attr;
-      }
-    );
+    console.log("passinghere");
 
-    console.log(
-      "Merged External Attributes:",
-      JSON.stringify(allExternalAttributes, null, 2)
-    );
+    console.log("selectedProductType", selectedProductType);
 
     const payload = {
-      entityName: selectedProductType.entityName,
+      entityName: selectedProductType?.entityName,
       fields: updatedFields.map(
         (field) =>
-          `${field.key} ${field.type}${field.required ? " required" : ""}${
-            field.external ? " external" : ""
-          }`
+          `${field.key} ${field.type}${field.required ? " required" : ""}`
       ),
-      externalAttributesMetaData: allExternalAttributes.map((attr) => {
-        if (typeof attr.payload === "string") {
-          try {
-            attr.payload = JSON.parse(attr.payload);
-          } catch (error) {
-            console.error("Failed to parse payload:", error);
-            attr.payload = {};
-          }
-        }
-        return attr;
-      }),
       relationships: [],
     };
 
@@ -406,52 +357,6 @@ const ManageMetaCategory = () => {
     TextBlob: ["unique"],
   };
 
-  const handleExternalToggle = (index) => {
-    const field = selectedFields[index];
-    let externalDetails;
-
-    if (!Array.isArray(selectedProductType.externalAttributes)) {
-      selectedProductType.externalAttributes = [];
-    }
-
-    externalDetails = selectedProductType.externalAttributes.find(
-      (attr) => attr.attributeName === field.key
-    );
-
-    field.external = !field.external;
-
-    if (field.external) {
-      if (!externalDetails) {
-        externalDetails = {
-          attributeName: field.key,
-          externalUrl: "",
-          headers: [],
-          payload: "",
-          responseParser: [],
-          mockup: false,
-        };
-        selectedProductType.externalAttributes.push(externalDetails);
-      }
-
-      setApiDetails({
-        apiUrl: externalDetails.externalUrl,
-        headers: externalDetails.headers,
-        payloadBody: externalDetails.payload,
-        parsers: externalDetails.responseParser,
-      });
-
-      setCurrentFieldIndex(index);
-      setCurrentEditingFieldKey(field.key);
-      setIsApiModalOpen(true);
-    } else {
-      setIsApiModalOpen(false);
-    }
-
-    const newFields = [...selectedFields];
-    newFields[index] = field;
-    setSelectedFields(newFields);
-  };
-
   const handleSelectCategory = (category) => {
     setSelectedCategoriesForDeletion((prevSelected) => {
       const index = prevSelected.findIndex(
@@ -463,74 +368,6 @@ const ManageMetaCategory = () => {
         return [...prevSelected, category];
       }
     });
-  };
-
-  const handleHeaderChange = (index, field, value) => {
-    const updatedHeaders = apiDetails.headers.map((header, idx) => {
-      if (idx === index) {
-        return { ...header, [field]: value };
-      }
-      return header;
-    });
-    setApiDetails((prev) => ({ ...prev, headers: updatedHeaders }));
-  };
-
-  const addHeader = () => {
-    setApiDetails((prev) => ({
-      ...prev,
-      headers: [...prev.headers, { key: "", value: "" }],
-    }));
-  };
-
-  const removeHeader = (index) => {
-    setApiDetails((prev) => ({
-      ...prev,
-      headers: prev.headers.filter((_, idx) => idx !== index),
-    }));
-  };
-
-  const addParser = () => {
-    setApiDetails((prev) => ({
-      ...prev,
-      parsers: [...prev.parsers, { key: "", value: "" }],
-    }));
-  };
-
-  const removeParser = (index) => {
-    setApiDetails((prev) => ({
-      ...prev,
-      parsers: prev.parsers.filter((_, idx) => idx !== index),
-    }));
-  };
-
-  const updateHeader = (index, field, value) => {
-    const updatedHeaders = [...apiDetails.headers];
-    updatedHeaders[index][field] = value;
-    setApiDetails((prev) => ({ ...prev, headers: updatedHeaders }));
-  };
-
-  const updateParser = (index, field, value) => {
-    const updatedParsers = [...apiDetails.parsers];
-    updatedParsers[index][field] = value;
-    setApiDetails((prev) => ({ ...prev, parsers: updatedParsers }));
-  };
-
-  const closeApiModal = () => {
-    setIsApiModalOpen(false);
-  };
-
-  const updateApiUrl = (newUrl) => {
-    setApiDetails((prevDetails) => ({
-      ...prevDetails,
-      apiUrl: newUrl,
-    }));
-  };
-
-  const updatePayloadBody = (newBody) => {
-    setApiDetails((prevDetails) => ({
-      ...prevDetails,
-      payloadBody: newBody,
-    }));
   };
 
   function formatRelationshipFrom(relationshipFrom) {
@@ -562,13 +399,13 @@ const ManageMetaCategory = () => {
     setSelectedRelationship(newDataState);
 
     // whole object to the api..
-    
+
     let filteredObject = rawDataForRelationship.filter(
       (obj) => obj.entityName === currentProductType
     );
 
     filteredObject[0].relationships = newDataState;
-    console.log('filteredObject22', filteredObject);
+    console.log("filteredObject22", filteredObject);
 
     // send filteredObject payload to api and also make sure that the rawDataForRelationship is reflected.
   };
@@ -603,6 +440,7 @@ const ManageMetaCategory = () => {
           <TextField {...params} label="Select Category" />
         )}
       />
+
       <Paper sx={{ p: 2 }}>
         <Table>
           <TableHead>
@@ -613,7 +451,6 @@ const ManageMetaCategory = () => {
               <TableCell sx={{ fontWeight: "bold" }}>Max</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Unique</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Required</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>External</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -624,6 +461,7 @@ const ManageMetaCategory = () => {
                   <>
                     <TableCell>
                       <TextField
+                        disabled
                         value={fieldEdits.key}
                         onChange={(e) =>
                           handleEditChange("key", e.target.value)
@@ -634,6 +472,7 @@ const ManageMetaCategory = () => {
 
                     <TableCell>
                       <TextField
+                        disabled
                         select
                         value={fieldEdits.type}
                         onChange={(e) =>
@@ -705,12 +544,6 @@ const ManageMetaCategory = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      <Checkbox
-                        checked={field.external || false}
-                        onChange={() => handleExternalToggle(idx)}
-                      />
-                    </TableCell>
-                    <TableCell>
                       <IconButton onClick={() => saveEdit()}>
                         <SaveIcon />
                       </IconButton>
@@ -732,9 +565,6 @@ const ManageMetaCategory = () => {
                       <Checkbox checked={field.required} disabled />
                     </TableCell>
                     <TableCell>
-                      <Checkbox checked={field.external} disabled />
-                    </TableCell>
-                    <TableCell>
                       <IconButton onClick={() => startEdit(idx)}>
                         <EditIcon />
                       </IconButton>
@@ -744,117 +574,9 @@ const ManageMetaCategory = () => {
                     </TableCell>
                   </>
                 )}
-                <Dialog
-                  open={isApiModalOpen}
-                  onClose={() => setIsApiModalOpen(false)}
-                  fullWidth
-                  maxWidth="sm"
-                >
-                  <DialogTitle>API Specifications</DialogTitle>
-                  <DialogContent>
-                    <TextField
-                      label="API URL"
-                      fullWidth
-                      value={apiDetails.apiUrl}
-                      onChange={(e) =>
-                        setApiDetails((prev) => ({
-                          ...prev,
-                          apiUrl: e.target.value,
-                        }))
-                      }
-                      margin="dense"
-                    />
-                    <div>
-                      {apiDetails.headers.map((header, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            marginBottom: "10px",
-                            marginTop: "14px",
-                          }}
-                        >
-                          <TextField
-                            label="Header Key"
-                            value={header.key}
-                            onChange={(e) =>
-                              handleHeaderChange(index, "key", e.target.value)
-                            }
-                            style={{ marginRight: "10px" }}
-                          />
-                          <TextField
-                            label="Header Value"
-                            value={header.value}
-                            onChange={(e) =>
-                              handleHeaderChange(index, "value", e.target.value)
-                            }
-                          />
-                          <IconButton onClick={() => removeHeader(index)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        </div>
-                      ))}
-                      <Button onClick={addHeader} variant="outlined">
-                        Add Header
-                      </Button>
-                    </div>
-                    <div style={{ marginTop: "8px", marginBottom: "8px" }}>
-                      {apiDetails.parsers.map((parser, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            marginBottom: "10px",
-                            marginTop: "14px",
-                          }}
-                        >
-                          <TextField
-                            label="Parser Key"
-                            value={parser.key}
-                            onChange={(e) =>
-                              updateParser(index, "key", e.target.value)
-                            }
-                            style={{ marginRight: "10px" }}
-                          />
-                          <TextField
-                            label="Parser Value"
-                            value={parser.value}
-                            onChange={(e) =>
-                              updateParser(index, "value", e.target.value)
-                            }
-                          />
-                          <IconButton onClick={() => removeParser(index)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        </div>
-                      ))}
-                      <Button onClick={addParser} variant="outlined">
-                        Add Parser
-                      </Button>
-                    </div>
-                    <TextField
-                      label="Payload Body"
-                      fullWidth
-                      multiline
-                      rows={4}
-                      // value={apiDetails.payloadBody}
-                      value={JSON.stringify(apiDetails.payloadBody, null, 2)}
-                      onChange={(e) => updatePayloadBody(e.target.value)}
-                      margin="dense"
-                    />
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => closeApiModal()}>Cancel</Button>
-                    {/* <Button onClick={() => saveApiDetails()}>Save</Button> */}
-                    <Button onClick={saveModalChanges} color="primary">
-                      Save
-                    </Button>
-                  </DialogActions>
-                </Dialog>
               </TableRow>
             ))}
+
             {showAddField && (
               <TableRow>
                 <TableCell>
