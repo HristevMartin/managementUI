@@ -34,6 +34,10 @@ const AddProductCategoryPage = () => {
   const [selectedRelationships, setSelectedRelationships] = useState([]);
   const { jHipsterAuthToken } = useAuthJHipster();
 
+  const [relationshipConfigs, setRelationshipConfigs] = useState([
+    { entityType: "", relationshipType: "" },
+  ]);
+
   useEffect(() => {
     const fetchData = async () => {
       const response = await fetch(`${apiUrlSpring}/api/jdl/get-all-entities`, {
@@ -71,6 +75,9 @@ const AddProductCategoryPage = () => {
       fetchData();
     }
   }, [jHipsterAuthToken]);
+
+  console.log("relationships!??!", relationships);
+  console.log("relationshipConfigs!?!?!", relationshipConfigs)
 
   const handleOpenApiDialog = (index) => {
     if (index < 0 || index >= customFields.length) {
@@ -119,6 +126,34 @@ const AddProductCategoryPage = () => {
       setCurrentFieldIndex(index);
     }
   };
+
+  // add relationship configuration
+  const handleEntityTypeChange = (index, value) => {
+    const newConfigs = [...relationshipConfigs];
+    newConfigs[index].entityType = value;
+    setRelationshipConfigs(newConfigs);
+  };
+
+  const handleRelationshipTypeChange = (index, value) => {
+    const newConfigs = [...relationshipConfigs];
+    newConfigs[index].relationshipType = value;
+    setRelationshipConfigs(newConfigs);
+  };
+
+  const addRelationshipConfig = () => {
+    setRelationshipConfigs((prevConfigs) => [
+      ...prevConfigs,
+      { entityType: "", relationshipType: "" },
+    ]);
+  };
+
+  const removeRelationshipConfig = (index) => {
+    setRelationshipConfigs((prevConfigs) =>
+      prevConfigs.filter((_, idx) => idx !== index)
+    );
+  };
+
+  //
 
   const [file, setFile] = useState(null);
   const router = useRouter();
@@ -219,22 +254,40 @@ const AddProductCategoryPage = () => {
 
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
-  const transformRelationships = (selectedRelationships, entityType) => {
-    return selectedRelationships.map((rel) => {
-      const cleanEntityType = entityType.trim();
-      const cleanLabel = rel.label.trim().toLowerCase();
+  // const transformRelationships = (selectedRelationships, entityType) => {
+  //   return selectedRelationships.map((rel) => {
+  //     const cleanEntityType = entityType.trim();
+  //     const cleanLabel = rel.label.trim().toLowerCase();
 
+  //     const pluralLabel = cleanLabel.endsWith("s")
+  //       ? `${cleanLabel}es`
+  //       : `${cleanLabel}s`;
+
+  //     return {
+  //       relationshipType: "ManyToMany",
+  //       relationshipFrom: `${cleanEntityType}{${pluralLabel}(name)}`,
+  //       relationshipTo: rel.label.trim(),
+  //     };
+  //   });
+  // };
+
+  const transformRelationships = (relationshipConfigs, categoryName) => {
+    return relationshipConfigs.map((rel) => {
+      const cleanEntityType = categoryName.trim();
+      const cleanLabel = rel.entityType.trim().toLowerCase();
+  
       const pluralLabel = cleanLabel.endsWith("s")
         ? `${cleanLabel}es`
         : `${cleanLabel}s`;
-
+  
       return {
-        relationshipType: "ManyToMany",
+        relationshipType: rel.relationshipType, 
         relationshipFrom: `${cleanEntityType}{${pluralLabel}(name)}`,
-        relationshipTo: rel.label.trim(),
+        relationshipTo: rel.entityType.trim(),
       };
     });
   };
+  
 
   const handleSubmitApi = (e) => {
     e.preventDefault();
@@ -243,12 +296,14 @@ const AddProductCategoryPage = () => {
         categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
     }
 
-    console.log("selectedRelationships", selectedRelationships);
+    console.log("relationshipConfigs", relationshipConfigs);
 
-    const transformedRelationships = transformRelationships(
-      selectedRelationships,
-      categoryName
-    );
+    // const transformedRelationships = transformRelationships(
+    //   selectedRelationships,
+    //   categoryName
+    // );
+
+    const transformedRelationships = transformRelationships(relationshipConfigs, categoryName);
 
     console.log(
       "Transformed Relationships for Submission:",
@@ -373,11 +428,7 @@ const AddProductCategoryPage = () => {
       "/backoffice/owner/addInitialProductCategory/manage-meta-category"
     );
   };
-
-  const handleRelationshipChange = (selectedOptions) => {
-    setSelectedRelationships(selectedOptions || []);
-  };
-
+  
   const transformedRelationships = relationships.map((name) => ({
     value: name,
     label: name,
@@ -441,7 +492,7 @@ const AddProductCategoryPage = () => {
                 required
               />
             )}
-
+            {/* 
             <FormControl fullWidth margin="normal">
               <label
                 style={{ fontSize: "1rem", lineHeight: "1.4375em" }}
@@ -466,7 +517,76 @@ const AddProductCategoryPage = () => {
                   },
                 })}
               />
-            </FormControl>
+            </FormControl> */}
+
+            <div>
+              <Button
+                onClick={addRelationshipConfig}
+                style={{ marginBottom: "10px" }}
+              >
+                Add Relationship Configuration
+              </Button>
+
+              {relationshipConfigs.map((config, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    alignItems: "center",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <FormControl fullWidth>
+                    <InputLabel id={`entity-type-label-${index}`}>
+                      Entity Type
+                    </InputLabel>
+                    <Select
+                      labelId={`entity-type-label-${index}`}
+                      value={config.entityType}
+                      onChange={(e) =>
+                        handleEntityTypeChange(index, e.target.value)
+                      }
+                      label="Entity Type"
+                    >
+                      {relationships.map((type) => (
+                        <MenuItem key={`${type}-${index}`} value={type}>
+                          {type}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+
+                  <FormControl fullWidth>
+                    <InputLabel id={`relationship-type-label-${index}`}>
+                      Relationship Type
+                    </InputLabel>
+                    <Select
+                      labelId={`relationship-type-label-${index}`}
+                      value={config.relationshipType}
+                      onChange={(e) =>
+                        handleRelationshipTypeChange(index, e.target.value)
+                      }
+                      label="Relationship Type"
+                      disabled={!config.entityType} 
+                    >
+                      <MenuItem value="OneToMany">OneToMany</MenuItem>
+                      <MenuItem value="ManyToOne">ManyToOne</MenuItem>
+                      <MenuItem value="ManyToMany">ManyToMany</MenuItem>
+                    </Select>
+                  </FormControl>
+                  <Button
+                    onClick={() => removeRelationshipConfig(index)}
+                    color="primary"
+                    variant="contained"
+                    style={{ padding: "5px" }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
 
             <CustomTable
               data={customFields}
