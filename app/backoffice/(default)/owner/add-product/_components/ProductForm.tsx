@@ -56,17 +56,14 @@ const ProductForm = () => {
 
   // state for external images..
   const [openDialogExternal, setOpenDialogExternal] = useState(false);
-  const [externalData, setExternalData] = useState("");
 
   const [apiUrls, setApiUrls] = useState("");
   const [payloadBody, setPayloadBody] = useState("");
   const [headers, setHeaders] = useState([{ key: "", value: "" }]);
   const [isLoading, setIsLoading] = useState(false);
+
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
-  const handleOpenDialogExternal = () => {
-    setOpenDialogExternal(true);
-  };
 
   const handleCloseDialogExternal = () => {
     setOpenDialogExternal(false);
@@ -79,40 +76,12 @@ const ProductForm = () => {
 
     setIsLoading(true);
 
-    // const fetchProductDetails = async (fieldName) => {
-    //   try {
-    //     const response = await fetch(
-    //       `${apiUrl}/populate-package-details?package_type=${fieldName}`,
-    //       {
-    //         method: "GET",
-    //         headers: {
-    //           "Content-Type": "application/json",
-    //         },
-    //       }
-    //     );
-    //     if (!response.ok) {
-    //       throw new Error(`Failed to fetch details for ${fieldName}`);
-    //     }
-    //     const data = await response.json();
-    //     return data.map((product) => ({
-    //       id: product.product_id,
-    //       name: product.product_name,
-    //     }));
-    //   } catch (error) {
-    //     console.error(`Error fetching details for ${fieldName}:`, error);
-    //     return [];
-    //   } finally {
-    //     setIsLoading(false);
-    //   }
-    // };
-
     const fetchData = async () => {
       if (!jHipsterAuthToken) return;
 
       try {
         const data = await mapProductTypesToCustomFields(jHipsterAuthToken);
 
-        console.log("data!?!?!:", data);
         if (data && data.length > 0) {
           console.log("detailedCategories:", data);
 

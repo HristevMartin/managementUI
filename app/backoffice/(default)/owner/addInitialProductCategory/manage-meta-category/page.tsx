@@ -54,6 +54,8 @@ const ManageMetaCategory = () => {
   const [selectedRelationship, setSelectedRelationship] = useState(null);
   const [rawDataForRelationship, setRawDataForRelationship] = useState([]);
   const [selectedEntityType, setSelectedEntityType] = useState(null);
+  const [selectedEntityTypeUpdate, setSelectedEntityTypeUpdate] =
+    useState(false);
 
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
@@ -184,6 +186,10 @@ const ManageMetaCategory = () => {
     }
   }, [jHipsterAuthToken]);
 
+  useEffect(() => {
+    console.log("beeing called here");
+  }, [selectedEntityTypeUpdate]);
+
   console.log("selectedRelationship!!!:", selectedRelationship);
 
   const handleDelete = (index) => {
@@ -280,15 +286,15 @@ const ManageMetaCategory = () => {
           field.required ? " required" : ""
         }`;
 
-        // check the of what needs to be the structure of the fieldSpec
-        // if (field.validations) {
-        //   const { min, max, unique } = field.validations;
+        const { min, max, unique } = field.validations;
 
-        //   fieldSpec += `${min ? ` min(${min})` : ""}`;
-        //   fieldSpec += `${max ? ` max(${max})` : ""}`;
-        //   fieldSpec += unique ? " unique" : "";
-        // }
-        // return fieldSpec;
+        // check the of what needs to be the structure of the fieldSpec
+        if (field.validations) {
+          fieldSpec += unique ? " unique" : "";
+          //   fieldSpec += `${min ? ` min(${min})` : ""}`;
+          //   fieldSpec += `${max ? ` max(${max})` : ""}`;
+        }
+
         return fieldSpec;
       }),
       relationships:
@@ -406,21 +412,10 @@ const ManageMetaCategory = () => {
   }
 
   const handleDeleteRelationship = async (index) => {
-    // const newRelationships = selectedRelationship.map((rel) => ({ ...rel }));
-
-    console.log("selectedRelationship", selectedRelationship);
-    console.log("selectedRelationship!?!?!", selectedRelationship[index]);
-    console.log("new relationship to be deleted", {
-      entityName: selectedProductType.entityName,
-      newRelationship: selectedRelationship[index],
-    });
-
     let relationshipToRemove = selectedRelationship[index];
     let currentProductType = selectedProductType.entityName;
 
     console.log("rawDataForRelationship>>", rawDataForRelationship);
-
-    // Filter the rawDataForRelationship to get the object that matches the currentProductType
 
     // Filter out the relationship directly from selectedRelationship (current state)
     let newDataState = selectedRelationship.filter(
@@ -428,8 +423,6 @@ const ManageMetaCategory = () => {
     );
 
     setSelectedRelationship(newDataState);
-
-    // whole object to the api..
 
     let filteredObject = rawDataForRelationship.filter(
       (obj) => obj.entityName === currentProductType
@@ -455,8 +448,6 @@ const ManageMetaCategory = () => {
     console.log("response", response);
     alert("Relationship Deleted Successfully");
   };
-
-  console.log("selectedEntityType", selectedEntityType);
 
   let entityTypeOptions = ["reference", "product", "variant"];
 
@@ -493,7 +484,6 @@ const ManageMetaCategory = () => {
           <TextField {...params} label="Select Category" />
         )}
       />
-      {console.log("selectedEntityType", selectedEntityType)}
 
       <FormControl fullWidth sx={{ mt: 2, mb: 4 }}>
         <InputLabel id="entity-type-label">Entity Type</InputLabel>
@@ -502,7 +492,10 @@ const ManageMetaCategory = () => {
           id="entity-type-select"
           value={selectedEntityType}
           label="Entity Type"
-          onChange={(event) => setSelectedEntityType(event.target.value)}
+          onChange={(event) => {
+            setSelectedEntityType(event.target.value);
+            // setSelectedEntityTypeUpdate(!selectedEntityTypeUpdate);
+          }}
         >
           {/* Assuming you have a list of possible entity types */}
           {entityTypeOptions.map((type) => (
