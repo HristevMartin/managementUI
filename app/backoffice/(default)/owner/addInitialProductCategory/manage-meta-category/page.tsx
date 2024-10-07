@@ -56,6 +56,14 @@ const ManageMetaCategory = () => {
   const [selectedEntityType, setSelectedEntityType] = useState(null);
   const [selectedEntityTypeUpdate, setSelectedEntityTypeUpdate] =
     useState(false);
+  const [newField, setNewField] = useState({
+    key: "",
+    type: "",
+    required: false,
+    min: "",
+    max: "",
+    unique: false,
+  });
 
   const [showAddRelationshipRow, setShowAddRelationshipRow] = useState(false);
 
@@ -126,15 +134,6 @@ const ManageMetaCategory = () => {
       setSelectedFields([]);
     }
   };
-
-  const [newField, setNewField] = useState({
-    key: "",
-    type: "",
-    required: false,
-    min: "",
-    max: "",
-    unique: false,
-  });
 
   useEffect(() => {
     if (jHipsterAuthToken) {
@@ -409,10 +408,6 @@ const ManageMetaCategory = () => {
       }
     });
   };
-
-  // function formatRelationshipFrom(relationshipFrom) {
-  //   return relationshipFrom.split("{")[0];
-  // }
 
   function formatRelationshipFrom(relationshipFrom) {
     if (!relationshipFrom) return "";

@@ -492,13 +492,13 @@ const AddProductCategoryPage = () => {
                 required
               />
             )}
-            
+
             <div>
               <Button
                 onClick={addRelationshipConfig}
                 style={{ marginBottom: "10px" }}
               >
-                Add Relationship Configuration
+                Add Relationship
               </Button>
 
               {relationshipConfigs.map((config, index) => (
@@ -550,6 +550,7 @@ const AddProductCategoryPage = () => {
                       <MenuItem value="ManyToMany">ManyToMany</MenuItem>
                     </Select>
                   </FormControl>
+                  
                   <Button
                     onClick={() => removeRelationshipConfig(index)}
                     color="primary"
