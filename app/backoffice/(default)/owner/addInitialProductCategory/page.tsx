@@ -19,8 +19,7 @@ import { useRouter } from "next/navigation";
 import { transformPayload } from "@/utils/managementFormUtils";
 import { useAuthJHipster } from "@/context/JHipsterContext";
 import "./page.css";
-import ReactSelect from "react-select";
-import { customStyles } from "./styles/materialUiStyles";
+
 
 const AddProductCategoryPage = () => {
   let [categoryName, setCategoryName] = useState("");
@@ -31,12 +30,13 @@ const AddProductCategoryPage = () => {
   const [entityType, setEntityType] = useState("Product");
   const [parentEntityName, setParentEntityName] = useState("");
   const [relationships, setAllRelationships] = useState([]);
-  const [selectedRelationships, setSelectedRelationships] = useState([]);
   const { jHipsterAuthToken } = useAuthJHipster();
 
   const [relationshipConfigs, setRelationshipConfigs] = useState([
     { entityType: "", relationshipType: "" },
   ]);
+
+  console.log('relationshipConfigs<>!?!>', relationshipConfigs);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -76,8 +76,6 @@ const AddProductCategoryPage = () => {
     }
   }, [jHipsterAuthToken]);
 
-  console.log("relationships!??!", relationships);
-  console.log("relationshipConfigs!?!?!", relationshipConfigs)
 
   const handleOpenApiDialog = (index) => {
     if (index < 0 || index >= customFields.length) {
@@ -136,6 +134,7 @@ const AddProductCategoryPage = () => {
 
   const handleRelationshipTypeChange = (index, value) => {
     const newConfigs = [...relationshipConfigs];
+    console.log('the value is', value);
     newConfigs[index].relationshipType = value;
     setRelationshipConfigs(newConfigs);
   };
@@ -152,7 +151,6 @@ const AddProductCategoryPage = () => {
       prevConfigs.filter((_, idx) => idx !== index)
     );
   };
-
   //
 
   const [file, setFile] = useState(null);
@@ -182,9 +180,7 @@ const AddProductCategoryPage = () => {
     "String",
     "Integer",
     "Long",
-    "BigDecimal",
     "Float",
-    "Double",
     "Enum",
     "Boolean",
     "LocalDate",
@@ -548,9 +544,10 @@ const AddProductCategoryPage = () => {
                       <MenuItem value="OneToMany">OneToMany</MenuItem>
                       <MenuItem value="ManyToOne">ManyToOne</MenuItem>
                       <MenuItem value="ManyToMany">ManyToMany</MenuItem>
+                      <MenuItem value="OneToOne">OneToOne</MenuItem>
                     </Select>
                   </FormControl>
-                  
+
                   <Button
                     onClick={() => removeRelationshipConfig(index)}
                     color="primary"

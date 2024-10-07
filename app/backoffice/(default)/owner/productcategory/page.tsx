@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import './category.css';
+import "./category.css";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Container,
   TextField,
@@ -16,23 +16,23 @@ import {
   Checkbox,
   Paper,
   Autocomplete,
-} from '@mui/material';
+} from "@mui/material";
 
-import DeleteIcon from '@mui/icons-material/Delete';
-import { useAuthJHipster } from '@/context/JHipsterContext';
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useAuthJHipster } from "@/context/JHipsterContext";
 import {
   transformMetaCategoryData,
   transformMetaCategoryDataToFeComponent,
-} from '@/utils/managementFormUtils';
-import { useRouter } from 'next/navigation';
-import './page.css'
+} from "@/utils/managementFormUtils";
+import { useRouter } from "next/navigation";
+import "./page.css";
 
 const AddProductCategoryPage = () => {
-  const [categoryName, setCategoryName] = useState('');
+  const [categoryName, setCategoryName] = useState("");
   const [customFields, setCustomFields] = useState([]);
   const [optionsSelect, setOptionsSelect] = useState([]);
   const [availableKeys, setAvailableKeys] = useState([]);
-  const [selectedKey, setSelectedKey] = useState('');
+  const [selectedKey, setSelectedKey] = useState("");
   const { jHipsterAuthToken } = useAuthJHipster();
   const [rawData, setRawData] = useState([]);
   const [isDataAvailable, setIsDataAvailable] = useState(true);
@@ -41,7 +41,7 @@ const AddProductCategoryPage = () => {
   const handleFileUpload = (e) => {
     const file = e.target.files[0];
     if (!file) {
-      alert('No file selected!');
+      alert("No file selected!");
       return;
     }
     setFile(file);
@@ -60,7 +60,7 @@ const AddProductCategoryPage = () => {
     setSelectedKey(newValue);
   };
 
-  console.log('Selected key1:', selectedKey);
+  console.log("Selected key1:", selectedKey);
 
   const apiUrl = process.env.NEXT_PUBLIC_LOCAL_BASE_URL;
 
@@ -68,55 +68,89 @@ const AddProductCategoryPage = () => {
     e.preventDefault();
 
     if (!file) {
-      alert('Please select a file!');
+      alert("Please select a file!");
       return;
     }
 
     const formData = new FormData();
-    formData.append('file', file);
-    formData.append('entityName', JSON.stringify([categoryName]));
-    formData.append('customFields', JSON.stringify(customFields));
+    formData.append("file", file);
+    formData.append("entityName", JSON.stringify([categoryName]));
+    formData.append("customFields", JSON.stringify(customFields));
 
     try {
       const response = await fetch(`${apiUrl}/bulk-upload`, {
-        method: 'POST',
+        method: "POST",
         body: formData,
       });
       const result = await response.json();
       if (response.ok) {
-        alert('Category added successfully');
+        alert("Category added successfully");
         console.log(result);
       } else {
         throw new Error(result.message);
       }
     } catch (error) {
-      console.error('Failed to submit category:', error);
-      alert('Failed to add category');
+      console.error("Failed to submit category:", error);
+      alert("Failed to add category");
     }
   };
 
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
-  const defaultKeys = ['fare', 'date', 'passenger'];
+  const defaultKeys = ["fare", "date", "passenger"];
 
   useEffect(() => {
     if (jHipsterAuthToken) {
       const fetchData = async () => {
-        const response = await fetch(`${apiUrlSpring}/api/jdl/entities`, {
-          headers: {
-            Authorization: `Bearer ${jHipsterAuthToken}`,
-          },
-        });
+        // const response = await fetch(`${apiUrlSpring}/api/jdl/get-entity-names-list`, {
+        //   headers: {
+        //     Authorization: `Bearer ${jHipsterAuthToken}`,
+        //   },
+        // });
+
+        const response = await fetch(
+          `${apiUrlSpring}/api/jdl/get-all-entities`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${jHipsterAuthToken}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          console.error("Error fetching data from API");
+          return;
+        }
+
+        const data = await response.json();
+        console.log("show me the data", data);
+
+        const detailsRequest = data.map((entity) =>
+          fetch(`${apiUrlSpring}/api/jdl/get-entity-by-id/${entity.id}`, {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${jHipsterAuthToken}`,
+            },
+          }).then((res) => res.json())
+        );
+  
+        const detailsResponse = await Promise.all(detailsRequest);
+        console.log('detailsResponse!?!?!', detailsResponse);
+
         if (response.ok) {
           if (response.status === 204) {
             setIsDataAvailable(false);
             return;
           }
 
-          const data = await response.json();
-          console.log('Data:', data);
-          const parsedData = transformMetaCategoryData(data);
+          // const data = await response.json();
+          // console.log("Data:", data);
+          const parsedData = transformMetaCategoryData(detailsResponse);
+          console.log("Parsed data:", parsedData);
+          
           setRawData(parsedData);
-          let transformedData = transformMetaCategoryDataToFeComponent(parsedData);
+          let transformedData =
+            transformMetaCategoryDataToFeComponent(parsedData);
           const CategoryNames = transformedData.map((item) => item.entityName);
 
           if (data.length > 0) {
@@ -124,19 +158,21 @@ const AddProductCategoryPage = () => {
             setCategoryName(transformedData[0].entityName);
             setOptionsSelect(CategoryNames);
 
-            const initialKeys = new Set(transformedData[0].customFields.map((field) => field.key));
+            const initialKeys = new Set(
+              transformedData[0].customFields.map((field) => field.key)
+            );
             const availableKeys = [...initialKeys];
-            console.log('Available keys:', availableKeys);
+            console.log("Available keys:", availableKeys);
             setAvailableKeys(availableKeys);
           }
         } else {
-          console.error('Failed to fetch data');
+          console.error("Failed to fetch data");
         }
       };
 
       fetchData();
     } else {
-      console.log('Token not available, fetching token...');
+      console.log("Token not available, fetching token...");
       // trigger token fetch if needed
     }
   }, [jHipsterAuthToken]);
@@ -155,7 +191,9 @@ const AddProductCategoryPage = () => {
 
   useEffect(() => {
     const updateKeysForSelectedCategory = () => {
-      const categoryData = rawData.find((cat) => cat.entityName === categoryName);
+      const categoryData = rawData.find(
+        (cat) => cat.entityName === categoryName
+      );
       let newKeys = new Set(defaultKeys);
 
       if (categoryData) {
@@ -168,71 +206,75 @@ const AddProductCategoryPage = () => {
     updateKeysForSelectedCategory();
   }, [categoryName, rawData]);
 
-  const typeOptions = ['text', 'number', 'date', 'select', 'passenger'];
+  const typeOptions = ["text", "number", "date", "select", "passenger"];
 
   const handleFieldChange = (index, field, value) => {
     const updatedFields = customFields.map((cf, i) =>
-      i === index ? { ...cf, [field]: value } : cf,
+      i === index ? { ...cf, [field]: value } : cf
     );
     setCustomFields(updatedFields);
   };
 
   const validateFields = () => {
-    return customFields.every((field) => field.key && field.type && field.label);
+    return customFields.every(
+      (field) => field.key && field.type && field.label
+    );
   };
 
   const handleAddCustomField = () => {
     if (!selectedKey) {
-      alert('Please select a key first.');
+      alert("Please select a key first.");
       return;
     }
-    console.log('Selected key:', selectedKey);
+    console.log("Selected key:", selectedKey);
     const fieldTemplate = {
       key: selectedKey,
-      type: '',
-      label: '',
+      type: "",
+      label: "",
       required: false,
-      placeholder: '',
+      placeholder: "",
       options: [],
     };
 
-    console.log('Adding field:', fieldTemplate);
+    console.log("Adding field:", fieldTemplate);
     setCustomFields((prevFields) => [...prevFields, fieldTemplate]);
-    setSelectedKey('');
+    setSelectedKey("");
   };
 
   useEffect(() => {
-    setSelectedKey('');
+    setSelectedKey("");
   }, [categoryName]);
 
   const handleRemoveField = (index) => {
     const newCustomFields = customFields.filter((_, i) => i !== index);
     setCustomFields(newCustomFields);
 
-    const keyExists = newCustomFields.some((field) => field.key === selectedKey);
+    const keyExists = newCustomFields.some(
+      (field) => field.key === selectedKey
+    );
     if (!keyExists) {
-      setSelectedKey('');
+      setSelectedKey("");
     }
   };
 
   const handleAddOption = (fieldIndex) => {
     const newFields = [...customFields];
-    newFields[fieldIndex].options.push({ value: '', label: '' });
+    newFields[fieldIndex].options.push({ value: "", label: "" });
     setCustomFields(newFields);
   };
 
   const handleOptionChange = (fieldIndex, optionIndex, optionPart, value) => {
     const newFields = [...customFields];
-    console.log('Before updating', newFields[fieldIndex].options[optionIndex]);
+    console.log("Before updating", newFields[fieldIndex].options[optionIndex]);
 
-    if (optionPart === 'value') {
-      newFields[fieldIndex].options[optionIndex]['value'] = value;
-      newFields[fieldIndex].options[optionIndex]['label'] = value;
+    if (optionPart === "value") {
+      newFields[fieldIndex].options[optionIndex]["value"] = value;
+      newFields[fieldIndex].options[optionIndex]["label"] = value;
     } else {
       newFields[fieldIndex].options[optionIndex][optionPart] = value;
     }
 
-    console.log('After updating', newFields[fieldIndex].options[optionIndex]);
+    console.log("After updating", newFields[fieldIndex].options[optionIndex]);
     setCustomFields(newFields);
   };
 
@@ -246,27 +288,27 @@ const AddProductCategoryPage = () => {
     e.preventDefault();
 
     if (!validateFields()) {
-      alert('Please complete all fields correctly.');
+      alert("Please complete all fields correctly.");
       return;
     }
 
     const payload = { entityName: [categoryName], customFields };
 
-    console.log('Submitting:', payload);
+    console.log("Submitting:", payload);
     const apiUrl = process.env.NEXT_PUBLIC_LOCAL_BASE_URL;
 
     const apiRequest = async () => {
       let request = await fetch(`${apiUrl}/mockup-product-category`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(payload),
       });
       if (request.ok) {
-        alert('Category added successfully');
+        alert("Category added successfully");
       } else {
-        alert('Failed to add category');
+        alert("Failed to add category");
       }
     };
     apiRequest();
@@ -274,15 +316,15 @@ const AddProductCategoryPage = () => {
 
   if (!isDataAvailable) {
     return (
-      <Container maxWidth="md" style={{ marginTop: '20px' }}>
-        <Paper elevation={3} style={{ padding: '20px' }}>
+      <Container maxWidth="md" style={{ marginTop: "20px" }}>
+        <Paper elevation={3} style={{ padding: "20px" }}>
           <div>No data available. Please add meta category first.</div>
           <Button
             variant="contained"
             color="primary"
             // navigate to addInitialProductCategoryPage.
-            onClick={() => router.push('/owner/addInitialProductCategory')}
-            style={{ marginTop: '20px' }}
+            onClick={() => router.push("/owner/addInitialProductCategory")}
+            style={{ marginTop: "20px" }}
           >
             Add Meta Category
           </Button>
@@ -292,8 +334,8 @@ const AddProductCategoryPage = () => {
   }
 
   return (
-    <Container className='input-form-move mt-4' maxWidth="md">
-      <Paper elevation={3} style={{ padding: '20px' }}>
+    <Container className="input-form-move mt-4" maxWidth="md">
+      <Paper elevation={3} style={{ padding: "20px" }}>
         <h1>Add Travel Product Type</h1>
         <form onSubmit={handleSubmit}>
           <Autocomplete
@@ -304,20 +346,25 @@ const AddProductCategoryPage = () => {
               setCategoryName(newValue);
             }}
             renderInput={(params) => (
-              <TextField {...params} label="Travel Product Type Name" margin="normal" required />
+              <TextField
+                {...params}
+                label="Travel Product Type Name"
+                margin="normal"
+                required
+              />
             )}
           />
 
           <Table>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ fontWeight: 'bold' }}>Key</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Label</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Placeholder</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Required</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Options</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Key</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Type</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Label</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Placeholder</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Required</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Options</TableCell>
+                <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
               </TableRow>
             </TableHead>
 
@@ -328,29 +375,34 @@ const AddProductCategoryPage = () => {
                     <Autocomplete
                       options={availableKeys}
                       size="small"
-                      sx={{ width: '110px', marginTop: '20px' }}
+                      sx={{ width: "110px", marginTop: "20px" }}
                       disableClearable
                       renderInput={(params) => <TextField {...params} />}
                       onChange={(event, newValue) => {
                         console.log(`availableKeys:!!!`, availableKeys);
                         onSelectKey(newValue, index);
                       }}
-                      style={{ marginBottom: '20px' }}
+                      style={{ marginBottom: "20px" }}
                     />
                   </TableCell>
 
                   <TableCell key={index}>
                     <Autocomplete
                       size="small"
-                      style={{ marginBottom: '8px', width: '110px' }}
+                      style={{ marginBottom: "8px", width: "110px" }}
                       value={field.type}
                       onChange={(event, newValue) => {
-                        handleFieldChange(index, 'type', newValue);
+                        handleFieldChange(index, "type", newValue);
                       }}
                       options={typeOptions}
                       disableClearable
                       renderInput={(params) => (
-                        <TextField {...params} label="Type" margin="normal" fullWidth />
+                        <TextField
+                          {...params}
+                          label="Type"
+                          margin="normal"
+                          fullWidth
+                        />
                       )}
                     />
                   </TableCell>
@@ -358,21 +410,27 @@ const AddProductCategoryPage = () => {
                     <TextField
                       size="small"
                       value={field.label}
-                      onChange={(e) => handleFieldChange(index, 'label', e.target.value)}
+                      onChange={(e) =>
+                        handleFieldChange(index, "label", e.target.value)
+                      }
                     />
                   </TableCell>
                   <TableCell>
                     <TextField
                       size="small"
                       value={field.placeholder}
-                      onChange={(e) => handleFieldChange(index, 'placeholder', e.target.value)}
+                      onChange={(e) =>
+                        handleFieldChange(index, "placeholder", e.target.value)
+                      }
                     />
                   </TableCell>
                   <TableCell>
                     <Checkbox
                       size="small"
                       checked={field.required}
-                      onChange={(e) => handleFieldChange(index, 'required', e.target.checked)}
+                      onChange={(e) =>
+                        handleFieldChange(index, "required", e.target.checked)
+                      }
                     />
                   </TableCell>
 
@@ -381,29 +439,38 @@ const AddProductCategoryPage = () => {
                       <div
                         key={optIndex}
                         style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          fontSize: '10px',
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                          fontSize: "10px",
                         }}
                       >
                         <TextField
                           size="small"
-                          sx={{ maxWidth: '400px', fontSize: '10px' }}
+                          sx={{ maxWidth: "400px", fontSize: "10px" }}
                           value={option.value}
                           onChange={(e) =>
-                            handleOptionChange(index, optIndex, 'value', e.target.value)
+                            handleOptionChange(
+                              index,
+                              optIndex,
+                              "value",
+                              e.target.value
+                            )
                           }
                           placeholder="Label"
-                          style={{ marginTop: '4px', flex: 1 }}
+                          style={{ marginTop: "4px", flex: 1 }}
                         />
-                        <IconButton onClick={() => handleRemoveOption(index, optIndex)}>
+                        <IconButton
+                          onClick={() => handleRemoveOption(index, optIndex)}
+                        >
                           <DeleteIcon />
                         </IconButton>
                       </div>
                     ))}
-                    {field.type === 'select' && (
-                      <Button onClick={() => handleAddOption(index)}>Add Option</Button>
+                    {field.type === "select" && (
+                      <Button onClick={() => handleAddOption(index)}>
+                        Add Option
+                      </Button>
                     )}
                   </TableCell>
 
@@ -417,16 +484,20 @@ const AddProductCategoryPage = () => {
             </TableBody>
           </Table>
 
-          <div style={{ margin: '20px 0' }}>
+          <div style={{ margin: "20px 0" }}>
             <input
               type="file"
               accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
               onChange={handleFileUpload}
-              style={{ display: 'block', marginBottom: '10px', width: '28%' }}
+              style={{ display: "block", marginBottom: "10px", width: "28%" }}
             />
 
             {file && (
-              <Button onClick={handleFileSubmit} variant="contained" color="primary">
+              <Button
+                onClick={handleFileSubmit}
+                variant="contained"
+                color="primary"
+              >
                 Upload & Submit File
               </Button>
             )}
@@ -437,7 +508,7 @@ const AddProductCategoryPage = () => {
               onClick={handleAddCustomField}
               variant="contained"
               color="primary"
-              sx={{ marginRight: '16px' }}
+              sx={{ marginRight: "16px" }}
               disabled={!selectedKey}
             >
               Add Custom Field

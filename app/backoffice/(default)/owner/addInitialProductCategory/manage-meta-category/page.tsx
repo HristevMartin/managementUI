@@ -959,7 +959,7 @@ const ManageMetaCategory = () => {
                         onChange={handleChangeType}
                         SelectProps={{ native: true }}
                       >
-                        {["ManyToOne", "OneToMany", "ManyToMany"].map(
+                        {["ManyToOne", "OneToMany", "ManyToMany", "OneToOne"].map(
                           (option) => (
                             <option key={option} value={option}>
                               {option}
