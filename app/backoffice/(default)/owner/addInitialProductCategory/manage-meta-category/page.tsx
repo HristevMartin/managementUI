@@ -57,7 +57,26 @@ const ManageMetaCategory = () => {
   const [selectedEntityTypeUpdate, setSelectedEntityTypeUpdate] =
     useState(false);
 
+  const [showAddRelationshipRow, setShowAddRelationshipRow] = useState(false);
+
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
+
+  const relationshipOptions = productTypes.map((type) => type.entityName);
+
+  const [newRelationship, setNewRelationship] = useState({
+    relationshipType: "ManyToOne",
+    relationshipFrom: "",
+    relationshipTo: relationshipOptions[0],
+  });
+
+  useEffect(() => {
+    if (productTypes.length > 0) {
+      setNewRelationship((prevState) => ({
+        ...prevState,
+        relationshipTo: productTypes[0].entityName,
+      }));
+    }
+  }, [productTypes]);
 
   async function apiDeleteCategories(categoriesToDelete) {
     console.log("categoriesToDelete:", categoriesToDelete);
@@ -77,7 +96,6 @@ const ManageMetaCategory = () => {
       });
       if (!response.ok) {
         console.log("Failed to delete categories:", response);
-        // throw new Error('Failed to delete categories:', response.statusText);
       }
       console.log("Delete response:", data);
     } catch (error) {
@@ -120,7 +138,6 @@ const ManageMetaCategory = () => {
 
   useEffect(() => {
     if (jHipsterAuthToken) {
-      // Ensure token is available before fetching
       const fetchData = async () => {
         setLoading(true);
         try {
@@ -190,8 +207,6 @@ const ManageMetaCategory = () => {
     console.log("beeing called here");
   }, [selectedEntityTypeUpdate]);
 
-  console.log("selectedRelationship!!!:", selectedRelationship);
-
   const handleDelete = (index) => {
     setOpenDeleteDialog(true);
     setEditFieldIndex(index);
@@ -252,24 +267,12 @@ const ManageMetaCategory = () => {
   };
 
   const saveEdit = async () => {
-    console.log("here..");
-    console.log("selectedFields:", selectedFields);
-    console.log("editFieldIndex:", editFieldIndex);
-    console.log("fieldEdits", fieldEdits);
-
     const updatedFields = selectedFields.map((field, idx) => {
       return idx === editFieldIndex ? { ...fieldEdits } : field;
     });
 
-    console.log("beehere");
-
     setSelectedFields(updatedFields);
     setEditFieldIndex(null);
-
-    console.log("passinghere");
-
-    console.log("selectedProductType", selectedProductType);
-    console.log("selectedRelationshipM<", selectedRelationship);
 
     if (selectedRelationship.length > 0) {
       console.log("there are relationships", selectedRelationship);
@@ -407,8 +410,21 @@ const ManageMetaCategory = () => {
     });
   };
 
+  // function formatRelationshipFrom(relationshipFrom) {
+  //   return relationshipFrom.split("{")[0];
+  // }
+
   function formatRelationshipFrom(relationshipFrom) {
-    return relationshipFrom.split("{")[0];
+    if (!relationshipFrom) return "";
+
+    const pattern = /^[A-Za-z]+{\w+\(\w+\)}$/;
+
+    if (pattern.test(relationshipFrom)) {
+      const mainPart = relationshipFrom.split("{")[0];
+      return mainPart;
+    } else {
+      return relationshipFrom;
+    }
   }
 
   const handleDeleteRelationship = async (index) => {
@@ -452,6 +468,108 @@ const ManageMetaCategory = () => {
   let entityTypeOptions = ["reference", "product", "variant"];
 
   console.log("show me the selectedEntityType", selectedEntityType);
+
+  function formatNewRelationship(relationship, categoryName) {
+    const cleanEntityType = categoryName.trim();
+    console.log("cleanEntityType", cleanEntityType);
+    console.log("relationshipM<M<", relationship);
+    const cleanLabel = relationship.relationshipTo.trim().toLowerCase();
+    console.log("cleanLabel", cleanLabel);
+
+    const pluralLabel = cleanLabel.endsWith("s")
+      ? `${cleanLabel}es`
+      : `${cleanLabel}s`;
+
+    console.log("pluralLabel", pluralLabel);
+    console.log(
+      "the value is following",
+      `${cleanEntityType}{${pluralLabel}(name)}`
+    );
+
+    return {
+      relationshipType: relationship.relationshipType,
+      relationshipFrom: `${cleanEntityType}{${pluralLabel}(name)}`,
+      relationshipTo: relationship.relationshipTo,
+    };
+  }
+
+  const handleAddRelationship = async () => {
+    let newRelationshipObject = {
+      relationshipFrom: selectedProductType.entityName,
+      relationshipType: newRelationship.relationshipType,
+      relationshipTo: newRelationship.relationshipTo,
+    };
+
+    newRelationshipObject = formatNewRelationship(
+      newRelationshipObject,
+      selectedProductType.entityName
+    );
+
+    const updatedRelationships = [
+      ...selectedRelationship,
+      newRelationshipObject,
+    ];
+
+    console.log("updatedRelationships!?!?!?", updatedRelationships);
+
+    let filteredObject = rawDataForRelationship.filter(
+      (obj) => obj.entityName === selectedProductType.entityName
+    );
+
+    filteredObject[0].relationships = updatedRelationships;
+    filteredObject[0].parentEntityName = "";
+
+    try {
+      const response = await fetch(`${apiUrlSpring}/api/jdl/update-entity`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jHipsterAuthToken}`,
+        },
+        body: JSON.stringify(filteredObject),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create relationship");
+      }
+
+      console.log("API response data:", data);
+
+      // const updatedRelationships = [
+      //   ...selectedRelationship,
+      //   data,
+      // ];
+
+      // setSelectedRelationship(updatedRelationships);
+    } catch (error) {
+      console.error("Error adding relationship:", error);
+    }
+
+    setSelectedRelationship(updatedRelationships);
+
+    setShowAddRelationshipRow(false);
+    setNewRelationship({
+      relationshipType: "",
+      relationshipFrom: "",
+      relationshipTo: "",
+    });
+  };
+
+  console.log("updatedRelationships!?!?", selectedRelationship);
+
+  const handleChangeType = (event) => {
+    const newType = event.target.value;
+    console.log("Updating relationship type to:", newType);
+
+    setNewRelationship((prevRelationship) => {
+      return {
+        ...prevRelationship,
+        relationshipType: newType,
+      };
+    });
+  };
 
   return (
     <Container
@@ -506,7 +624,7 @@ const ManageMetaCategory = () => {
         </Select>
       </FormControl>
 
-      <Paper sx={{ p: 2 }}>
+      <Paper style={{ marginBottom: "80px" }} sx={{ p: 2 }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -749,44 +867,7 @@ const ManageMetaCategory = () => {
           </TableBody>
         </Table>
 
-        {/* relationship table */}
-        {selectedRelationship.length > 0 && (
-          <Paper sx={{ mt: 4, p: 2 }}>
-            <Typography variant="h6" sx={{ mb: 2 }}>
-              Relationships Selection
-            </Typography>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell style={{ fontWeight: "bold" }}>Type</TableCell>
-                  <TableCell style={{ fontWeight: "bold" }}>From</TableCell>
-                  <TableCell style={{ fontWeight: "bold" }}>To</TableCell>
-                  <TableCell style={{ fontWeight: "bold" }}>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {selectedRelationship.map((rel, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{rel.relationshipType}</TableCell>
-                    <TableCell>
-                      {formatRelationshipFrom(rel.relationshipFrom)}
-                    </TableCell>
-                    <TableCell>{rel.relationshipTo}</TableCell>
-                    <TableCell>
-                      <IconButton
-                        onClick={() => handleDeleteRelationship(index)}
-                      >
-                        <DeleteIcon />
-                      </IconButton>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Paper>
-        )}
-
-        {/* ends relationship table */}
+        {/*  */}
 
         <div className="flex justify-between">
           <Button
@@ -837,6 +918,124 @@ const ManageMetaCategory = () => {
             </DialogActions>
           </Dialog>
         </div>
+
+        {/*  */}
+
+        {/* relationship table */}
+        {selectedRelationship.length > 0 && (
+          <Paper sx={{ mt: 4, p: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Relationships Selection
+            </Typography>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell style={{ fontWeight: "bold" }}>Type</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>From</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>To</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {selectedRelationship.map((rel, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{rel.relationshipType}</TableCell>
+                    <TableCell>
+                      {formatRelationshipFrom(rel.relationshipFrom)}
+                    </TableCell>
+                    <TableCell>{rel.relationshipTo}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        onClick={() => handleDeleteRelationship(index)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                {showAddRelationshipRow && (
+                  <TableRow>
+                    <TableCell>
+                      <TextField
+                        select
+                        fullWidth
+                        value={newRelationship.relationshipType}
+                        onChange={handleChangeType}
+                        SelectProps={{ native: true }}
+                      >
+                        {["ManyToOne", "OneToMany", "ManyToMany"].map(
+                          (option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          )
+                        )}
+                      </TextField>
+                    </TableCell>
+
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        disabled
+                        value={selectedProductType.entityName}
+                        onChange={(e) =>
+                          setNewRelationship({
+                            ...newRelationship,
+                            relationshipFrom: selectedProductType.entityName,
+                          })
+                        }
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <TextField
+                        select
+                        fullWidth
+                        value={newRelationship.relationshipTo}
+                        onChange={(e) =>
+                          setNewRelationship({
+                            ...newRelationship,
+                            relationshipTo: e.target.value,
+                          })
+                        }
+                        SelectProps={{ native: true }}
+                      >
+                        {relationshipOptions.map((option, index) => (
+                          <option key={index} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </TextField>
+                    </TableCell>
+
+                    <TableCell>
+                      <IconButton onClick={handleAddRelationship}>
+                        <SaveIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => setShowAddRelationshipRow(false)}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Paper>
+        )}
+
+        {selectedRelationship.length > 0 && (
+          <Button
+            onClick={() => setShowAddRelationshipRow(true)}
+            variant="contained"
+            color="primary"
+            sx={{ mt: 2 }}
+          >
+            Add Relationship
+          </Button>
+        )}
       </Paper>
 
       <Dialog

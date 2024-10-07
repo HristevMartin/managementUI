@@ -492,33 +492,7 @@ const AddProductCategoryPage = () => {
                 required
               />
             )}
-            {/* 
-            <FormControl fullWidth margin="normal">
-              <label
-                style={{ fontSize: "1rem", lineHeight: "1.4375em" }}
-                className="no-underline-label"
-                htmlFor="entity-relationship-select"
-              >
-                Entity Relationship
-              </label>
-              <ReactSelect
-                id="entity-relationship-select"
-                isMulti
-                options={transformedRelationships}
-                onChange={handleRelationshipChange}
-                classNamePrefix="select"
-                styles={customStyles}
-                theme={(theme) => ({
-                  ...theme,
-                  colors: {
-                    ...theme.colors,
-                    primary25: "rgba(63, 81, 181, 0.25)",
-                    primary: "#3f51b5",
-                  },
-                })}
-              />
-            </FormControl> */}
-
+            
             <div>
               <Button
                 onClick={addRelationshipConfig}
