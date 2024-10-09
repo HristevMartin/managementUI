@@ -1,0 +1,29 @@
+.bg-opacity-none {
+  --tw-bg-opacity: 0;
+}
+
+.tooltip-category {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltip-category .tooltip-category-text {
+  visibility: hidden;
+  width: 100px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 5px;
+  padding: 5px 5px;
+  position: absolute;
+  z-index: 1;
+  left: 60%;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip-category:hover .tooltip-category-text {
+  visibility: visible;
+  opacity: 1;
+}

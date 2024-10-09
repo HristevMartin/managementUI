@@ -1,0 +1,257 @@
+/* Container for the rule grid */
+.rule-grid-container {
+    padding: 20px; /* Reduced padding */
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    max-width: 1062px; /* Limit the max width */
+    margin: 0 auto; /* Center the container */
+}
+
+/* Heading for the rule grid */
+.rule-grid-heading {
+    font-size: 28px;
+    margin-bottom: 20px;
+    color: #333;
+}
+/* Form for creating/updating rules */
+.rule-form {
+    margin-bottom: 40px;
+}
+
+/* Input fields for rules */
+.rule-input, .rule-textarea {
+    display: block;
+    width: 100%;
+    margin-bottom: 15px;
+    padding: 12px;
+    font-size: 19px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s;
+    height: 112px; /* Increased height */
+
+}
+
+
+
+.rule-input:focus, .rule-textarea:focus {
+    border-color: #4CAF50; /* Green border on focus */
+    outline: none; /* Remove default outline */
+}
+
+.rule-input,
+.rule-textarea,
+.rule-dropdown,
+.date-input {
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.rule-button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.cancel-button {
+    background-color: #f44336; 
+}
+
+.message {
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.error-message {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.success-message {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.rule-type-hotel-container,
+.date-picker-container {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+    margin-bottom: 15px; 
+}
+
+.rule-type-container,
+.hotel-selection-container,
+.date-input-container {
+    flex: 1; 
+    margin-right: 10px; 
+}
+
+.rule-type-hotel-container .hotel-selection-container:last-child,
+.date-picker-container .date-input-container:last-child {
+    margin-right: 0; 
+}
+
+.rules-list {
+    margin-top: 20px;
+}
+
+.rule-item {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    margin-bottom: 10px;
+}
+
+.rule-actions {
+    display: flex;
+    gap: 10px; 
+}
+
+.edit-button {
+    background-color: #008CBA; 
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.delete-button {
+    background-color: #f44336; 
+    color: white;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.confirmation-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+/* Table styles */
+.rule-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.rule-table th, .rule-table td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.rule-table th {
+    background-color: #073985; 
+    color: white;
+}
+
+.rule-table tr:nth-child(even) {
+    background-color: #e9e3e3; 
+}
+
+.rule-table tr:hover {
+    background-color: #ddd; 
+}
+
+
+.table-button {
+    padding: 6px 12px;
+    margin: 0 5px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.edit-button {
+    background-color: #1648d1; /* Blue edit button */
+    color: white;
+}
+
+.edit-button:hover {
+    background-color: #1E88E5; /* Darker blue on hover */
+}
+
+.delete-button {
+    background-color: #f44336; /* Red delete button */
+    color: white;
+}
+
+.delete-button:hover {
+    background-color: #911311; /* Darker red on hover */
+}
+
+.message {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+}
+
+.error-message {
+    color: #ac100b; 
+    background-color: #f2dede; 
+}
+
+.success-message {
+    color: #290e4d; 
+    background-color: #8db97c; 
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 5px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.modal-button {
+    padding: 10px 15px;
+    margin: 5px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.cancel-button {
+    background-color: #f08811; /* Red */
+    color: white;
+}
+
+
+
+
+
+

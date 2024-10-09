@@ -1,0 +1,362 @@
+/* General Styles */
+body {
+  font-family: 'Arial', sans-serif;
+  background-color: #f9fafb;
+  margin: 0;
+  padding: 0;
+}
+
+.min-h-screen {
+  min-height: 100vh;
+}
+
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.bg-gray-100 {
+  background-color: #f7f7f7;
+}
+
+.bg-opacity-none {
+  background-color: rgba(0, 0, 0, 0);
+}
+
+.text-2xl {
+  font-size: 1.5rem;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+
+.ml-11 {
+  margin-left: 2.75rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.w-full {
+  width: 100%;
+}
+
+.max-w-4xl {
+  max-width: 56rem;
+}
+
+.p-8 {
+  padding: 2rem;
+}
+
+.bg-white {
+  background-color: #ffffff;
+}
+
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+
+.shadow-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ml-44 {
+  margin-left: 11rem;
+}
+
+.text-xl {
+  font-size: 1.25rem;
+}
+
+.mb-6 {
+  margin-bottom: 1.5rem;
+}
+
+.grid {
+  display: grid;
+}
+
+.grid-cols-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.gap-6 {
+  gap: 1.5rem;
+}
+
+.col-span-2 {
+  grid-column: span 2 / span 2;
+}
+
+.flex-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
+.text-gray-700 {
+  color: #4a5568;
+}
+
+.px-4 {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+
+.py-2 {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.border {
+  border: 1px solid #e2e8f0;
+}
+
+.rounded-md {
+  border-radius: 0.375rem;
+}
+
+.focus\:outline-none:focus {
+  outline: 0;
+}
+
+.focus\:ring-2:focus {
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
+}
+
+.focus\:ring-blue-500:focus {
+  --ring-color: #3182ce;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.tooltip {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+}
+
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 220px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 5px;
+  padding: 5px 0;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-left: -110px;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 1;
+}
+
+.bg-blue-500 {
+  background-color: #4299e1;
+}
+
+.text-white {
+  color: #ffffff;
+}
+
+.rounded {
+  border-radius: 0.25rem;
+}
+
+.hover\:bg-blue-600:hover {
+  background-color: #3182ce;
+}
+
+.focus\:ring-blue-500:focus {
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.5);
+}
+
+/* Additional styles for dynamic sections */
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* Button Styling */
+button {
+  display: inline-block;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+button:hover {
+  transform: scale(1.05); 
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2); 
+}
+
+.form-input {
+  position: relative;
+  margin-top: 20px;
+}
+
+.form-input input {
+  width: 100%;
+  padding: 12px 10px 12px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.form-input label {
+  position: absolute;
+  left: 10px;
+  top: 12px;
+  background-color: white;
+  transition: all 0.3s ease;
+  padding: 0 5px;
+  color: #ccc;
+}
+
+.form-input .relative {
+  display: flex;
+  align-items: center; /* Ensures vertical alignment */
+  justify-content: space-between; /* Adjusts spacing between elements */
+}
+.form-input input {
+  margin-right: 8px; /* Provides spacing between input and button */
+}
+
+
+.form-input input:focus + label,
+.form-input input:not(:placeholder-shown) + label {
+  top: -10px;
+  font-size: 12px;
+  color: #333;
+}
+
+/* spinner */
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border-left-color: #09f;
+  animation: spin 1s ease infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* spinner ends */
+
+
+/* Media Queries for Responsive Design */
+
+/* Mobile (up to 480px) */
+@media (max-width: 480px) {
+  .max-w-4xl {
+    max-width: 100%;
+    padding: 0 0.5rem;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .ml-11, .ml-44 {
+    margin-left: 0;
+  }
+
+  .flex-col {
+    width: 100%;
+  }
+
+  .py-2 {
+    padding: 0.5rem 0;
+  }
+
+  .p-8 {
+    padding: 1rem;
+  }
+
+  .text-xl {
+    font-size: 1.125rem;
+  }
+
+  .tooltip .tooltiptext {
+    width: 180px;
+    margin-left: -90px;
+  }
+}
+
+/* Tablet (481px to 768px) */
+@media (min-width: 481px) and (max-width: 768px) {
+  .max-w-4xl {
+    max-width: 100%;
+    padding: 0 1rem;
+  }
+
+  .grid-cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .ml-11 {
+    margin-left: 1rem;
+  }
+
+  .ml-44 {
+    margin-left: 0;
+  }
+
+  .flex-col {
+    width: 100%;
+  }
+
+  .py-2 {
+    padding: 0.5rem 0;
+  }
+
+  .p-8 {
+    padding: 1.5rem;
+  }
+
+  .text-xl {
+    font-size: 1.25rem;
+  }
+
+  .tooltip .tooltiptext {
+    width: 220px;
+    margin-left: -110px;
+  }
+}
