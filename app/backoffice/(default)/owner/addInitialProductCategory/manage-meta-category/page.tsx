@@ -20,6 +20,10 @@ import {
   DialogContentText,
   DialogTitle,
   Autocomplete,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from "@mui/material";
 import DeleteIcon from "@mui/icons-material/Delete";
 import EditIcon from "@mui/icons-material/Edit";
@@ -46,47 +50,41 @@ const ManageMetaCategory = () => {
   const [selectedCategoriesForDeletion, setSelectedCategoriesForDeletion] =
     useState([]);
   const { jHipsterAuthToken } = useAuthJHipster();
-  const [isApiModalOpen, setIsApiModalOpen] = useState(false);
-  const [currentFieldIndex, setCurrentFieldIndex] = useState(null);
-  const [apiDetails, setApiDetails] = useState({
-    apiUrl: "",
-    headers: [],
-    parsers: [],
-    payloadBody: {},
+
+  const [selectedRelationship, setSelectedRelationship] = useState(null);
+  const [rawDataForRelationship, setRawDataForRelationship] = useState([]);
+  const [selectedEntityType, setSelectedEntityType] = useState(null);
+  const [selectedEntityTypeUpdate, setSelectedEntityTypeUpdate] =
+    useState(false);
+  const [newField, setNewField] = useState({
+    key: "",
+    type: "",
+    required: false,
+    min: "",
+    max: "",
+    unique: false,
   });
-  const [tempApiChanges, setTempApiChanges] = useState({});
-  const [currentEditingFieldKey, setCurrentEditingFieldKey] = useState(null);
 
-  console.log("tempApiChanges:", tempApiChanges);
-
-  const saveModalChanges = () => {
-    try {
-      const newApiDetails = {
-        ...apiDetails,
-        payload: apiDetails.payloadBody,
-      };
-
-      setTempApiChanges({
-        attributeName: currentEditingFieldKey,
-        externalUrl: newApiDetails.apiUrl,
-        headers: newApiDetails.headers,
-        payload: newApiDetails.payload,
-        responseParser: newApiDetails.parsers,
-        mockup: false,
-      });
-
-      console.log("Saving modal changes:", newApiDetails);
-      setIsApiModalOpen(false);
-    } catch (error) {
-      console.error("Failed to parse JSON for payload:", error);
-    }
-  };
-
-  console.log("Temporary API changes saved:", tempApiChanges);
-
-  console.log("isApiModalOpen:", isApiModalOpen);
+  const [showAddRelationshipRow, setShowAddRelationshipRow] = useState(false);
 
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
+
+  const relationshipOptions = productTypes.map((type) => type.entityName);
+
+  const [newRelationship, setNewRelationship] = useState({
+    relationshipType: "ManyToOne",
+    relationshipFrom: "",
+    relationshipTo: relationshipOptions[0],
+  });
+
+  useEffect(() => {
+    if (productTypes.length > 0) {
+      setNewRelationship((prevState) => ({
+        ...prevState,
+        relationshipTo: productTypes[0].entityName,
+      }));
+    }
+  }, [productTypes]);
 
   async function apiDeleteCategories(categoriesToDelete) {
     console.log("categoriesToDelete:", categoriesToDelete);
@@ -106,7 +104,6 @@ const ManageMetaCategory = () => {
       });
       if (!response.ok) {
         console.log("Failed to delete categories:", response);
-        // throw new Error('Failed to delete categories:', response.statusText);
       }
       console.log("Delete response:", data);
     } catch (error) {
@@ -138,18 +135,8 @@ const ManageMetaCategory = () => {
     }
   };
 
-  const [newField, setNewField] = useState({
-    key: "",
-    type: "",
-    required: false,
-    min: "",
-    max: "",
-    unique: false,
-  });
-
   useEffect(() => {
     if (jHipsterAuthToken) {
-      // Ensure token is available before fetching
       const fetchData = async () => {
         setLoading(true);
         try {
@@ -174,9 +161,11 @@ const ManageMetaCategory = () => {
           );
 
           const entitiesDetails = await Promise.all(detailsRequests);
+          console.log("entitiesDetails", entitiesDetails);
 
           let data = entitiesDetails.map((detail) => ({
             entityName: detail.entityName,
+            entityType: detail.entityType,
             fields: detail.fields,
             relationships: detail.relationships || [],
             externalAttributesMetaData: detail.externalAttributesMetaData || [],
@@ -185,16 +174,19 @@ const ManageMetaCategory = () => {
             newEntityName: detail.newEntityName,
           }));
 
-          console.log('raw data:', data);
+          console.log("raw data:", data);
+          setRawDataForRelationship(data);
           data = transformMetaCategoryData(data);
           console.log("the data:", data);
+
           // check external data here
           setProductTypes(data);
+
           if (data.length > 0) {
             setSelectedProductType(data[0]);
-            console.log("data[0].customFields", data[0].customFields);
+            setSelectedEntityType(data[0].entityType);
             setSelectedFields(data[0].customFields || []);
-            // add the external attributes as well.
+            setSelectedRelationship(data[0]);
           }
         } catch (err) {
           setError("There is not data available");
@@ -209,6 +201,10 @@ const ManageMetaCategory = () => {
       // Potentially trigger token fetch or wait for token to be set
     }
   }, [jHipsterAuthToken]);
+
+  useEffect(() => {
+    console.log("beeing called here");
+  }, [selectedEntityTypeUpdate]);
 
   const handleDelete = (index) => {
     setOpenDeleteDialog(true);
@@ -277,45 +273,44 @@ const ManageMetaCategory = () => {
     setSelectedFields(updatedFields);
     setEditFieldIndex(null);
 
-    const allExternalAttributes = selectedProductType.externalAttributes.map(
-      (attr) => {
-        if (attr.attributeName === tempApiChanges.attributeName) {
-          console.log(
-            `Applying changes for ${attr.attributeName}:`,
-            tempApiChanges
-          );
-          return { ...attr, ...tempApiChanges };
-        }
-        return attr;
-      }
-    );
+    if (selectedRelationship.length > 0) {
+      console.log("there are relationships", selectedRelationship);
+    } else {
+      console.log("no relationships", selectedRelationship);
+    }
 
-    console.log(
-      "Merged External Attributes:",
-      JSON.stringify(allExternalAttributes, null, 2)
-    );
+    console.log("updatedFieldsM<", updatedFields);
 
     const payload = {
-      entityName: selectedProductType.entityName,
-      fields: updatedFields.map(
-        (field) =>
-          `${field.key} ${field.type}${field.required ? " required" : ""}${
-            field.external ? " external" : ""
-          }`
-      ),
-      externalAttributesMetaData: allExternalAttributes.map((attr) => {
-        if (typeof attr.payload === "string") {
-          try {
-            attr.payload = JSON.parse(attr.payload);
-          } catch (error) {
-            console.error("Failed to parse payload:", error);
-            attr.payload = {};
-          }
+      entityName: selectedProductType?.entityName,
+      fields: updatedFields.map((field) => {
+        let fieldSpec = `${field.key} ${field.type}${
+          field.required ? " required" : ""
+        }`;
+
+        const { min, max, unique } = field.validations;
+
+        // check the of what needs to be the structure of the fieldSpec
+        if (field.validations) {
+          fieldSpec += unique ? " unique" : "";
+          //   fieldSpec += `${min ? ` min(${min})` : ""}`;
+          //   fieldSpec += `${max ? ` max(${max})` : ""}`;
         }
-        return attr;
+
+        return fieldSpec;
       }),
-      relationships: [],
+      relationships:
+        selectedRelationship.length > 0 ? selectedRelationship : [],
     };
+
+    console.log("payload.fields", payload);
+
+    payload.entityType = selectedEntityType;
+    payload.externalAttributesMetaData = [];
+    payload.parentEntityName = "";
+    payload.enableSearch = false;
+    payload.searchFields = [];
+    payload.externalFlag = false;
 
     console.log("Final Transformed Payload:", JSON.stringify(payload, null, 2));
 
@@ -401,52 +396,6 @@ const ManageMetaCategory = () => {
     TextBlob: ["unique"],
   };
 
-  const handleExternalToggle = (index) => {
-    const field = selectedFields[index];
-    let externalDetails;
-
-    if (!Array.isArray(selectedProductType.externalAttributes)) {
-      selectedProductType.externalAttributes = [];
-    }
-
-    externalDetails = selectedProductType.externalAttributes.find(
-      (attr) => attr.attributeName === field.key
-    );
-
-    field.external = !field.external;
-
-    if (field.external) {
-      if (!externalDetails) {
-        externalDetails = {
-          attributeName: field.key,
-          externalUrl: "",
-          headers: [],
-          payload: "",
-          responseParser: [],
-          mockup: false,
-        };
-        selectedProductType.externalAttributes.push(externalDetails);
-      }
-
-      setApiDetails({
-        apiUrl: externalDetails.externalUrl,
-        headers: externalDetails.headers,
-        payloadBody: externalDetails.payload,
-        parsers: externalDetails.responseParser,
-      });
-
-      setCurrentFieldIndex(index);
-      setCurrentEditingFieldKey(field.key);
-      setIsApiModalOpen(true);
-    } else {
-      setIsApiModalOpen(false);
-    }
-
-    const newFields = [...selectedFields];
-    newFields[index] = field;
-    setSelectedFields(newFields);
-  };
-
   const handleSelectCategory = (category) => {
     setSelectedCategoriesForDeletion((prevSelected) => {
       const index = prevSelected.findIndex(
@@ -460,72 +409,161 @@ const ManageMetaCategory = () => {
     });
   };
 
-  const handleHeaderChange = (index, field, value) => {
-    const updatedHeaders = apiDetails.headers.map((header, idx) => {
-      if (idx === index) {
-        return { ...header, [field]: value };
-      }
-      return header;
+  function formatRelationshipFrom(relationshipFrom) {
+    if (!relationshipFrom) return "";
+
+    const pattern = /^[A-Za-z]+{\w+\(\w+\)}$/;
+
+    if (pattern.test(relationshipFrom)) {
+      const mainPart = relationshipFrom.split("{")[0];
+      return mainPart;
+    } else {
+      return relationshipFrom;
+    }
+  }
+
+  const handleDeleteRelationship = async (index) => {
+    let relationshipToRemove = selectedRelationship[index];
+    let currentProductType = selectedProductType.entityName;
+
+    console.log("rawDataForRelationship>>", rawDataForRelationship);
+
+    // Filter out the relationship directly from selectedRelationship (current state)
+    let newDataState = selectedRelationship.filter(
+      (rel) => rel.relationshipTo !== relationshipToRemove.relationshipTo
+    );
+
+    setSelectedRelationship(newDataState);
+
+    let filteredObject = rawDataForRelationship.filter(
+      (obj) => obj.entityName === currentProductType
+    );
+
+    filteredObject[0].relationships = newDataState;
+    console.log("filteredObject22", filteredObject);
+    filteredObject[0].parentEntityName = "";
+
+    const response = await fetch(`${apiUrlSpring}/api/jdl/update-entity`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${jHipsterAuthToken}`,
+      },
+      body: JSON.stringify(filteredObject),
     });
-    setApiDetails((prev) => ({ ...prev, headers: updatedHeaders }));
+
+    if (!response.ok) {
+      console.log("Failed to delete relationship:", response);
+    }
+
+    console.log("response", response);
+    alert("Relationship Deleted Successfully");
   };
 
-  const addHeader = () => {
-    setApiDetails((prev) => ({
-      ...prev,
-      headers: [...prev.headers, { key: "", value: "" }],
-    }));
+  let entityTypeOptions = ["reference", "product", "variant"];
+
+  console.log("show me the selectedEntityType", selectedEntityType);
+
+  function formatNewRelationship(relationship, categoryName) {
+    const cleanEntityType = categoryName.trim();
+    console.log("cleanEntityType", cleanEntityType);
+    console.log("relationshipM<M<", relationship);
+    const cleanLabel = relationship.relationshipTo.trim().toLowerCase();
+    console.log("cleanLabel", cleanLabel);
+
+    const pluralLabel = cleanLabel.endsWith("s")
+      ? `${cleanLabel}es`
+      : `${cleanLabel}s`;
+
+    console.log("pluralLabel", pluralLabel);
+    console.log(
+      "the value is following",
+      `${cleanEntityType}{${pluralLabel}(name)}`
+    );
+
+    return {
+      relationshipType: relationship.relationshipType,
+      relationshipFrom: `${cleanEntityType}{${pluralLabel}(name)}`,
+      relationshipTo: relationship.relationshipTo,
+    };
+  }
+
+  const handleAddRelationship = async () => {
+    let newRelationshipObject = {
+      relationshipFrom: selectedProductType.entityName,
+      relationshipType: newRelationship.relationshipType,
+      relationshipTo: newRelationship.relationshipTo,
+    };
+
+    newRelationshipObject = formatNewRelationship(
+      newRelationshipObject,
+      selectedProductType.entityName
+    );
+
+    const updatedRelationships = [
+      ...selectedRelationship,
+      newRelationshipObject,
+    ];
+
+    console.log("updatedRelationships!?!?!?", updatedRelationships);
+
+    let filteredObject = rawDataForRelationship.filter(
+      (obj) => obj.entityName === selectedProductType.entityName
+    );
+
+    filteredObject[0].relationships = updatedRelationships;
+    filteredObject[0].parentEntityName = "";
+
+    try {
+      const response = await fetch(`${apiUrlSpring}/api/jdl/update-entity`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${jHipsterAuthToken}`,
+        },
+        body: JSON.stringify(filteredObject),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to create relationship");
+      }
+
+      console.log("API response data:", data);
+
+      // const updatedRelationships = [
+      //   ...selectedRelationship,
+      //   data,
+      // ];
+
+      // setSelectedRelationship(updatedRelationships);
+    } catch (error) {
+      console.error("Error adding relationship:", error);
+    }
+
+    setSelectedRelationship(updatedRelationships);
+
+    setShowAddRelationshipRow(false);
+    setNewRelationship({
+      relationshipType: "",
+      relationshipFrom: "",
+      relationshipTo: "",
+    });
   };
 
-  const removeHeader = (index) => {
-    setApiDetails((prev) => ({
-      ...prev,
-      headers: prev.headers.filter((_, idx) => idx !== index),
-    }));
-  };
+  console.log("updatedRelationships!?!?", selectedRelationship);
 
-  const addParser = () => {
-    setApiDetails((prev) => ({
-      ...prev,
-      parsers: [...prev.parsers, { key: "", value: "" }],
-    }));
-  };
+  const handleChangeType = (event) => {
+    const newType = event.target.value;
+    console.log("Updating relationship type to:", newType);
 
-  const removeParser = (index) => {
-    setApiDetails((prev) => ({
-      ...prev,
-      parsers: prev.parsers.filter((_, idx) => idx !== index),
-    }));
-  };
-
-  const updateHeader = (index, field, value) => {
-    const updatedHeaders = [...apiDetails.headers];
-    updatedHeaders[index][field] = value;
-    setApiDetails((prev) => ({ ...prev, headers: updatedHeaders }));
-  };
-
-  const updateParser = (index, field, value) => {
-    const updatedParsers = [...apiDetails.parsers];
-    updatedParsers[index][field] = value;
-    setApiDetails((prev) => ({ ...prev, parsers: updatedParsers }));
-  };
-
-  const closeApiModal = () => {
-    setIsApiModalOpen(false);
-  };
-
-  const updateApiUrl = (newUrl) => {
-    setApiDetails((prevDetails) => ({
-      ...prevDetails,
-      apiUrl: newUrl,
-    }));
-  };
-
-  const updatePayloadBody = (newBody) => {
-    setApiDetails((prevDetails) => ({
-      ...prevDetails,
-      payloadBody: newBody,
-    }));
+    setNewRelationship((prevRelationship) => {
+      return {
+        ...prevRelationship,
+        relationshipType: newType,
+      };
+    });
   };
 
   return (
@@ -546,14 +584,42 @@ const ManageMetaCategory = () => {
         value={selectedProductType}
         onChange={(event, newValue) => {
           setSelectedProductType(newValue);
-          setSelectedFields(newValue.customFields || []);
+          setSelectedFields(newValue?.customFields || []);
+          setSelectedEntityType(newValue?.entityType || "");
+          if (newValue && newValue.relationships) {
+            setSelectedRelationship(newValue?.relationships);
+          } else {
+            setSelectedRelationship([]);
+          }
         }}
         disableClearable
         renderInput={(params) => (
           <TextField {...params} label="Select Category" />
         )}
       />
-      <Paper sx={{ p: 2 }}>
+
+      <FormControl fullWidth sx={{ mt: 2, mb: 4 }}>
+        <InputLabel id="entity-type-label">Entity Type</InputLabel>
+        <Select
+          labelId="entity-type-label"
+          id="entity-type-select"
+          value={selectedEntityType}
+          label="Entity Type"
+          onChange={(event) => {
+            setSelectedEntityType(event.target.value);
+            // setSelectedEntityTypeUpdate(!selectedEntityTypeUpdate);
+          }}
+        >
+          {/* Assuming you have a list of possible entity types */}
+          {entityTypeOptions.map((type) => (
+            <MenuItem key={type} value={type}>
+              {type}
+            </MenuItem>
+          ))}
+        </Select>
+      </FormControl>
+
+      <Paper style={{ marginBottom: "80px" }} sx={{ p: 2 }}>
         <Table>
           <TableHead>
             <TableRow>
@@ -563,7 +629,6 @@ const ManageMetaCategory = () => {
               <TableCell sx={{ fontWeight: "bold" }}>Max</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Unique</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Required</TableCell>
-              <TableCell sx={{ fontWeight: "bold" }}>External</TableCell>
               <TableCell sx={{ fontWeight: "bold" }}>Actions</TableCell>
             </TableRow>
           </TableHead>
@@ -574,6 +639,7 @@ const ManageMetaCategory = () => {
                   <>
                     <TableCell>
                       <TextField
+                        disabled
                         value={fieldEdits.key}
                         onChange={(e) =>
                           handleEditChange("key", e.target.value)
@@ -584,6 +650,7 @@ const ManageMetaCategory = () => {
 
                     <TableCell>
                       <TextField
+                        disabled
                         select
                         value={fieldEdits.type}
                         onChange={(e) =>
@@ -655,12 +722,6 @@ const ManageMetaCategory = () => {
                       />
                     </TableCell>
                     <TableCell>
-                      <Checkbox
-                        checked={field.external || false}
-                        onChange={() => handleExternalToggle(idx)}
-                      />
-                    </TableCell>
-                    <TableCell>
                       <IconButton onClick={() => saveEdit()}>
                         <SaveIcon />
                       </IconButton>
@@ -682,9 +743,6 @@ const ManageMetaCategory = () => {
                       <Checkbox checked={field.required} disabled />
                     </TableCell>
                     <TableCell>
-                      <Checkbox checked={field.external} disabled />
-                    </TableCell>
-                    <TableCell>
                       <IconButton onClick={() => startEdit(idx)}>
                         <EditIcon />
                       </IconButton>
@@ -694,117 +752,9 @@ const ManageMetaCategory = () => {
                     </TableCell>
                   </>
                 )}
-                <Dialog
-                  open={isApiModalOpen}
-                  onClose={() => setIsApiModalOpen(false)}
-                  fullWidth
-                  maxWidth="sm"
-                >
-                  <DialogTitle>API Specifications</DialogTitle>
-                  <DialogContent>
-                    <TextField
-                      label="API URL"
-                      fullWidth
-                      value={apiDetails.apiUrl}
-                      onChange={(e) =>
-                        setApiDetails((prev) => ({
-                          ...prev,
-                          apiUrl: e.target.value,
-                        }))
-                      }
-                      margin="dense"
-                    />
-                    <div>
-                      {apiDetails.headers.map((header, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            marginBottom: "10px",
-                            marginTop: "14px",
-                          }}
-                        >
-                          <TextField
-                            label="Header Key"
-                            value={header.key}
-                            onChange={(e) =>
-                              handleHeaderChange(index, "key", e.target.value)
-                            }
-                            style={{ marginRight: "10px" }}
-                          />
-                          <TextField
-                            label="Header Value"
-                            value={header.value}
-                            onChange={(e) =>
-                              handleHeaderChange(index, "value", e.target.value)
-                            }
-                          />
-                          <IconButton onClick={() => removeHeader(index)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        </div>
-                      ))}
-                      <Button onClick={addHeader} variant="outlined">
-                        Add Header
-                      </Button>
-                    </div>
-                    <div style={{ marginTop: "8px", marginBottom: "8px" }}>
-                      {apiDetails.parsers.map((parser, index) => (
-                        <div
-                          key={index}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            marginBottom: "10px",
-                            marginTop: "14px",
-                          }}
-                        >
-                          <TextField
-                            label="Parser Key"
-                            value={parser.key}
-                            onChange={(e) =>
-                              updateParser(index, "key", e.target.value)
-                            }
-                            style={{ marginRight: "10px" }}
-                          />
-                          <TextField
-                            label="Parser Value"
-                            value={parser.value}
-                            onChange={(e) =>
-                              updateParser(index, "value", e.target.value)
-                            }
-                          />
-                          <IconButton onClick={() => removeParser(index)}>
-                            <DeleteIcon />
-                          </IconButton>
-                        </div>
-                      ))}
-                      <Button onClick={addParser} variant="outlined">
-                        Add Parser
-                      </Button>
-                    </div>
-                    <TextField
-                      label="Payload Body"
-                      fullWidth
-                      multiline
-                      rows={4}
-                      // value={apiDetails.payloadBody}
-                      value={JSON.stringify(apiDetails.payloadBody, null, 2)}
-                      onChange={(e) => updatePayloadBody(e.target.value)}
-                      margin="dense"
-                    />
-                  </DialogContent>
-                  <DialogActions>
-                    <Button onClick={() => closeApiModal()}>Cancel</Button>
-                    {/* <Button onClick={() => saveApiDetails()}>Save</Button> */}
-                    <Button onClick={saveModalChanges} color="primary">
-                      Save
-                    </Button>
-                  </DialogActions>
-                </Dialog>
               </TableRow>
             ))}
+
             {showAddField && (
               <TableRow>
                 <TableCell>
@@ -911,6 +861,9 @@ const ManageMetaCategory = () => {
             )}
           </TableBody>
         </Table>
+
+        {/*  */}
+
         <div className="flex justify-between">
           <Button
             onClick={(e) => setShowAddField(true)}
@@ -960,7 +913,126 @@ const ManageMetaCategory = () => {
             </DialogActions>
           </Dialog>
         </div>
+
+        {/*  */}
+
+        {/* relationship table */}
+        {selectedRelationship.length > 0 && (
+          <Paper sx={{ mt: 4, p: 2 }}>
+            <Typography variant="h6" sx={{ mb: 2 }}>
+              Relationships Selection
+            </Typography>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell style={{ fontWeight: "bold" }}>Type</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>From</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>To</TableCell>
+                  <TableCell style={{ fontWeight: "bold" }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {selectedRelationship.map((rel, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{rel.relationshipType}</TableCell>
+                    <TableCell>
+                      {formatRelationshipFrom(rel.relationshipFrom)}
+                    </TableCell>
+                    <TableCell>{rel.relationshipTo}</TableCell>
+                    <TableCell>
+                      <IconButton
+                        onClick={() => handleDeleteRelationship(index)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+
+                {showAddRelationshipRow && (
+                  <TableRow>
+                    <TableCell>
+                      <TextField
+                        select
+                        fullWidth
+                        value={newRelationship.relationshipType}
+                        onChange={handleChangeType}
+                        SelectProps={{ native: true }}
+                      >
+                        {["ManyToOne", "OneToMany", "ManyToMany", "OneToOne"].map(
+                          (option) => (
+                            <option key={option} value={option}>
+                              {option}
+                            </option>
+                          )
+                        )}
+                      </TextField>
+                    </TableCell>
+
+                    <TableCell>
+                      <TextField
+                        fullWidth
+                        disabled
+                        value={selectedProductType.entityName}
+                        onChange={(e) =>
+                          setNewRelationship({
+                            ...newRelationship,
+                            relationshipFrom: selectedProductType.entityName,
+                          })
+                        }
+                      />
+                    </TableCell>
+
+                    <TableCell>
+                      <TextField
+                        select
+                        fullWidth
+                        value={newRelationship.relationshipTo}
+                        onChange={(e) =>
+                          setNewRelationship({
+                            ...newRelationship,
+                            relationshipTo: e.target.value,
+                          })
+                        }
+                        SelectProps={{ native: true }}
+                      >
+                        {relationshipOptions.map((option, index) => (
+                          <option key={index} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </TextField>
+                    </TableCell>
+
+                    <TableCell>
+                      <IconButton onClick={handleAddRelationship}>
+                        <SaveIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() => setShowAddRelationshipRow(false)}
+                      >
+                        <CancelIcon />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          </Paper>
+        )}
+
+        {selectedRelationship.length > 0 && (
+          <Button
+            onClick={() => setShowAddRelationshipRow(true)}
+            variant="contained"
+            color="primary"
+            sx={{ mt: 2 }}
+          >
+            Add Relationship
+          </Button>
+        )}
       </Paper>
+
       <Dialog
         open={openDeleteDialog}
         onClose={() => setOpenDeleteDialog(false)}
