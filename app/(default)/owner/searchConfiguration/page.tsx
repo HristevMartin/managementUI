@@ -202,11 +202,33 @@ const AddProductCategoryPage = () => {
     }
   };
 
+  // const handleSearchTypeChange = (e) => {
+  //   const { value } = e.target;
+  //   setSearchType(value);
+  //   if (value === 'external') {
+  //     setSelectedAttributes(p => [...p, { ...apiDetails, attribute: value }]);
+  //   } else {
+  //     setSelectedAttributes([]);
+  //   }
+  // };
+
+
   const handleSearchTypeChange = (e) => {
     const { value } = e.target;
-    setSelectedAttributes(p => [...p, { ...apiDetails, attribute: value }]);
     setSearchType(value);
+    if (value === 'external') {
+      setSelectedAttributes(prev => {
+        const externalAttribute = prev.find(attr => attr.attribute === 'external');
+        if (!externalAttribute) {
+          return [...prev, { ...apiDetails, attribute: 'external' }];
+        }
+        return prev;
+      });
+    } else {
+      setSelectedAttributes(prev => prev.filter(attr => attr.attribute !== 'external'));
+    }
   };
+  
 
   const handleExternalAttributesChange = (e) => {
     const { value, checked } = e.target;
@@ -388,17 +410,16 @@ const checkIfDataPresent = async () => {
           <legend>Type of Search:</legend>
           <div className="radio-group">
             <label><input type="radio" name="searchType" value="external" checked={searchType === 'external'} onChange={handleSearchTypeChange} /> External</label>
-            <label><input type="radio" name="searchType" value="search-engine" checked={searchType === 'search-engine'} onChange={handleSearchTypeChange} /> Search Engine</label>
-            <label><input type="radio" name="searchType" value="vector-search" checked={searchType === 'vector-search'} onChange={handleSearchTypeChange} /> Vector Search</label>
+            <label><input type="radio" name="searchType" value="searchEngine" checked={searchType === 'searchEngine'} onChange={handleSearchTypeChange} /> Search Engine</label>
+            <label><input type="radio" name="searchType" value="vectorSearch" checked={searchType === 'vectorSearch'} onChange={handleSearchTypeChange} /> Vector Search</label>
           </div>
         </fieldset>
 
         <div id="searchType-accordion-container">
-          {selectedAttributes.find(e => (e.attribute === 'external' || e?.attributeName === 'external')) && (
+          {searchType === 'external' && selectedAttributes.find(e => (e.attribute === 'external')) && (
             <Accordion attribute={searchType} existingData={existingData} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange}  handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser}   apiDetails={selectedAttributes.find(e => e.attribute === 'external')} addHeader={addHeader} addResponseParser={addResponseParser}/>
           )}
         </div>
-
         <fieldset>
   <legend>Select Searchable Attributes:</legend>
   <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
