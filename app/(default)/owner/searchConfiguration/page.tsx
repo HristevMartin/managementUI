@@ -24,6 +24,7 @@ const AddProductCategoryPage = () => {
   const [isDataPresent, setIsDataPresent] = useState(false);
   const [existingData, setExistingData] = useState(null);
   const [attributes, setAttributes] = useState([]);
+  const [searchableAttributes, setSearchableAttributes] = useState([]);
   const [externalAttributes, setExternalAttributes] = useState([]);
 
   const handleHeaderChange = (index, field, value, attribute) => {
@@ -46,6 +47,17 @@ const AddProductCategoryPage = () => {
       );
     });
     setApiDetails((prev) => ({ ...prev, headers: updatedHeaders }));
+  };
+
+  const handleSearchableAttributesChange = (e) => {
+    const { value, checked } = e.target;
+    setSearchableAttributes(prevState => {
+      if (checked) {
+        return [...prevState, value];
+      } else {
+        return prevState.filter(attr => attr !== value);
+      }
+    });
   };
 
   const handleResponseParserChange = (index, field, value, attribute) => {
@@ -254,6 +266,7 @@ const AddProductCategoryPage = () => {
     return {
       entityName: category,
       entitySearchType: searchType,
+      Searchable: searchableAttributes,
       externalEntityMetaData: {
         ...entityData,
         headers: entityData.headers.filter(header => header.key && header.value),
@@ -387,21 +400,21 @@ const checkIfDataPresent = async () => {
         </div>
 
         <fieldset>
-          <legend>Select Searchable Attributes:</legend>
-          <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
-            {attributes.map(attr => (
-              <label key={attr.key}>
-                <input
-                  type="checkbox"
-                  name="attributes"
-                  value={attr.key}
-                  checked={selectedAttributes.some(e => e.attribute === attr.key || e?.attributeName === attr.key)}
-                  onChange={handleExternalAttributesChange}
-                /> {attr.key}
-              </label>
-            ))}
-          </div>
-        </fieldset>
+  <legend>Select Searchable Attributes:</legend>
+  <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
+    {attributes.map(attr => (
+      <label key={attr.key}>
+        <input
+          type="checkbox"
+          name="Searchable-attributes"
+          value={attr.key}
+          onChange={handleSearchableAttributesChange}
+        />
+        {attr.key}
+      </label>
+    ))}
+  </div>
+</fieldset>
 
         <fieldset>
           <legend>External Configuration:</legend>
