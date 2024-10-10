@@ -18,32 +18,64 @@ import CustomTable from "./_components/tableComp";
 import { useRouter } from "next/navigation";
 import { transformPayload } from "@/utils/managementFormUtils";
 import { useAuthJHipster } from "@/context/JHipsterContext";
-import {
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-} from "@mui/material";
-import { MdRemoveCircle } from "react-icons/md";
 import "./page.css";
+
 
 const AddProductCategoryPage = () => {
   let [categoryName, setCategoryName] = useState("");
   const [customFields, setCustomFields] = useState([]);
 
-  const [apiDialogOpen, setApiDialogOpen] = useState(false);
   const [currentFieldIndex, setCurrentFieldIndex] = useState(-1);
-  const [apiDetails, setApiDetails] = useState({
-    apiUrl: "",
-    headers: [{ key: "", value: "" }],
-    payloadBody: "",
-    responseParser: [{ key: "", value: "" }],
-  });
+
   const [entityType, setEntityType] = useState("Product");
   const [parentEntityName, setParentEntityName] = useState("");
+  const [relationships, setAllRelationships] = useState([]);
+  const { jHipsterAuthToken } = useAuthJHipster();
 
-  console.log("Initial API Details setup:", apiDetails.responseParser);
+  const [relationshipConfigs, setRelationshipConfigs] = useState([
+    { entityType: "", relationshipType: "" },
+  ]);
+
+  console.log('relationshipConfigs<>!?!>', relationshipConfigs);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const response = await fetch(`${apiUrlSpring}/api/jdl/get-all-entities`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${jHipsterAuthToken}`,
+        },
+      });
+
+      if (!response.ok) {
+        console.error("Error fetching data from API");
+        return;
+      }
+
+      const data = await response.json();
+      console.log("show me the data", data);
+
+      const detailsRequest = data.map((entity) =>
+        fetch(`${apiUrlSpring}/api/jdl/get-entity-by-id/${entity.id}`, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${jHipsterAuthToken}`,
+          },
+        }).then((res) => res.json())
+      );
+
+      const detailsResponse = await Promise.all(detailsRequest);
+      let detailsResponseEntityNames = detailsResponse.map(
+        (entity) => entity.entityName
+      );
+      setAllRelationships(detailsResponseEntityNames);
+    };
+
+    if (jHipsterAuthToken) {
+      fetchData();
+    }
+  }, [jHipsterAuthToken]);
+
 
   const handleOpenApiDialog = (index) => {
     if (index < 0 || index >= customFields.length) {
@@ -74,8 +106,6 @@ const AddProductCategoryPage = () => {
     setCurrentFieldIndex(index);
 
     console.log("apiDetails at Dialog Open:", currentApiDetails.responseParser);
-    setApiDetails(currentApiDetails);
-    setApiDialogOpen(true);
   };
 
   useEffect(() => {
@@ -86,222 +116,42 @@ const AddProductCategoryPage = () => {
         payloadBody: "",
       };
       console.log("Setting API details from useEffect", apiDetails);
-      setApiDetails(apiDetails);
     }
   }, [currentFieldIndex, customFields]);
-
-  const handleCloseApiDialog = () => setApiDialogOpen(false);
-
-  const handleApiDetailsChange = (field, index, key, value) => {
-    console.log("Changing API Details:", field, index, key, value);
-    setApiDetails((prev) => {
-      const newState = { ...prev };
-
-      if (field === "headers") {
-        newState.headers = newState.headers.map((header, idx) => {
-          if (idx === index) {
-            return { ...header, [key]: value };
-          }
-          return header;
-        });
-      } else if (field === "responseParser") {
-        newState.responseParser = newState.responseParser.map((parser, idx) => {
-          if (idx === index) {
-            return { ...parser, [key]: value };
-          }
-          return parser;
-        });
-      } else {
-        newState[field] = value;
-      }
-
-      return newState;
-    });
-    console.log("Updated apiDetails:", apiDetails.responseParser);
-    console.log("API Details after change:", apiDetails);
-  };
-
-  const addHeader = () => {
-    setApiDetails((prev) => ({
-      ...prev,
-      headers: [...prev.headers, { key: "", value: "" }],
-    }));
-  };
-
-  const removeHeader = (index) => {
-    const filteredHeaders = apiDetails.headers.filter(
-      (_, idx) => idx !== index
-    );
-    setApiDetails((prev) => ({ ...prev, headers: filteredHeaders }));
-  };
-
-  const toggleApiDialog = (open) => {
-    setApiDialogOpen(open);
-  };
 
   const setApiFieldIndex = (index) => {
     if (index >= 0 && index < customFields.length) {
       setCurrentFieldIndex(index);
-      toggleApiDialog(true);
     }
   };
 
-  const handleSaveApiDetails = () => {
-    if (currentFieldIndex !== -1) {
-      const updatedCustomFields = customFields.map((field, idx) => {
-        if (idx === currentFieldIndex) {
-          return { ...field, apiDetails: apiDetails };
-        }
-        return field;
-      });
-
-      setCustomFields(updatedCustomFields);
-      handleCloseApiDialog();
-    }
+  // add relationship configuration
+  const handleEntityTypeChange = (index, value) => {
+    const newConfigs = [...relationshipConfigs];
+    newConfigs[index].entityType = value;
+    setRelationshipConfigs(newConfigs);
   };
 
-  const fieldTemplates = {
-    Flight: [
-      {
-        key: "name",
-        type: "String",
-        required: true,
-        validations: { unique: true },
-      },
-      { key: "price", type: "BigDecimal", required: false, validations: {} },
-      {
-        key: "flightId",
-        type: "String",
-        required: true,
-        validations: { unique: true },
-      },
-      { key: "flightNumber", type: "String", required: true, validations: {} },
-      { key: "origin", type: "String", required: true, validations: {} },
-      { key: "destination", type: "String", required: true, validations: {} },
-      {
-        key: "departureDateTime",
-        type: "ZonedDateTime",
-        required: false,
-        validations: {},
-      },
-      {
-        key: "arrivalDateTime",
-        type: "ZonedDateTime",
-        required: false,
-        validations: {},
-      },
-      { key: "Duration", type: "String", required: false, validations: {} },
-      { key: "airport", type: "String", required: false, validations: {} },
-      { key: "carrier", type: "String", required: false, validations: {} },
-    ],
-    Hotel: [
-      {
-        key: "name",
-        type: "String",
-        required: true,
-        validations: { unique: true },
-      },
-      {
-        key: "price",
-        type: "Double",
-        required: true,
-        validations: {},
-        apiDetails: {
-          apiUrl: "",
-          headers: [],
-          payloadBody: "",
-          responseParser: [],
-        },
-      },
-      { key: "city", type: "String", required: true, validations: {} },
-      { key: "address", type: "String", required: false, validations: {} },
-      { key: "postalCode", type: "String", required: false, validations: {} },
-      { key: "facilities", type: "String", required: false, validations: {} },
-      { key: "images", type: "String", required: false, validations: {} },
-      { key: "guests", type: "Integer", required: true, validations: {} },
-      { key: "locationId", type: "String", required: false, validations: {} },
-      { key: "checkInTime", type: "String", required: false, validations: {} },
-      { key: "checkOutTime", type: "String", required: false, validations: {} },
-      { key: "description", type: "String", required: false, validations: {} },
-      {
-        key: "reviews",
-        type: "String",
-        required: false,
-        validations: {},
-        apiDetails: {
-          apiUrl: "",
-          headers: [],
-          method: "GET",
-          payload: "",
-          responseParser: [],
-        },
-      },
-    ],
-    Room: [
-      {
-        key: "name",
-        type: "String",
-        required: true,
-        validations: { unique: true },
-      },
-      { key: "price", type: "Double", required: true, validations: {} },
-      { key: "images", type: "String", required: false, validations: {} },
-      { key: "guestCount", type: "Integer", required: true, validations: {} },
-      { key: "size", type: "String", required: false, validations: {} },
-      { key: "facilities", type: "String", required: false, validations: {} },
-      { key: "hotelName", type: "String", required: true, validations: {} },
-      { key: "description", type: "String", required: false, validations: {} },
-    ],
-    Adon: [
-      {
-        key: "name",
-        type: "String",
-        required: true,
-        validations: { unique: true },
-      },
-      { key: "description", type: "String", required: false, validations: {} },
-      { key: "images", type: "String", required: false, validations: {} },
-      { key: "destination", type: "String", required: false, validations: {} },
-      { key: "addOnType", type: "String", required: false, validations: {} },
-      { key: "price", type: "Double", required: true, validations: {} },
-      { key: "tags", type: "String", required: false, validations: {} },
-    ],
-    Bundle: [
-      {
-        key: "name",
-        type: "String",
-        required: true,
-        validations: { unique: true },
-      },
-      { key: "description", type: "String", required: false, validations: {} },
-      { key: "origin", type: "String", required: false, validations: {} },
-      { key: "destination", type: "String", required: false, validations: {} },
-      { key: "images", type: "String", required: false, validations: {} },
-      { key: "transport", type: "String", required: false, validations: {} },
-      {
-        key: "accommodation",
-        type: "String",
-        required: false,
-        validations: {},
-      },
-      { key: "addOns", type: "String", required: false, validations: {} },
-      { key: "tags", type: "String", required: false, validations: {} },
-      { key: "price", type: "Double", required: false, validations: {} },
-      { key: "date", type: "ZonedDateTime", required: false, validations: {} },
-    ],
+  const handleRelationshipTypeChange = (index, value) => {
+    const newConfigs = [...relationshipConfigs];
+    console.log('the value is', value);
+    newConfigs[index].relationshipType = value;
+    setRelationshipConfigs(newConfigs);
   };
 
-  useEffect(() => {
-    const formattedCategoryName =
-      categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
-    if (fieldTemplates[formattedCategoryName]) {
-      setCustomFields(fieldTemplates[formattedCategoryName]);
-    } else {
-      setCustomFields([]);
-    }
-  }, [categoryName]);
+  const addRelationshipConfig = () => {
+    setRelationshipConfigs((prevConfigs) => [
+      ...prevConfigs,
+      { entityType: "", relationshipType: "" },
+    ]);
+  };
 
-  const { jHipsterAuthToken } = useAuthJHipster();
+  const removeRelationshipConfig = (index) => {
+    setRelationshipConfigs((prevConfigs) =>
+      prevConfigs.filter((_, idx) => idx !== index)
+    );
+  };
+  //
 
   const [file, setFile] = useState(null);
   const router = useRouter();
@@ -310,9 +160,9 @@ const AddProductCategoryPage = () => {
     String: ["min", "max", "unique"],
     Integer: ["min", "max", "unique"],
     Long: ["min", "max", "unique"],
-    BigDecimal: ["min", "max", "unique"],
+    // BigDecimal: ["min", "max", "unique"],
     Float: ["min", "max", "unique"],
-    Double: ["min", "max", "unique"],
+    // Double: ["min", "max", "unique"],
     Enum: ["unique"],
     Boolean: ["unique"],
     LocalDate: ["unique"],
@@ -330,9 +180,7 @@ const AddProductCategoryPage = () => {
     "String",
     "Integer",
     "Long",
-    "BigDecimal",
     "Float",
-    "Double",
     "Enum",
     "Boolean",
     "LocalDate",
@@ -387,19 +235,7 @@ const AddProductCategoryPage = () => {
       type: "String",
       required: false,
       validations: { min: "", max: "", unique: false },
-      external: false,
-      apiDetails: {
-        apiUrl: "",
-        headers: [],
-        method: "GET",
-        payload: "",
-        responseParser: [],
-      },
     };
-    console.log(
-      "Adding new field with responseParser:",
-      newField.apiDetails.responseParser
-    );
     setCustomFields([...customFields, newField]);
   };
 
@@ -414,23 +250,65 @@ const AddProductCategoryPage = () => {
 
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
-  const handleSubmitApi = (e) => {
+  // const transformRelationships = (selectedRelationships, entityType) => {
+  //   return selectedRelationships.map((rel) => {
+  //     const cleanEntityType = entityType.trim();
+  //     const cleanLabel = rel.label.trim().toLowerCase();
 
+  //     const pluralLabel = cleanLabel.endsWith("s")
+  //       ? `${cleanLabel}es`
+  //       : `${cleanLabel}s`;
+
+  //     return {
+  //       relationshipType: "ManyToMany",
+  //       relationshipFrom: `${cleanEntityType}{${pluralLabel}(name)}`,
+  //       relationshipTo: rel.label.trim(),
+  //     };
+  //   });
+  // };
+
+  const transformRelationships = (relationshipConfigs, categoryName) => {
+    return relationshipConfigs.map((rel) => {
+      const cleanEntityType = categoryName.trim();
+      const cleanLabel = rel.entityType.trim().toLowerCase();
+  
+      const pluralLabel = cleanLabel.endsWith("s")
+        ? `${cleanLabel}es`
+        : `${cleanLabel}s`;
+  
+      return {
+        relationshipType: rel.relationshipType, 
+        relationshipFrom: `${cleanEntityType}{${pluralLabel}(name)}`,
+        relationshipTo: rel.entityType.trim(),
+      };
+    });
+  };
+  
+
+  const handleSubmitApi = (e) => {
     e.preventDefault();
     if (!/^[A-Z]/.test(categoryName)) {
       categoryName =
         categoryName.charAt(0).toUpperCase() + categoryName.slice(1);
     }
 
-    console.log("Custom Fields:", customFields);
+    console.log("relationshipConfigs", relationshipConfigs);
+
+    // const transformedRelationships = transformRelationships(
+    //   selectedRelationships,
+    //   categoryName
+    // );
+
+    const transformedRelationships = transformRelationships(relationshipConfigs, categoryName);
+
+    console.log(
+      "Transformed Relationships for Submission:",
+      transformedRelationships
+    );
 
     const enhancedCustomFields = customFields.map((field) => {
       return {
         ...field,
-        external:
-          field.external && field.apiDetails && field.apiDetails.apiUrl
-            ? true
-            : undefined,
       };
     });
 
@@ -440,7 +318,7 @@ const AddProductCategoryPage = () => {
       entityName: categoryName,
       entityType: entityType,
       parentEntityName: entityType === "Variant" ? parentEntityName : "",
-      customFields: enhancedCustomFields,
+      customFields,
     };
 
     let transformedPayload = transformPayload(payload);
@@ -449,26 +327,12 @@ const AddProductCategoryPage = () => {
     transformedPayload.externalFlag = false;
     transformedPayload.searchFields = [];
     transformedPayload.externalAttributesMetaData = [];
+    transformedPayload.relationships = transformedRelationships;
 
     console.log(
       "Initial Transformed Payload:",
       JSON.stringify(transformedPayload, null, 2)
     );
-
-    enhancedCustomFields.forEach((field) => {
-      if (field.external && field.apiDetails && field.apiDetails.apiUrl) {
-        transformedPayload.externalAttributesMetaData.push({
-          attributeName: field.key,
-          externalUrl: field.apiDetails.apiUrl,
-          headers: field.apiDetails.headers,
-          payload: field.apiDetails.payloadBody
-            ? JSON.parse(field.apiDetails.payloadBody.trim())
-            : {},
-          responseParser: field.apiDetails.responseParser,
-          mockup: false,
-        });
-      }
-    });
 
     console.log(
       "Final Transformed Payload with External Attributes MetaData:",
@@ -556,30 +420,17 @@ const AddProductCategoryPage = () => {
   };
 
   const handlePressManageButton = () => {
-    router.push("/backoffice/owner/addInitialProductCategory/manage-meta-category");
-  };
-
-  const addParser = () => {
-    setApiDetails((prev) => ({
-      ...prev,
-      responseParser: [...prev.responseParser, { key: "", value: "" }],
-    }));
-  };
-
-  const removeParser = (index) => {
-    const filteredParsers = apiDetails.responseParser.filter(
-      (_, idx) => idx !== index
+    router.push(
+      "/backoffice/owner/addInitialProductCategory/manage-meta-category"
     );
-    setApiDetails((prev) => ({ ...prev, responseParser: filteredParsers }));
   };
+  
+  const transformedRelationships = relationships.map((name) => ({
+    value: name,
+    label: name,
+  }));
 
-  if (!Array.isArray(apiDetails.responseParser)) {
-    console.log(
-      "Expected responseParser to be an array, but got:",
-      typeof apiDetails.responseParser
-    );
-    return;
-  }
+  console.log("transformedRelationships", transformedRelationships);
 
   return (
     <Container
@@ -638,6 +489,77 @@ const AddProductCategoryPage = () => {
               />
             )}
 
+            <div>
+              <Button
+                onClick={addRelationshipConfig}
+                style={{ marginBottom: "10px" }}
+              >
+                Add Relationship
+              </Button>
+
+              {relationshipConfigs.map((config, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: "flex",
+                    gap: "10px",
+                    alignItems: "center",
+                    marginBottom: "10px",
+                  }}
+                >
+                  <FormControl fullWidth>
+                    <InputLabel id={`entity-type-label-${index}`}>
+                      Entity Type
+                    </InputLabel>
+                    <Select
+                      labelId={`entity-type-label-${index}`}
+                      value={config.entityType}
+                      onChange={(e) =>
+                        handleEntityTypeChange(index, e.target.value)
+                      }
+                      label="Entity Type"
+                    >
+                      {relationships.map((type) => (
+                        <MenuItem key={`${type}-${index}`} value={type}>
+                          {type}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+
+                  <FormControl fullWidth>
+                    <InputLabel id={`relationship-type-label-${index}`}>
+                      Relationship Type
+                    </InputLabel>
+                    <Select
+                      labelId={`relationship-type-label-${index}`}
+                      value={config.relationshipType}
+                      onChange={(e) =>
+                        handleRelationshipTypeChange(index, e.target.value)
+                      }
+                      label="Relationship Type"
+                      disabled={!config.entityType} 
+                    >
+                      <MenuItem value="OneToMany">OneToMany</MenuItem>
+                      <MenuItem value="ManyToOne">ManyToOne</MenuItem>
+                      <MenuItem value="ManyToMany">ManyToMany</MenuItem>
+                      <MenuItem value="OneToOne">OneToOne</MenuItem>
+                    </Select>
+                  </FormControl>
+
+                  <Button
+                    onClick={() => removeRelationshipConfig(index)}
+                    color="primary"
+                    variant="contained"
+                    style={{ padding: "5px" }}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+
             <CustomTable
               data={customFields}
               handleFieldChange={handleFieldChange}
@@ -647,7 +569,6 @@ const AddProductCategoryPage = () => {
               typeOptions={typeOptions}
               validationRules={validationRules}
               mode="fields"
-              toggleApiDialog={toggleApiDialog}
               setApiFieldIndex={setApiFieldIndex}
               handleOpenApiDialog={handleOpenApiDialog}
             />
@@ -684,135 +605,6 @@ const AddProductCategoryPage = () => {
               Save
             </Button>
           </form>
-          {/*  */}
-          <Dialog open={apiDialogOpen} onClose={handleCloseApiDialog}>
-            <DialogTitle>API Specifications</DialogTitle>
-            <DialogContent>
-              <TextField
-                autoFocus
-                margin="dense"
-                label="API URL"
-                type="text"
-                fullWidth
-                value={apiDetails.apiUrl}
-                onChange={(e) =>
-                  handleApiDetailsChange("apiUrl", null, null, e.target.value)
-                }
-              />
-              {apiDetails.headers.map((header, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: "10px",
-                  }}
-                >
-                  <TextField
-                    label="Header Key"
-                    type="text"
-                    value={header.key}
-                    onChange={(e) =>
-                      handleApiDetailsChange(
-                        "headers",
-                        index,
-                        "key",
-                        e.target.value
-                      )
-                    }
-                    style={{ marginRight: "10px", flex: 1 }}
-                  />
-                  <TextField
-                    label="Header Value"
-                    type="text"
-                    value={header.value}
-                    onChange={(e) =>
-                      handleApiDetailsChange(
-                        "headers",
-                        index,
-                        "value",
-                        e.target.value
-                      )
-                    }
-                    style={{ flex: 1 }}
-                  />
-                  <IconButton onClick={() => removeHeader(index)}>
-                    <MdRemoveCircle />
-                  </IconButton>
-                </div>
-              ))}
-              <Button onClick={addHeader}>Add Header</Button>
-
-              {apiDetails?.responseParser.map((parser, index) => (
-                <div
-                  key={index}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    marginBottom: "10px",
-                  }}
-                >
-                  <TextField
-                    label="Parser Key"
-                    type="text"
-                    value={parser.key}
-                    onChange={(e) =>
-                      handleApiDetailsChange(
-                        "responseParser",
-                        index,
-                        "key",
-                        e.target.value
-                      )
-                    }
-                    style={{ marginRight: "10px", flex: 1 }}
-                  />
-                  <TextField
-                    label="Parser Value"
-                    type="text"
-                    value={parser.value}
-                    onChange={(e) =>
-                      handleApiDetailsChange(
-                        "responseParser",
-                        index,
-                        "value",
-                        e.target.value
-                      )
-                    }
-                    style={{ flex: 1 }}
-                  />
-                  <IconButton onClick={() => removeParser(index)}>
-                    <MdRemoveCircle />
-                  </IconButton>
-                </div>
-              ))}
-              <Button onClick={addParser}>Add Parser</Button>
-              {/*  */}
-
-              <TextField
-                margin="dense"
-                label="Payload Body"
-                type="text"
-                multiline
-                rows={4}
-                fullWidth
-                value={apiDetails.payloadBody}
-                onChange={(e) =>
-                  handleApiDetailsChange(
-                    "payloadBody",
-                    null,
-                    null,
-                    e.target.value
-                  )
-                }
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={handleCloseApiDialog}>Cancel</Button>
-              <Button onClick={handleSaveApiDetails}>Save</Button>
-            </DialogActions>
-          </Dialog>
-
-          {/*  */}
         </Paper>
       )}
 
