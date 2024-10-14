@@ -299,24 +299,24 @@ const AddProductCategoryPage = () => {
     };
   };
 
-  const handleSubmit = async () => {
-    const payload = createPayload();
-    try {
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/create-entity-search-configuration`,
-        payload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
-          }
-        }
-      );
-      console.log('Submit successful', response);
-    } catch (error) {
-      console.error("Submit error", error);
-    }
-  };
+  // const handleSubmit = async () => {
+  //   const payload = createPayload();
+  //   try {
+  //     const response = await axios.post(
+  //       `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/create-entity-search-configuration`,
+  //       payload,
+  //       {
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //           Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
+  //         }
+  //       }
+  //     );
+  //     console.log('Submit successful', response);
+  //   } catch (error) {
+  //     console.error("Submit error", error);
+  //   }
+  // };
 
 const handleDelete = async () => {
     try {
@@ -335,24 +335,62 @@ const handleDelete = async () => {
     }
   };
 
-const handleUpdate = async () => {
+  const handleSubmitOrUpdate = async () => {
     const payload = createPayload();
     try {
-      const response = await axios.put(
-        `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/update-entity-search-configuration`,
-        payload,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
+      if (isDataPresent) {
+        // If data exists, update it
+        const response = await axios.put(
+          `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/update-entity-search-configuration`,
+          payload,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${jHipsterAuthToken}`
+            }
           }
-        }
-      );
-      console.log('Update successful', response);
+        );
+        console.log('Update successful', response);
+      } else {
+        // If no data, create a new entry
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/create-entity-search-configuration`,
+          payload,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${jHipsterAuthToken}`
+            }
+          }
+        );
+        console.log('Submit successful', response);
+      }
     } catch (error) {
-      console.error("Update error", error);
+      console.error("Submit/Update error", error);
     }
   };
+
+
+
+
+// const handleUpdate = async () => {
+//     const payload = createPayload();
+//     try {
+//       const response = await axios.put(
+//         `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/update-entity-search-configuration`,
+//         payload,
+//         {
+//           headers: {
+//             'Content-Type': 'application/json',
+//             Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
+//           }
+//         }
+//       );
+//       console.log('Update successful', response);
+//     } catch (error) {
+//       console.error("Update error", error);
+//     }
+//   };
 
 const checkIfDataPresent = async () => {
     if (!category) return;
@@ -459,9 +497,10 @@ const checkIfDataPresent = async () => {
           return <Accordion key={attr.attribute} attribute={attr.attribute} existingData={attr} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange} handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser} apiDetails={attr} addHeader={addHeader}  addResponseParser={addResponseParser} />
         })}
 
-        <button type="submit" id="submit-button" onClick={handleSubmit}>Submit</button>
+       <button type="button" id="submit-button" onClick={handleSubmitOrUpdate}>
+           {isDataPresent ? 'Update' : 'Submit'}
+          </button>
         <button type="button" id="delete-button" onClick={handleDelete}>Delete</button>
-        {isDataPresent && <button type="button" id="update-button" onClick={handleUpdate}>Update</button>}
       </section>
     </main>
   );
