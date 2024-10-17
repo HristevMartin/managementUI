@@ -543,13 +543,13 @@ const checkIfDataPresent = async () => {
             type="checkbox"
             name="Searchable-attributes"
             value={attr.key}
+                  //  checked={searchableAttributes.includes(attr.key)}
             onChange={handleSearchableAttributesChange}
           />
           {attr.key}
         </label>
         {expandedAttributes[attr.key] && relatedAttributes[attr.relationships[0]] && (
-  <div style={{ paddingLeft: '20px' }}> {/* Indent related attributes */}
-    <h4>Related Attributes:</h4>
+  <div style={{ paddingLeft: '20px' }}>
     {relatedAttributes[attr.relationships[0]].map((relAttr) => (
       <div key={relAttr.key}>
         <label>
@@ -557,21 +557,26 @@ const checkIfDataPresent = async () => {
             type="checkbox"
             name="Related-attributes"
             value={relAttr.key}
+                            // checked={searchableRelationFields.some(field => 
+                            //   field.fieldName === attr.key && 
+                            //   field.relatedEntityName === attr.relationships[0] && 
+                            //   field.relatedFieldName === relAttr.key
+                            // )}
             onChange={(e) => {
               const { checked } = e.target;
-              handleRelatedAttributeChange(checked, relAttr,attr); // Call the function here
+                  handleRelatedAttributeChange(checked, relAttr, attr);
             }}
           />
           {relAttr.key}
         </label>
       </div>
-    ))}
-  </div>
-)}
-      </div>
-    ))}
-  </div>
-</fieldset>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </fieldset>
         <fieldset>
           <legend>External Configuration:</legend>
           <label>Select Specific Attributes:</label>
