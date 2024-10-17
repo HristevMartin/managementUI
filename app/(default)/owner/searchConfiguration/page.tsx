@@ -29,7 +29,8 @@ const AddProductCategoryPage = () => {
   const [expandedAttributes, setExpandedAttributes] = useState({});
    const [relatedAttributes, setRelatedAttributes] = useState({});
   const [searchableRelationFields,setSearchableRelationFields] = useState([])
-
+   
+  console.log("result",searchableRelationFields)
   const handleHeaderChange = (index, field, value, attribute) => {
     const updatedHeaders = apiDetails.headers.map((header, idx) => {
       if (idx === index) {
@@ -229,8 +230,11 @@ const AddProductCategoryPage = () => {
           isChecked: false
         };
       });
+      console.log("result1",relatedEntityName)
+      console.log("result3",relatedData)
+      
       setRelatedAttributes(prev => ({ ...prev, [relatedEntityName]: relatedData }));
-  
+       console.log("result2",relatedAttributes)
       // Only add new searchableRelationFields if it does not already exist
       setSearchableRelationFields(prevFields => {
         const alreadyExists = prevFields.some(
@@ -465,9 +469,7 @@ const handleDelete = async () => {
       console.error("Submit/Update error", error);
     }
   };
-
-
-const checkIfDataPresent = async () => {
+  const checkIfDataPresent = async () => {
     if (!category) return;
     try {
       const response = await axios.get(
@@ -475,7 +477,7 @@ const checkIfDataPresent = async () => {
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
+            Authorization: `Bearer ${jHipsterAuthToken}`
           }
         }
       );
@@ -485,14 +487,62 @@ const checkIfDataPresent = async () => {
         setExistingData(data);
         setSearchType(data.entitySearchType);
         setSelectedAttributes([...data.externalAttributesMetaData, { ...data.externalEntityMetaData, attribute: 'external' }]);
-        // handleCategoryChange(data);
+  
+        // Handle related attributes
+        if (data.searchableRelationFields) {
+          const newRelatedAttributes = {};
+          const newExpandedAttributes = {};
+          data.searchableRelationFields.forEach(field => {
+            if (field.relatedEntityName) {
+              if (!newRelatedAttributes[field.relatedEntityName]) {
+                newRelatedAttributes[field.relatedEntityName] = [];
+              }
+              newRelatedAttributes[field.relatedEntityName].push({
+                key: field.relatedFieldName,
+                selected: true // Mark as selected
+              });
+              newExpandedAttributes[field.fieldName] = true; // Expand the main attribute
+            }
+          });
+  
+          // Merge with existing related attributes
+          setRelatedAttributes(prev => {
+            const merged = { ...prev };
+            Object.keys(newRelatedAttributes).forEach(entityName => {
+              if (!merged[entityName]) {
+                merged[entityName] = [];
+              }
+              newRelatedAttributes[entityName].forEach(newAttr => {
+                const existingAttr = merged[entityName].find(attr => attr.key === newAttr.key);
+                if (existingAttr) {
+                  existingAttr.selected = true;
+                } else {
+                  merged[entityName].push(newAttr);
+                }
+              });
+            });
+            return merged;
+          });
+  
+          // Update expanded attributes
+          setExpandedAttributes(prev => ({ ...prev, ...newExpandedAttributes }));
+        }
+  
+        // Set searchable attributes
+        if (data.searchableFields) {
+          setSearchableAttributes(data.searchableFields);
+        }
+  
+        // Set searchable relation fields
+        if (data.searchableRelationFields) {
+          setSearchableRelationFields(data.searchableRelationFields);
+        }
       }
     } catch (error) {
       console.error("Check data error", error);
       setIsDataPresent(false);
     }
   };
-
   const addHeader = () => {
     setSelectedAttributes(p => p.map(e => ({ ...e, headers: [...e.headers, { key: '', value: '' }] })));
     setApiDetails((prev) => ({
@@ -538,16 +588,16 @@ const checkIfDataPresent = async () => {
   <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
     {attributes.map(attr => (
       <div key={attr.key}>
-        <label onClick={() => handleAttributeClick(attr)}>
-          <input
-            type="checkbox"
-            name="Searchable-attributes"
-            value={attr.key}
-                  //  checked={searchableAttributes.includes(attr.key)}
-            onChange={handleSearchableAttributesChange}
-          />
-          {attr.key}
-        </label>
+<label onClick={() => handleAttributeClick(attr)}>
+  <input
+    type="checkbox"
+    name="Searchable-attributes"
+    value={attr.key}
+    checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
+    onChange={handleSearchableAttributesChange}
+  />
+  {attr.key}
+</label>
         {expandedAttributes[attr.key] && relatedAttributes[attr.relationships[0]] && (
   <div style={{ paddingLeft: '20px' }}>
     {relatedAttributes[attr.relationships[0]].map((relAttr) => (
@@ -557,11 +607,11 @@ const checkIfDataPresent = async () => {
             type="checkbox"
             name="Related-attributes"
             value={relAttr.key}
-                            // checked={searchableRelationFields.some(field => 
-                            //   field.fieldName === attr.key && 
-                            //   field.relatedEntityName === attr.relationships[0] && 
-                            //   field.relatedFieldName === relAttr.key
-                            // )}
+            checked={relAttr.selected || searchableRelationFields.some(field => 
+              field.fieldName === attr.key && 
+              field.relatedEntityName === attr.relationships[0] && 
+              field.relatedFieldName === relAttr.key
+            )}
             onChange={(e) => {
               const { checked } = e.target;
                   handleRelatedAttributeChange(checked, relAttr, attr);
