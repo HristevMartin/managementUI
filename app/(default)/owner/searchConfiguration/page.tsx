@@ -341,6 +341,7 @@ const AddProductCategoryPage = () => {
 
 
   const createPayload = () => {
+    const relationFieldNames = searchableRelationFields.map(field => field.fieldName);
 
     const externalAttributesMetaData = selectedAttributes
       .map(attribute => {
@@ -353,23 +354,19 @@ const AddProductCategoryPage = () => {
           payload: attribute.payload || {},
           responsePayload: attribute.responsePayload && Object.keys(attribute.responsePayload).length > 0 ? attribute.responsePayload : {},
           responseParser: attribute.responseParser.filter(parser => parser.key && parser.value) || {}
-        };
-      })
-      .filter(attribute => attribute !== null);
-  
+        };     })      .filter(attribute => attribute !== null);
     const entityData = selectedAttributes.find(e => e.attribute === searchType);
-  
     // Check if the searchType is 'searchengine'
     if (searchType === 'searchEngine') {
       return {
         entityName: category,
         entitySearchType: searchType,
-        searchableFields: searchableAttributes, // This should be the list of searchable attributes selected
-        searchableRelationFields: searchableRelationFields, // Initialize this as an empty array
-        externalAttributesMetaData:  externalAttributesMetaData // No external attributes for search engine
+        searchableFields: searchableAttributes.filter(attr => !relationFieldNames.includes(attr)), // Filter out relation field names
+        searchableRelationFields: searchableRelationFields, // Keep this as is
+        externalAttributesMetaData: externalAttributesMetaData // No external attributes for search engine
       };
     }
-  
+
     // If it's not 'searchengine', return the payload for external search
     return {
       entityName: category,
