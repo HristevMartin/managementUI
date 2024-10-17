@@ -301,6 +301,38 @@ const AddProductCategoryPage = () => {
   };
 
 
+  const handleRelatedAttributeChange = (checked, relAttr,attr) => {
+    if (checked) {
+      // Only add if it does not already exist
+      setSearchableRelationFields(prevFields => {
+        const alreadyExists = prevFields.some(field => 
+          field.fieldName === attr.key && 
+          field.relatedEntityName === attr.relationships[0] && 
+          field.relatedFieldName === relAttr.key
+        );
+        if (!alreadyExists) {
+          return [
+            ...prevFields,
+            {
+              fieldName: attr.key,
+              relatedEntityName: attr.relationships[0],
+              relatedFieldName: relAttr.key
+            },
+          ];
+        }
+        return prevFields; // No change if it already exists
+      });
+    } else {
+      // Remove the unchecked related attribute from searchableRelationFields
+      setSearchableRelationFields(prevFields =>
+        prevFields.filter(field => 
+          !(field.relatedFieldName === relAttr.key && field.fieldName === attr.key)
+        )
+      );
+    }
+  };
+  
+
   const handleExternalAttributesChange = (e) => {
     const { value, checked } = e.target;
     setSelectedAttributes(prevState => {
@@ -516,51 +548,26 @@ const checkIfDataPresent = async () => {
           {attr.key}
         </label>
         {expandedAttributes[attr.key] && relatedAttributes[attr.relationships[0]] && (
-          <div style={{ paddingLeft: '20px' }}> {/* Indent related attributes */}
-            <h4>Related Attributes:</h4>
-            {relatedAttributes[attr.relationships[0]].map((relAttr) => (
-              <div key={relAttr.key}>
-                <label>
-                  <input
-                    type="checkbox"
-                    name="Related-attributes"
-                    value={relAttr.key}
-                    onChange={(e) => {
-                      const { checked, value } = e.target;
-                      // Ensure that we only add an entry when there is a valid relatedFieldName
-                      if (checked && relAttr.key) {
-                        setSearchableRelationFields((prevFields) => {
-                          const alreadyExists = prevFields.some(
-                            field => field.fieldName === attr.key &&
-                                     field.relatedEntityName === attr.relationships[0] &&
-                                     field.relatedFieldName === relAttr.key
-                          );
-                          if (!alreadyExists) {
-                            return [
-                              ...prevFields,
-                              {
-                                fieldName: attr.key,
-                                relatedEntityName: attr.relationships[0],
-                                relatedFieldName: relAttr.key
-                              },
-                            ];
-                          }
-                          return prevFields; // No change if it already exists
-                        });
-                      } else {
-                        // Remove the unchecked related attribute from searchableRelationFields
-                        setSearchableRelationFields((prevFields) =>
-                          prevFields.filter((field) => field.relatedFieldName !== value)
-                        );
-                      }
-                    }}
-                  />
-                  {relAttr.key}
-                </label>
-              </div>
-            ))}
-          </div>
-        )}
+  <div style={{ paddingLeft: '20px' }}> {/* Indent related attributes */}
+    <h4>Related Attributes:</h4>
+    {relatedAttributes[attr.relationships[0]].map((relAttr) => (
+      <div key={relAttr.key}>
+        <label>
+          <input
+            type="checkbox"
+            name="Related-attributes"
+            value={relAttr.key}
+            onChange={(e) => {
+              const { checked } = e.target;
+              handleRelatedAttributeChange(checked, relAttr,attr); // Call the function here
+            }}
+          />
+          {relAttr.key}
+        </label>
+      </div>
+    ))}
+  </div>
+)}
       </div>
     ))}
   </div>
