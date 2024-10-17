@@ -26,6 +26,9 @@ const AddProductCategoryPage = () => {
   const [attributes, setAttributes] = useState([]);
   const [searchableAttributes, setSearchableAttributes] = useState([]);
   const [externalAttributes, setExternalAttributes] = useState([]);
+  const [expandedAttributes, setExpandedAttributes] = useState({});
+   const [relatedAttributes, setRelatedAttributes] = useState({});
+  const [searchableRelationFields,setSearchableRelationFields] = useState([])
 
   const handleHeaderChange = (index, field, value, attribute) => {
     const updatedHeaders = apiDetails.headers.map((header, idx) => {
@@ -146,22 +149,38 @@ const AddProductCategoryPage = () => {
     if (category) {
       const fetchAttributes = async () => {
         try {
-          const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${category}`, {
+          // Fetch the attributes for the selected category
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${category}`, {
             headers: {
               'Content-Type': 'application/json',
               Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
             }
           });
           const data = response.data;
-          const newAttributes = data.externalAttributesMetaData.map(attr => ({
-            key: attr.attributeName,
-            type: attr.type,
-            required: attr.required,
-            validations: attr.validations,
-            isChecked: data.externalAttributesMetaData.some(dataAttr => dataAttr.attributeName === attr.attributeName)
-          }));
+          const newAttributes = data.fields.map(field => {
+            const [key, type, ...rest] = field.split(' ');
+            return {
+              key,
+              type,
+              required: rest.includes('required'),
+              unique: rest.includes('unique'),
+              validations: [],
+              isChecked: false,
+              relationships: [] // Store relationships for later use
+            };
+          });
+   
+          // Store relationships for later use
+          for (const relationship of data.relationships) {
+            newAttributes.forEach(attr => {
+              if (relationship.relationshipFrom.includes(attr.key)) {
+                attr.relationships.push(relationship.relationshipTo);
+              }
+            });
+          }
+   
           setAttributes(newAttributes);
-          setExternalAttributes(newAttributes);
+          setExternalAttributes(newAttributes); // Update external attributes if needed
         } catch (error) {
           console.error("Error fetching attributes", error);
         }
@@ -171,8 +190,52 @@ const AddProductCategoryPage = () => {
         fetchAttributes();
       }
     }
-  }, [category, jHipsterAuthToken]);
+  }, [category, jHipsterAuthToken]); 
 
+  const handleAttributeClick = (attribute) => {
+    // Check if the attribute is currently expanded
+    const isExpanded = expandedAttributes[attribute.key];
+    console.log(attribute," kk");
+    // Toggle the expanded state for the main attribute
+    setExpandedAttributes(prev => ({ ...prev, [attribute.key]: !isExpanded }));
+    
+    // If the attribute is being expanded, fetch related attributes if necessary
+    if (!isExpanded && attribute.relationships.length > 0) {
+      // Fetch related attributes if expanding
+      attribute.relationships.forEach(async (relatedEntityName) => {
+        if (!relatedAttributes[relatedEntityName]) {
+          await fetchRelatedAttributes(relatedEntityName, attribute.key);
+        }
+      });
+    }
+  };
+
+  const fetchRelatedAttributes = async (relatedEntityName, fieldName) => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${relatedEntityName}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jHipsterAuthToken}`
+        }
+      });
+      const relatedData = response.data.fields.map(field => {
+        const [key, type, ...rest] = field.split(' ');
+        return {
+          key,
+          type,
+          required: rest.includes('required'),
+          unique: rest.includes('unique'),
+          validations: [],
+          isChecked: false
+        };
+      });
+      setRelatedAttributes(prev => ({ ...prev, [relatedEntityName]: relatedData }));
+      console.log(searchableAttributes,relatedData," entity name 8 pm");
+      setSearchableRelationFields(p => ([...p,{relatedEntityName: response?.data?.entityName, fieldName: fieldName}]))
+    } catch (error) {
+      console.error("Error fetching related attributes", error);
+    }
+  };
   const handleCategoryChange = async (e) => {
     // const { value } = e.target;
     // setCategory(value);
@@ -202,17 +265,6 @@ const AddProductCategoryPage = () => {
     }
   };
 
-  // const handleSearchTypeChange = (e) => {
-  //   const { value } = e.target;
-  //   setSearchType(value);
-  //   if (value === 'external') {
-  //     setSelectedAttributes(p => [...p, { ...apiDetails, attribute: value }]);
-  //   } else {
-  //     setSelectedAttributes([]);
-  //   }
-  // };
-
-
   const handleSearchTypeChange = (e) => {
     const { value } = e.target;
     setSearchType(value);
@@ -228,7 +280,7 @@ const AddProductCategoryPage = () => {
       setSelectedAttributes(prev => prev.filter(attr => attr.attribute !== 'external'));
     }
   };
-  
+
 
   const handleExternalAttributesChange = (e) => {
     const { value, checked } = e.target;
@@ -267,12 +319,53 @@ const AddProductCategoryPage = () => {
       responseParser: []
     });
   };
+
+
+
+  async function getSearchableFields(category, searchableAttributes) {
+    try {
+        // Step 1: Fetch relationships from the API
+        const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${category}`);
+        
+        // Check if the response is OK
+        if (!response.ok) {
+            throw new Error(`Failed to fetch data: ${response.statusText}`);
+        }
+        
+        // Step 2: Parse the JSON response
+        const data = await response.json();
+        
+        // Step 3: Extract relationship attributes
+        const relationships = data.relationships || [];
+        const relatedAttributes = new Set();
+        
+        relationships.forEach(relationship => {
+            const relationshipFrom = relationship.relationshipFrom;
+            // Extract the attribute name from relationshipFrom (e.g., "SeatingArea{arenaName(name)}" => "arenaName")
+            const match = relationshipFrom.match(/\{([^()]+)\}/);
+            if (match) {
+                const attrName = match[1].trim();
+                relatedAttributes.add(attrName);
+            }
+        });
+
+        // Step 4: Filter searchableAttributes that are not in relatedAttributes
+        const searchableFields = searchableAttributes.filter(attr => !relatedAttributes.has(attr));
+
+        return searchableFields;
+    } catch (error) {
+        console.error('Error fetching searchable fields:', error);
+        return [];
+    }
+}
+  
   const createPayload = () => {
+
     const externalAttributesMetaData = selectedAttributes
       .map(attribute => {
         if (attribute.attribute === 'external') return null;
         return {
-          attributeName: attribute.attribute, // Ensure attributeName is set correctly
+          attributeName: attribute.attribute,
           externalUrl: attribute.externalUrl || '',
           httpMethod: attribute.httpMethod || '',
           headers: attribute.headers.filter(header => header.key && header.value) || [],
@@ -285,6 +378,18 @@ const AddProductCategoryPage = () => {
   
     const entityData = selectedAttributes.find(e => e.attribute === searchType);
   
+    // Check if the searchType is 'searchengine'
+    if (searchType === 'searchEngine') {
+      return {
+        entityName: category,
+        entitySearchType: searchType,
+        searchableFields: searchableAttributes, // This should be the list of searchable attributes selected
+        searchableRelationFields: searchableRelationFields, // Initialize this as an empty array
+        externalAttributesMetaData:  externalAttributesMetaData // No external attributes for search engine
+      };
+    }
+  
+    // If it's not 'searchengine', return the payload for external search
     return {
       entityName: category,
       entitySearchType: searchType,
@@ -298,25 +403,6 @@ const AddProductCategoryPage = () => {
       externalAttributesMetaData: externalAttributesMetaData
     };
   };
-
-  // const handleSubmit = async () => {
-  //   const payload = createPayload();
-  //   try {
-  //     const response = await axios.post(
-  //       `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/create-entity-search-configuration`,
-  //       payload,
-  //       {
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //           Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
-  //         }
-  //       }
-  //     );
-  //     console.log('Submit successful', response);
-  //   } catch (error) {
-  //     console.error("Submit error", error);
-  //   }
-  // };
 
 const handleDelete = async () => {
     try {
@@ -370,27 +456,6 @@ const handleDelete = async () => {
     }
   };
 
-
-
-
-// const handleUpdate = async () => {
-//     const payload = createPayload();
-//     try {
-//       const response = await axios.put(
-//         `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/update-entity-search-configuration`,
-//         payload,
-//         {
-//           headers: {
-//             'Content-Type': 'application/json',
-//             Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
-//           }
-//         }
-//       );
-//       console.log('Update successful', response);
-//     } catch (error) {
-//       console.error("Update error", error);
-//     }
-//   };
 
 const checkIfDataPresent = async () => {
     if (!category) return;
@@ -462,19 +527,55 @@ const checkIfDataPresent = async () => {
   <legend>Select Searchable Attributes:</legend>
   <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
     {attributes.map(attr => (
-      <label key={attr.key}>
-        <input
-          type="checkbox"
-          name="Searchable-attributes"
-          value={attr.key}
-          onChange={handleSearchableAttributesChange}
-        />
-        {attr.key}
-      </label>
+      <div key={attr.key}>
+        <label onClick={() => handleAttributeClick(attr)}>
+          <input
+            type="checkbox"
+            name="Searchable-attributes"
+            value={attr.key}
+            onChange={handleSearchableAttributesChange}
+          />
+          {attr.key}
+        </label>
+        {expandedAttributes[attr.key] && relatedAttributes[attr.relationships[0]] && (
+          <div style={{ paddingLeft: '20px' }}> {/* Indent related attributes */}
+            <h4>Related Attributes:</h4>
+            {relatedAttributes[attr.relationships[0]].map(relAttr => (
+              <div key={relAttr.key}>
+                <label onClick={(e) => {
+                  const { checked, value } = e.target
+                  console.log(value," klick");
+                  if(checked){
+                    setSearchableRelationFields(p => {
+                      return p.map(e => {
+                        if(e.fieldName === attr.key){
+                          return {...e,relatedFieldName: value}
+                        }
+                        return e
+                      })
+                    })
+                 
+                  }else{
+                    const temp = searchableRelationFields.filter(e => e.relatedFieldName === value)
+                    setSearchableRelationFields(temp)
+                  }
+                }}>
+                  <input
+                    type="checkbox"
+                    name="Related-attributes"
+                    value={relAttr.key}
+                    onChange={handleSearchableAttributesChange} // Handle change for related attributes
+                  />
+                  {relAttr.key}
+                </label>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     ))}
   </div>
 </fieldset>
-
         <fieldset>
           <legend>External Configuration:</legend>
           <label>Select Specific Attributes:</label>
