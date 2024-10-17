@@ -340,44 +340,6 @@ const AddProductCategoryPage = () => {
   };
 
 
-
-  async function getSearchableFields(category, searchableAttributes) {
-    try {
-        // Step 1: Fetch relationships from the API
-        const response = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${category}`);
-        
-        // Check if the response is OK
-        if (!response.ok) {
-            throw new Error(`Failed to fetch data: ${response.statusText}`);
-        }
-        
-        // Step 2: Parse the JSON response
-        const data = await response.json();
-        
-        // Step 3: Extract relationship attributes
-        const relationships = data.relationships || [];
-        const relatedAttributes = new Set();
-        
-        relationships.forEach(relationship => {
-            const relationshipFrom = relationship.relationshipFrom;
-            // Extract the attribute name from relationshipFrom (e.g., "SeatingArea{arenaName(name)}" => "arenaName")
-            const match = relationshipFrom.match(/\{([^()]+)\}/);
-            if (match) {
-                const attrName = match[1].trim();
-                relatedAttributes.add(attrName);
-            }
-        });
-
-        // Step 4: Filter searchableAttributes that are not in relatedAttributes
-        const searchableFields = searchableAttributes.filter(attr => !relatedAttributes.has(attr));
-
-        return searchableFields;
-    } catch (error) {
-        console.error('Error fetching searchable fields:', error);
-        return [];
-    }
-}
-  
   const createPayload = () => {
 
     const externalAttributesMetaData = selectedAttributes
@@ -568,17 +530,26 @@ const checkIfDataPresent = async () => {
                     value={relAttr.key}
                     onChange={(e) => {
                       const { checked, value } = e.target;
-
                       // Ensure that we only add an entry when there is a valid relatedFieldName
                       if (checked && relAttr.key) {
-                        setSearchableRelationFields((prevFields) => [
-                          ...prevFields,
-                          {
-                            fieldName: attr.key,                    // e.g., "name"
-                            relatedEntityName: attr.relationships[0], // Assuming first relationship
-                            relatedFieldName: relAttr.key           // Ensure relatedFieldName is valid
-                          },
-                        ]);
+                        setSearchableRelationFields((prevFields) => {
+                          const alreadyExists = prevFields.some(
+                            field => field.fieldName === attr.key &&
+                                     field.relatedEntityName === attr.relationships[0] &&
+                                     field.relatedFieldName === relAttr.key
+                          );
+                          if (!alreadyExists) {
+                            return [
+                              ...prevFields,
+                              {
+                                fieldName: attr.key,
+                                relatedEntityName: attr.relationships[0],
+                                relatedFieldName: relAttr.key
+                              },
+                            ];
+                          }
+                          return prevFields; // No change if it already exists
+                        });
                       } else {
                         // Remove the unchecked related attribute from searchableRelationFields
                         setSearchableRelationFields((prevFields) =>
