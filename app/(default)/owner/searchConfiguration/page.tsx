@@ -230,8 +230,27 @@ const AddProductCategoryPage = () => {
         };
       });
       setRelatedAttributes(prev => ({ ...prev, [relatedEntityName]: relatedData }));
-      console.log(searchableAttributes,relatedData," entity name 8 pm");
-      setSearchableRelationFields(p => ([...p,{relatedEntityName: response?.data?.entityName, fieldName: fieldName,relatedFieldName: relatedData[0]?.key}]))
+  
+      // Only add new searchableRelationFields if it does not already exist
+      setSearchableRelationFields(prevFields => {
+        const alreadyExists = prevFields.some(
+          field => field.fieldName === fieldName && field.relatedEntityName === relatedEntityName
+        );
+        
+        if (!alreadyExists && relatedData.length > 0) {
+          return [
+            ...prevFields,
+            {
+              relatedEntityName: response?.data?.entityName, 
+              fieldName: fieldName,
+              relatedFieldName: relatedData[0]?.key // Ensure valid relatedFieldName
+            }
+          ];
+        }
+        return prevFields;
+      });
+  
+      console.log(searchableAttributes, relatedData, " entity name 8 pm");
     } catch (error) {
       console.error("Error fetching related attributes", error);
     }
@@ -540,31 +559,33 @@ const checkIfDataPresent = async () => {
         {expandedAttributes[attr.key] && relatedAttributes[attr.relationships[0]] && (
           <div style={{ paddingLeft: '20px' }}> {/* Indent related attributes */}
             <h4>Related Attributes:</h4>
-            {relatedAttributes[attr.relationships[0]].map(relAttr => (
+            {relatedAttributes[attr.relationships[0]].map((relAttr) => (
               <div key={relAttr.key}>
-                <label onClick={(e) => {
-                  const { checked, value } = e.target
-                  console.log(value," klick");
-                  if(checked){
-                    setSearchableRelationFields(p => {
-                      return p.map(e => {
-                        if(e.fieldName === attr.key){
-                          return {...e,relatedFieldName: value}
-                        }
-                        return e
-                      })
-                    })
-                 
-                  }else{
-                    const temp = searchableRelationFields.filter(e => e.relatedFieldName === value)
-                    setSearchableRelationFields(temp)
-                  }
-                }}>
+                <label>
                   <input
                     type="checkbox"
                     name="Related-attributes"
                     value={relAttr.key}
-                    onChange={handleSearchableAttributesChange} // Handle change for related attributes
+                    onChange={(e) => {
+                      const { checked, value } = e.target;
+
+                      // Ensure that we only add an entry when there is a valid relatedFieldName
+                      if (checked && relAttr.key) {
+                        setSearchableRelationFields((prevFields) => [
+                          ...prevFields,
+                          {
+                            fieldName: attr.key,                    // e.g., "name"
+                            relatedEntityName: attr.relationships[0], // Assuming first relationship
+                            relatedFieldName: relAttr.key           // Ensure relatedFieldName is valid
+                          },
+                        ]);
+                      } else {
+                        // Remove the unchecked related attribute from searchableRelationFields
+                        setSearchableRelationFields((prevFields) =>
+                          prevFields.filter((field) => field.relatedFieldName !== value)
+                        );
+                      }
+                    }}
                   />
                   {relAttr.key}
                 </label>
