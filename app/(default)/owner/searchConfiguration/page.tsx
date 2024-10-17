@@ -231,7 +231,7 @@ const AddProductCategoryPage = () => {
       });
       setRelatedAttributes(prev => ({ ...prev, [relatedEntityName]: relatedData }));
       console.log(searchableAttributes,relatedData," entity name 8 pm");
-      setSearchableRelationFields(p => ([...p,{relatedEntityName: response?.data?.entityName, fieldName: fieldName}]))
+      setSearchableRelationFields(p => ([...p,{relatedEntityName: response?.data?.entityName, fieldName: fieldName,relatedFieldName: relatedData[0]?.key}]))
     } catch (error) {
       console.error("Error fetching related attributes", error);
     }
