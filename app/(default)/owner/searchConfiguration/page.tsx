@@ -150,13 +150,13 @@ const AddProductCategoryPage = () => {
     if (category) {
       const fetchAttributes = async () => {
         try {
-          // Fetch the attributes for the selected category
           const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${category}`, {
             headers: {
               'Content-Type': 'application/json',
-              Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
+              Authorization: `Bearer ${jHipsterAuthToken}`
             }
           });
+      
           const data = response.data;
           const newAttributes = data.fields.map(field => {
             const [key, type, ...rest] = field.split(' ');
@@ -170,7 +170,7 @@ const AddProductCategoryPage = () => {
               relationships: [] // Store relationships for later use
             };
           });
-   
+      
           // Store relationships for later use
           for (const relationship of data.relationships) {
             newAttributes.forEach(attr => {
@@ -179,9 +179,18 @@ const AddProductCategoryPage = () => {
               }
             });
           }
-   
+      
           setAttributes(newAttributes);
-          setExternalAttributes(newAttributes); // Update external attributes if needed
+          setExternalAttributes(newAttributes);
+      
+          // Fetch related attributes for all attributes
+          newAttributes.forEach(attr => {
+            if (attr.relationships.length > 0) {
+              attr.relationships.forEach(async (relatedEntityName) => {
+                await fetchRelatedAttributes(relatedEntityName, attr.key);
+              });
+            }
+          });
         } catch (error) {
           console.error("Error fetching attributes", error);
         }
@@ -586,45 +595,45 @@ const handleDelete = async () => {
         <fieldset>
   <legend>Select Searchable Attributes:</legend>
   <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
-    {attributes.map(attr => (
-      <div key={attr.key}>
-<label onClick={() => handleAttributeClick(attr)}>
-  <input
-    type="checkbox"
-    name="Searchable-attributes"
-    value={attr.key}
-    checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
-    onChange={handleSearchableAttributesChange}
-  />
-  {attr.key}
-</label>
-        {expandedAttributes[attr.key] && relatedAttributes[attr.relationships[0]] && (
-  <div style={{ paddingLeft: '20px' }}>
-    {relatedAttributes[attr.relationships[0]].map((relAttr) => (
-      <div key={relAttr.key}>
-        <label>
-          <input
-            type="checkbox"
-            name="Related-attributes"
-            value={relAttr.key}
-            checked={relAttr.selected || searchableRelationFields.some(field => 
-              field.fieldName === attr.key && 
-              field.relatedEntityName === attr.relationships[0] && 
-              field.relatedFieldName === relAttr.key
-            )}
-            onChange={(e) => {
-              const { checked } = e.target;
-                  handleRelatedAttributeChange(checked, relAttr, attr);
-            }}
-          />
-          {relAttr.key}
-        </label>
-      </div>
-                    ))}
-                  </div>
+  {attributes.map(attr => (
+  <div key={attr.key}>
+    <label onClick={() => handleAttributeClick(attr)}>
+      <input
+        type="checkbox"
+        name="Searchable-attributes"
+        value={attr.key}
+        checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
+        onChange={handleSearchableAttributesChange}
+      />
+      {attr.key}
+    </label>
+    {expandedAttributes[attr.key] && relatedAttributes[attr.relationships[0]] && (
+      <div style={{ paddingLeft: '20px' }}>
+        {relatedAttributes[attr.relationships[0]].map((relAttr) => (
+          <div key={relAttr.key}>
+            <label>
+              <input
+                type="checkbox"
+                name="Related-attributes"
+                value={relAttr.key}
+                checked={relAttr.selected || searchableRelationFields.some(field => 
+                  field.fieldName === attr.key && 
+                  field.relatedEntityName === attr.relationships[0] && 
+                  field.relatedFieldName === relAttr.key
                 )}
-              </div>
-            ))}
+                onChange={(e) => {
+                  const { checked } = e.target;
+                  handleRelatedAttributeChange(checked, relAttr, attr);
+                }}
+              />
+              {relAttr.key}
+            </label>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+))}
           </div>
         </fieldset>
         <fieldset>
