@@ -734,7 +734,7 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
   return (
     <>
       <button className="accordion" onClick={toggleAccordion}>
-        {existingData?.attributeName || attribute}
+        {attribute === 'external' ? 'API Configuration' : existingData?.attributeName || attribute}
       </button>
       <div className="panel" style={{ display: 'none' }}>
         <label htmlFor={`${attribute}-url`}>URL:</label>
