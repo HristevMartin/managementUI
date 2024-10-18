@@ -265,3 +265,8 @@ footer .legal-links a {
 .checkbox-spacing {
   margin-right: 10px; /* Space between checkbox and label */
 }
+
+.notification-message {
+  color: green; /* You can change this color based on success or error */
+  margin: 10px 0;
+}

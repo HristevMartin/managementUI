@@ -31,6 +31,7 @@ const AddProductCategoryPage = () => {
   const [searchableRelationFields,setSearchableRelationFields] = useState([])
   const [errorMessage, setErrorMessage] = useState(''); // State for error messages
   const [warningMessage, setWarningMessage] = useState('');
+  const [notificationMessage, setNotificationMessage] = useState('');
    // Function to clear error messages
    const clearError = () => setErrorMessage('');
 
@@ -454,6 +455,7 @@ const handleDelete = async () => {
         }
       );
       console.log('Delete successful', response);
+      setNotificationMessage('Deletion successful!');
     } catch (error) {
       console.error("Delete error", error);
     }
@@ -490,6 +492,7 @@ const handleDelete = async () => {
             }
           }
         );
+        setNotificationMessage('Update successful!');
         console.log('Update successful', response);
       } else {
         // If no data, create a new entry
@@ -503,6 +506,7 @@ const handleDelete = async () => {
             }
           }
         );
+        setNotificationMessage('Submission successful!');
         console.log('Submit successful', response);
       }
       setWarningMessage('');
@@ -696,6 +700,8 @@ const handleDelete = async () => {
           return <Accordion key={attr.attribute} attribute={attr.attribute} existingData={attr} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange} handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser} apiDetails={attr} addHeader={addHeader}  addResponseParser={addResponseParser} />
         })}
            {warningMessage && <p className="warning-message">{warningMessage}</p>}
+           {notificationMessage && <p className="notification-message">{notificationMessage}</p>}
+
     <button type="button" id="submit-button" onClick={handleSubmitOrUpdate}>
            {isDataPresent ? 'Update' : 'Submit'}
           </button>
