@@ -29,7 +29,11 @@ const AddProductCategoryPage = () => {
   const [expandedAttributes, setExpandedAttributes] = useState({});
    const [relatedAttributes, setRelatedAttributes] = useState({});
   const [searchableRelationFields,setSearchableRelationFields] = useState([])
-   
+  const [errorMessage, setErrorMessage] = useState(''); // State for error messages
+  const [warningMessage, setWarningMessage] = useState('');
+   // Function to clear error messages
+   const clearError = () => setErrorMessage('');
+
   console.log("result",searchableRelationFields)
   const handleHeaderChange = (index, field, value, attribute) => {
     const updatedHeaders = apiDetails.headers.map((header, idx) => {
@@ -137,6 +141,7 @@ const AddProductCategoryPage = () => {
         });
         setCategoryNames(response.data);
       } catch (error) {
+        setErrorMessage("Error fetching category names");
         console.error("Error fetching category names", error);
       }
     };
@@ -192,6 +197,8 @@ const AddProductCategoryPage = () => {
             }
           });
         } catch (error) {
+          setErrorMessage("Error fetching attributes");
+          
           console.error("Error fetching attributes", error);
         }
       };
@@ -445,6 +452,15 @@ const handleDelete = async () => {
   };
 
   const handleSubmitOrUpdate = async () => {
+
+        // Check if searchType is selected
+        if (!searchType) {
+          setWarningMessage('Please select a type of search before submitting.');
+          return; // Prevent further execution
+      }
+  
+      // Clear any existing warning message
+      setWarningMessage('');
     const payload = createPayload();
     try {
       if (isDataPresent) {
@@ -657,7 +673,7 @@ const handleDelete = async () => {
           if (attr.attribute === 'external' || attr?.attributeName === 'external') return;
           return <Accordion key={attr.attribute} attribute={attr.attribute} existingData={attr} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange} handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser} apiDetails={attr} addHeader={addHeader}  addResponseParser={addResponseParser} />
         })}
-
+            {warningMessage && <p style={{ color: 'red' }}>{warningMessage}</p>}
        <button type="button" id="submit-button" onClick={handleSubmitOrUpdate}>
            {isDataPresent ? 'Update' : 'Submit'}
           </button>
