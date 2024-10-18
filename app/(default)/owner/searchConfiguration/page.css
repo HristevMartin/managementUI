@@ -242,3 +242,31 @@ footer .legal-links a {
 .header-inputs input[type="text"] {
   flex: 1;
 }
+
+
+
+#attributes-container {
+  border: 1px solid #ccc;
+  padding: 10px;
+  height: 150px;
+  overflow-y: auto;
+}
+
+.related-attributes {
+  padding-left: 20px; /* Indent related attributes */
+}
+
+.warning-message {
+  color: #ff6b6b;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.checkbox-spacing {
+  margin-right: 10px; /* Space between checkbox and label */
+}
+
+.notification-message {
+  color: green; /* You can change this color based on success or error */
+  margin: 10px 0;
+}
