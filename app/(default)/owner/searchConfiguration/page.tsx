@@ -176,14 +176,22 @@ const AddProductCategoryPage = () => {
             };
           });
       
-          // Store relationships for later use
-          for (const relationship of data.relationships) {
-            newAttributes.forEach(attr => {
-              if (relationship.relationshipFrom.includes(attr.key)) {
-                attr.relationships.push(relationship.relationshipTo);
-              }
-            });
-          }
+    // Add relationship fields as attributes
+    data.relationships.forEach(relationship => {
+      const match = relationship.relationshipFrom.match(/\{(.+?)\(/);
+      if (match) {
+        const relationshipField = match[1];
+        newAttributes.push({
+          key: relationshipField,
+          type: 'Relationship',
+          required: false,
+          unique: false,
+          validations: [],
+          isChecked: false,
+          relationships: [relationship.relationshipTo]
+        });
+      }
+    });
       
           setAttributes(newAttributes);
           setExternalAttributes(newAttributes);
@@ -619,47 +627,47 @@ const handleDelete = async () => {
         <fieldset>
   <legend>Select Searchable Attributes:</legend>
   <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
-  {attributes.map(attr => (
-  <div key={attr.key}>
-    <label onClick={() => handleAttributeClick(attr)}>
-      <input
-        type="checkbox"
-        name="Searchable-attributes"
-        value={attr.key}
-        checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
-        onChange={handleSearchableAttributesChange}
-      />
-      {attr.key}
-    </label>
-    {expandedAttributes[attr.key] && relatedAttributes[attr.relationships[0]] && (
-      <div style={{ paddingLeft: '20px' }}>
-        {relatedAttributes[attr.relationships[0]].map((relAttr) => (
-          <div key={relAttr.key}>
-            <label>
-              <input
-                type="checkbox"
-                name="Related-attributes"
-                value={relAttr.key}
-                checked={relAttr.selected || searchableRelationFields.some(field => 
-                  field.fieldName === attr.key && 
-                  field.relatedEntityName === attr.relationships[0] && 
-                  field.relatedFieldName === relAttr.key
-                )}
-                onChange={(e) => {
-                  const { checked } = e.target;
-                  handleRelatedAttributeChange(checked, relAttr, attr);
-                }}
-              />
-              {relAttr.key}
-            </label>
+    {attributes.map(attr => (
+      <div key={attr.key}>
+        <label onClick={() => handleAttributeClick(attr)}>
+          <input
+            type="checkbox"
+            name="Searchable-attributes"
+            value={attr.key}
+            checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
+            onChange={handleSearchableAttributesChange}
+          />
+          {attr.key}
+        </label>
+        {expandedAttributes[attr.key] && attr.relationships.length > 0 && relatedAttributes[attr.relationships[0]] && (
+          <div style={{ paddingLeft: '20px' }}>
+            {relatedAttributes[attr.relationships[0]].map((relAttr) => (
+              <div key={relAttr.key}>
+                <label>
+                  <input
+                    type="checkbox"
+                    name="Related-attributes"
+                    value={relAttr.key}
+                    checked={relAttr.selected || searchableRelationFields.some(field => 
+                      field.fieldName === attr.key && 
+                      field.relatedEntityName === attr.relationships[0] && 
+                      field.relatedFieldName === relAttr.key
+                    )}
+                    onChange={(e) => {
+                      const { checked } = e.target;
+                      handleRelatedAttributeChange(checked, relAttr, attr);
+                    }}
+                  />
+                  {relAttr.key}
+                </label>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
-    )}
+    ))}
   </div>
-))}
-          </div>
-        </fieldset>
+</fieldset>
         <fieldset>
           <legend>External Configuration:</legend>
           <label>Select Specific Attributes:</label>
