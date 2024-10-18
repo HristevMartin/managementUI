@@ -759,7 +759,7 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
           <option value="PUT">PUT</option>
         </select><br />
         <label htmlFor={`${attribute}-headers`}>Headers:</label>
-        {apiDetails?.headers.map((header, index) => (
+        {apiDetails?.headers?.map((header, index) => (
           <div
             key={index}
             style={{
@@ -798,7 +798,7 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
         <label htmlFor={`${attribute}-payload`}>Payload:</label>
         <textarea id={`${attribute}-payload`} placeholder="Enter payload details in JSON format" defaultValue={existingData.payload ? JSON.stringify(existingData.payload) : ''} onChange={(e) => handleJsonChange(e, 'payload', attribute)}></textarea><br />
         <label htmlFor={`${attribute}-responseParser`}>Response Parser</label>
-        {apiDetails?.responseParser.map((header, index) => (
+        {apiDetails?.responseParser?.map((header, index) => (
           <div
             key={index}
             style={{
