@@ -621,7 +621,7 @@ const handleDelete = async () => {
 
         <div id="searchType-accordion-container">
           {searchType === 'external' && selectedAttributes.find(e => (e.attribute === 'external')) && (
-            <Accordion attribute="API Configuration" existingData={existingData} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange}  handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser}   apiDetails={selectedAttributes.find(e => e.attribute === 'external')} addHeader={addHeader} addResponseParser={addResponseParser}/>
+            <Accordion attribute={searchType} existingData={existingData} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange}  handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser}   apiDetails={selectedAttributes.find(e => e.attribute === 'external')} addHeader={addHeader} addResponseParser={addResponseParser}/>
           )}
         </div>
         {searchType == 'searchEngine' && (
