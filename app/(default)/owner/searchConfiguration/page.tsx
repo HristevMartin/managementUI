@@ -636,8 +636,9 @@ const handleDelete = async () => {
             value={attr.key}
             checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
             onChange={handleSearchableAttributesChange}
+            style={{ marginRight: '10px' }} // Add margin for space
           />
-          {attr.key}
+          {attr.key.charAt(0).toUpperCase() + attr.key.slice(1)} {/* Capitalize first character */}
         </label>
         {expandedAttributes[attr.key] && attr.relationships.length > 0 && relatedAttributes[attr.relationships[0]] && (
           <div style={{ paddingLeft: '20px' }}>
@@ -657,8 +658,9 @@ const handleDelete = async () => {
                       const { checked } = e.target;
                       handleRelatedAttributeChange(checked, relAttr, attr);
                     }}
+                    style={{ marginRight: '10px' }} // Add margin for space
                   />
-                  {relAttr.key}
+                  {relAttr.key.charAt(0).toUpperCase() + relAttr.key.slice(1)} {/* Capitalize first character */}
                 </label>
               </div>
             ))}
@@ -680,7 +682,9 @@ const handleDelete = async () => {
                   value={attr.key}
                   checked={selectedAttributes.find(e => e.attribute === attr.key || e?.attributeName === attr.key)}
                   onChange={handleExternalAttributesChange}
-                /> {attr.key}
+                  style={{ marginRight: '10px' }}
+                /> {attr.key.charAt(0).toUpperCase() + attr.key.slice(1)} {/* Capitalize first character */}
+      
               </label>
             ))}
           </div>
@@ -764,6 +768,7 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
             }}
           >
             <TextField
+              variant="standard"
               label="Header Key"
               value={header.key}
               onChange={(e) => handleHeaderChange(index, 'key', e.target.value, attribute)}
@@ -773,6 +778,7 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
           
             
             <TextField
+              variant="standard"
               label="Header Value"
               value={header.value}
               onChange={(e) => handleHeaderChange(index, 'value', e.target.value, attribute)}
@@ -801,6 +807,7 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
             }}
           >
             <TextField
+            variant="standard"
               label="Response Parser Key"
               value={header.key}
               onChange={(e) => handleResponseParserChange(index, 'key', e.target.value, attribute)}
@@ -810,6 +817,7 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
           
             
             <TextField
+             variant="standard"
               label="Response Parser Value"
               value={header.value}
               onChange={(e) => handleResponseParserChange(index, 'value', e.target.value, attribute)}

@@ -261,3 +261,7 @@ footer .legal-links a {
   font-weight: bold;
   margin-bottom: 10px;
 }
+
+.checkbox-spacing {
+  margin-right: 10px; /* Space between checkbox and label */
+}
