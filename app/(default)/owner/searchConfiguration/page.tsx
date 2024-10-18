@@ -458,6 +458,13 @@ const handleDelete = async () => {
           setWarningMessage('Please select a type of search before submitting.');
           return; // Prevent further execution
       }
+
+        // Check if at least one related attribute is selected
+  const hasSelectedRelatedAttribute = searchableRelationFields.length > 0;
+  if (!hasSelectedRelatedAttribute) {
+    setWarningMessage('Please select at least one related attribute before submitting.');
+    return;
+  }
   
       // Clear any existing warning message
       setWarningMessage('');
@@ -490,6 +497,7 @@ const handleDelete = async () => {
         );
         console.log('Submit successful', response);
       }
+      setWarningMessage('');
     } catch (error) {
       console.error("Submit/Update error", error);
     }
@@ -673,8 +681,8 @@ const handleDelete = async () => {
           if (attr.attribute === 'external' || attr?.attributeName === 'external') return;
           return <Accordion key={attr.attribute} attribute={attr.attribute} existingData={attr} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange} handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser} apiDetails={attr} addHeader={addHeader}  addResponseParser={addResponseParser} />
         })}
-            {warningMessage && <p style={{ color: 'red' }}>{warningMessage}</p>}
-       <button type="button" id="submit-button" onClick={handleSubmitOrUpdate}>
+           {warningMessage && <p className="warning-message">{warningMessage}</p>}
+    <button type="button" id="submit-button" onClick={handleSubmitOrUpdate}>
            {isDataPresent ? 'Update' : 'Submit'}
           </button>
         <button type="button" id="delete-button" onClick={handleDelete}>Delete</button>

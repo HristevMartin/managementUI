@@ -255,3 +255,9 @@ footer .legal-links a {
 .related-attributes {
   padding-left: 20px; /* Indent related attributes */
 }
+
+.warning-message {
+  color: #ff6b6b;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
