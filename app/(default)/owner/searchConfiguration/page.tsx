@@ -624,52 +624,54 @@ const handleDelete = async () => {
             <Accordion attribute="API Configuration" existingData={existingData} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange}  handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser}   apiDetails={selectedAttributes.find(e => e.attribute === 'external')} addHeader={addHeader} addResponseParser={addResponseParser}/>
           )}
         </div>
+        {searchType == 'searchEngine' && (
         <fieldset>
-  <legend>Select Searchable Attributes:</legend>
-  <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
-    {attributes.map(attr => (
-      <div key={attr.key}>
-        <label onClick={() => handleAttributeClick(attr)}>
-          <input
-            type="checkbox"
-            name="Searchable-attributes"
-            value={attr.key}
-            checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
-            onChange={handleSearchableAttributesChange}
-            style={{ marginRight: '10px' }} // Add margin for space
-          />
-          {attr.key.charAt(0).toUpperCase() + attr.key.slice(1)} {/* Capitalize first character */}
-        </label>
-        {expandedAttributes[attr.key] && attr.relationships.length > 0 && relatedAttributes[attr.relationships[0]] && (
-          <div style={{ paddingLeft: '20px' }}>
-            {relatedAttributes[attr.relationships[0]].map((relAttr) => (
-              <div key={relAttr.key}>
-                <label>
+          <legend>Select Searchable Attributes:</legend>
+          <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
+            {attributes.map(attr => (
+              <div key={attr.key}>
+                <label onClick={() => handleAttributeClick(attr)}>
                   <input
                     type="checkbox"
-                    name="Related-attributes"
-                    value={relAttr.key}
-                    checked={relAttr.selected || searchableRelationFields.some(field => 
-                      field.fieldName === attr.key && 
-                      field.relatedEntityName === attr.relationships[0] && 
-                      field.relatedFieldName === relAttr.key
-                    )}
-                    onChange={(e) => {
-                      const { checked } = e.target;
-                      handleRelatedAttributeChange(checked, relAttr, attr);
-                    }}
-                    style={{ marginRight: '10px' }} // Add margin for space
+                    name="Searchable-attributes"
+                    value={attr.key}
+                    checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
+                    onChange={handleSearchableAttributesChange}
+                    style={{ marginRight: '10px' }}
                   />
-                  {relAttr.key.charAt(0).toUpperCase() + relAttr.key.slice(1)} {/* Capitalize first character */}
+                  {attr.key.charAt(0).toUpperCase() + attr.key.slice(1)}
                 </label>
+                {expandedAttributes[attr.key] && attr.relationships.length > 0 && relatedAttributes[attr.relationships[0]] && (
+                  <div style={{ paddingLeft: '20px' }}>
+                    {relatedAttributes[attr.relationships[0]].map((relAttr) => (
+                      <div key={relAttr.key}>
+                        <label>
+                          <input
+                            type="checkbox"
+                            name="Related-attributes"
+                            value={relAttr.key}
+                            checked={relAttr.selected || searchableRelationFields.some(field => 
+                              field.fieldName === attr.key && 
+                              field.relatedEntityName === attr.relationships[0] && 
+                              field.relatedFieldName === relAttr.key
+                            )}
+                            onChange={(e) => {
+                              const { checked } = e.target;
+                              handleRelatedAttributeChange(checked, relAttr, attr);
+                            }}
+                            style={{ marginRight: '10px' }}
+                          />
+                          {relAttr.key.charAt(0).toUpperCase() + relAttr.key.slice(1)}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             ))}
           </div>
-        )}
-      </div>
-    ))}
-  </div>
-</fieldset>
+        </fieldset>
+      )}
         <fieldset>
           <legend>External Configuration:</legend>
           <label>Select Specific Attributes:</label>
