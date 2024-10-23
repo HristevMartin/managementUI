@@ -1,4 +1,3 @@
-
 "use client";
 import React, { useState, useEffect } from "react";
 import { useAuthJHipster } from "@/context/JHipsterContext";
@@ -30,7 +29,9 @@ const Searchproduct = () => {
   const handleEdit = (index) => {
     const id = searchResults[index].id;
     const selectedType = productType;
-    router.push(`/backoffice/owner/edit-product?id=${id}&selectedType=${selectedType}`);
+    router.push(
+      `/backoffice/owner/edit-product?id=${id}&selectedType=${selectedType}`
+    );
   };
 
   const handleView = (index) => {
@@ -90,7 +91,7 @@ const Searchproduct = () => {
   const handleProductTypeChange = (e) => {
     const selectedType = e.target.value;
     setProductType(selectedType);
-    console.log("slected product type",selectedType);
+    console.log("slected product type", selectedType);
 
     const selectedCategory = categoryDetails.find(
       (category) => category.categoryName === selectedType
@@ -406,89 +407,70 @@ const Searchproduct = () => {
             </div>
           )} */}
 
-
-{searchResults.length > 0 && (
-  <div className="overflow-x-auto">
-    <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-lg">
-      <thead>
-        <tr className="bg-blue-200">
-          {Object.keys(searchResults[0])
-            .filter((key) => key !== "id") // Skip the 'id' key
-            .map((key, index) => (
-              <th key={index} className="py-2 px-4 border-b text-left">
-                {key === "end_date"
-                  ? "End Date"
-                  : key.replace(/_/g, " ")}
-              </th>
-            ))}
-          <th className="py-2 px-4 border-b">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {searchResults.map((result, index) => (
-          <tr
-            key={index}
-            className="hover:bg-gray-50 transition-colors"
-          >
-            {Object.entries(result)
-              .filter(([key]) => key !== "id") // Skip the 'id' key
-              .map(([key, value], i) => (
-                <td key={i} className="py-2 px-4 border-b">
-                  {typeof value === "string" && value.startsWith("http") ? (
-                    <img
-                      src={value}
-                      alt={key}
-                      className="w-16 h-16 object-cover rounded-md"
-                    />
-                  ) : (
-                    value
-                  )}
-                </td>
-              ))}
-            <td className="py-2 px-4 border-b flex space-x-2">
-              <button
-                onClick={() => handleEdit(index)}
-                className="bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold rounded px-2 py-1"
-                aria-label="Edit"
-              >
-                Edit
-              </button>
-              <button
-                onClick={() => handleView(index)}
-                className="bg-green-600 text-white hover:bg-green-700 text-sm font-semibold rounded px-2 py-1"
-                aria-label="View"
-              >
-                View
-              </button>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>
-)}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+          {searchResults.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border border-gray-300 rounded-lg shadow-lg">
+                <thead>
+                  <tr className="bg-blue-200">
+                    {Object.keys(searchResults[0])
+                      .filter((key) => key !== "id") // Skip the 'id' key
+                      .map((key, index) => (
+                        <th
+                          key={index}
+                          className="py-2 px-4 border-b text-left"
+                        >
+                          {key === "end_date"
+                            ? "End Date"
+                            : key.replace(/_/g, " ")}
+                        </th>
+                      ))}
+                    <th className="py-2 px-4 border-b">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {searchResults.map((result, index) => (
+                    <tr
+                      key={index}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      {Object.entries(result)
+                        .filter(([key]) => key !== "id") // Skip the 'id' key
+                        .map(([key, value], i) => (
+                          <td key={i} className="py-2 px-4 border-b">
+                            {typeof value === "string" &&
+                            value.startsWith("http") ? (
+                              <img
+                                src={value}
+                                alt={key}
+                                className="w-16 h-16 object-cover rounded-md"
+                              />
+                            ) : (
+                              value
+                            )}
+                          </td>
+                        ))}
+                      <td className="py-2 px-4 border-b flex space-x-2">
+                        <button
+                          onClick={() => handleEdit(index)}
+                          className="bg-blue-600 text-white hover:bg-blue-700 text-sm font-semibold rounded px-2 py-1"
+                          aria-label="Edit"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleView(index)}
+                          className="bg-green-600 text-white hover:bg-green-700 text-sm font-semibold rounded px-2 py-1"
+                          aria-label="View"
+                        >
+                          View
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </>

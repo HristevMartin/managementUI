@@ -4,7 +4,8 @@ export const search = async (payload) => {
 
   console.log("payload for search api",payload);
 
-  const apiUrl = `http://localhost:8080/api/search-entities`;
+  // const apiUrl = `http://localhost:8080/api/search-entities`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/search-entities`;
 
   try {
     const response = await fetch(apiUrl, {

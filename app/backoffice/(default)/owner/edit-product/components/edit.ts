@@ -1,9 +1,25 @@
 'use server';
 
-export const edit = async (apiUrl, id, formData) => {
-  console.log("Payload for edit API", formData);
+const customForm = (selectedType) => {
+  // Convert to lowercase and add 's' at the end if not already there
+  let formattedType = selectedType.toLowerCase();
+  if (!formattedType.endsWith('s')) {
+    formattedType += 's';
+  }
+  return formattedType;
+};
 
-  const apiUrlWithId = `http://localhost:8080/api/${apiUrl}/${id}`;
+
+export const edit = async (formData, selectedType, id) => {
+  console.log("Payload selectedType:", selectedType);
+  console.log("Payload id:", id);
+  console.log("Payload formData:", formData);
+
+  const singularType = customForm(selectedType);
+  console.log("Singular Type:", singularType);
+
+  // Constructing the API URL
+  const apiUrlWithId = `${process.env.NEXT_PUBLIC_BASE_URL}/${singularType}/${id}`;
 
   try {
     const response = await fetch(apiUrlWithId, {
@@ -19,18 +35,18 @@ export const edit = async (apiUrl, id, formData) => {
     console.log('Response headers for edit:', response.headers);
 
     if (!response.ok) {
-      const errorDetails = await response.json();
+      const errorDetails = await response.json().catch(() => ({})); // Safely try to parse JSON
       console.error('Error details:', errorDetails); // Log error details for debugging
-      const errorMessage = errorDetails?.message || await response.text();
-      throw new Error(`Failed to fetch data: ${response.status} - ${errorMessage}`);
+      const errorMessage = errorDetails.message || await response.text();
+      throw new Error(`Failed to edit data: ${response.status} - ${errorMessage}`);
     }
 
-    const searchData = await response.json();
-    console.log('Edit data fetched:', searchData);
-    return searchData;
+    const updatedData = await response.json();
+    console.log('Edit data fetched:', updatedData);
+    return updatedData;
 
   } catch (error) {
     console.error('Error fetching edit data:', error);
-    throw error;
+    throw error; // Re-throw the error for further handling
   }
 };
