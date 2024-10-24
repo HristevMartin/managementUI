@@ -130,9 +130,6 @@ const EditForm = () => {
     };
   }, [selectedType, id]);
 
-
-
-
   const fetchRelationshipDetails = async (relationshipTo) => {
     const apiUrl = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
     const endpoint = getPluralForm(relationshipTo);
@@ -196,13 +193,13 @@ const EditForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log("Form Data:", JSON.stringify(formData, null, 2));
-    
+
     if (formData && selectedType && id) {
       try {
         await edit(formData, selectedType, id);
-        console.log('Edit successful');
+        console.log("Edit successful");
       } catch (error) {
-        console.error('Error calling edit function:', error);
+        console.error("Error calling edit function:", error);
       }
     }
   };
@@ -229,8 +226,8 @@ const EditForm = () => {
                 <Typography variant="subtitle1">
                   {fieldName.charAt(0).toUpperCase() + fieldName.slice(1)}
                 </Typography>
-                {fieldName.toLowerCase() === "startdate" ||
-                fieldName.toLowerCase() === "enddate" ? (
+                {fieldType === "LocalDate"  ||
+                 fieldType === "Date" ? (
                   <TextField
                     name={fieldName}
                     type="date"
@@ -277,14 +274,6 @@ const EditForm = () => {
                 </Typography>
 
                 <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                  {/* {formData[relationshipKey]?.map((item) => (
-                    <Chip
-                      key={item.id}
-                      label={item.name || "Unknown"}
-                      onDelete={() => handleChipDelete(relationshipKey, item.id)}
-                    />
-                  ))} */}
-
                   {Array.isArray(formData[relationshipKey])
                     ? formData[relationshipKey].map((item) => (
                         <Chip
@@ -306,7 +295,7 @@ const EditForm = () => {
                             )
                           }
                         />
-                      )} 
+                      )}
                 </Box>
 
                 <Select

@@ -4,7 +4,7 @@ export const search = async (payload) => {
 
   console.log("payload for search api",payload);
 
-  // const apiUrl = `http://localhost:8080/api/search-entities`;
+ 
   const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/search-entities`;
 
   try {
@@ -31,7 +31,7 @@ export const search = async (payload) => {
 
   } catch (error) {
     console.error('Error fetching search data:', error);
-    throw error; // Propagate the error to be handled in the component
+    throw error; 
   }
 };
 
