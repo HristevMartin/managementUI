@@ -93,7 +93,7 @@ export const AuthContextProvider = ({ children }) => {
       await logOutUser(accessToken);
 
       setUser(initialUserState);
-      const isManagement = user.role.includes("management");
+      const isManagement = user.role.includes("MANAGEMENT");
 
       router.push("/backoffice/login");
      
