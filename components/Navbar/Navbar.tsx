@@ -51,6 +51,7 @@ const HeaderManagement = () => {
               subLinks: [
                 { name: "Product", url: "/backoffice/owner/add-product" },
                 { name: "UI Component", url: "/backoffice/owner/viewproductcategory" },
+                { name: 'Search Configuration', url: '/backoffice/owner/searchConfiguration' },
               ],
             },
           ],

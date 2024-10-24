@@ -25,6 +25,7 @@ import "./page.css";
 import { useAuthJHipster } from "@/context/JHipsterContext";
 import Select from "react-select";
 import { transformPayloadSubmitProduct } from "@/utils/managementFormUtils";
+import Editor from "@/app/backoffice/editor/page";
 
 const ProductForm = () => {
   const [productName, setProductName] = useState("");
@@ -56,17 +57,19 @@ const ProductForm = () => {
 
   // state for external images..
   const [openDialogExternal, setOpenDialogExternal] = useState(false);
-  const [externalData, setExternalData] = useState("");
 
   const [apiUrls, setApiUrls] = useState("");
   const [payloadBody, setPayloadBody] = useState("");
   const [headers, setHeaders] = useState([{ key: "", value: "" }]);
   const [isLoading, setIsLoading] = useState(false);
+
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
-  const handleOpenDialogExternal = () => {
-    setOpenDialogExternal(true);
+  const capitalizeFirstLetter = (string) => {
+    if (!string) return "";
+    return string.charAt(0).toUpperCase() + string.slice(1);
   };
+
 
   const handleCloseDialogExternal = () => {
     setOpenDialogExternal(false);
@@ -79,40 +82,12 @@ const ProductForm = () => {
 
     setIsLoading(true);
 
-    // const fetchProductDetails = async (fieldName) => {
-    //   try {
-    //     const response = await fetch(
-    //       `${apiUrl}/populate-package-details?package_type=${fieldName}`,
-    //       {
-    //         method: "GET",
-    //         headers: {
-    //           "Content-Type": "application/json",
-    //         },
-    //       }
-    //     );
-    //     if (!response.ok) {
-    //       throw new Error(`Failed to fetch details for ${fieldName}`);
-    //     }
-    //     const data = await response.json();
-    //     return data.map((product) => ({
-    //       id: product.product_id,
-    //       name: product.product_name,
-    //     }));
-    //   } catch (error) {
-    //     console.error(`Error fetching details for ${fieldName}:`, error);
-    //     return [];
-    //   } finally {
-    //     setIsLoading(false);
-    //   }
-    // };
-
     const fetchData = async () => {
       if (!jHipsterAuthToken) return;
 
       try {
         const data = await mapProductTypesToCustomFields(jHipsterAuthToken);
 
-        console.log("data!?!?!:", data);
         if (data && data.length > 0) {
           console.log("detailedCategories:", data);
 
@@ -299,7 +274,7 @@ const ProductForm = () => {
     console.log("correctedEndpointPathName", correctedEndpointPathName);
 
     let transformedFormData = transformPayloadSubmitProduct(formData);
-    console.log('transformedFormData:', transformedFormData);
+    console.log("transformedFormData:", transformedFormData);
 
     try {
       const response = await fetch(
@@ -337,6 +312,9 @@ const ProductForm = () => {
       }
       return field;
     });
+
+    console.log("Updated Fields:", updatedFields);
+
     setCustomFields(updatedFields);
   };
 
@@ -472,15 +450,59 @@ const ProductForm = () => {
 
   return (
     <div className="bg-opacity-none flex min-h-screen flex-col items-center justify-center bg-gray-100">
-      <div className="ml-40 text-2xl font-bold mt-3">Add Product</div>
+      <div className="ml-40 text-2xl font-bold mt-3">
+        {productType ? `Add ${productType}` : "Add Product"}
+      </div>
       <form
         onSubmit={handleSubmit}
         className="ml-44 w-full max-w-4xl rounded-lg bg-white p-8 shadow-md input-form-move"
       >
+        <div className="relative flex flex-col mb-4" style={{ width: "300px" }}>
+          <label htmlFor="productType" className="">
+            Travel Product Type
+          </label>
+
+          <select
+            id="productType"
+            name="productType"
+            value={productType}
+            onChange={handleProductTypeChange}
+            className="peer block w-full appearance-none border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 disabled:bg-gray-100 disabled:hover:border-gray-200"
+          >
+            <option value="" disabled selected>
+              Select Product Type
+            </option>
+            {productTypes.map((type, index) => (
+              <option key={index} value={type}>
+                {type}
+              </option>
+            ))}
+          </select>
+
+          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+            <svg
+              className="h-5 w-5 text-gray-500"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                // stroke-width="2"
+                d="M19 9l-7 7-7-7"
+              ></path>
+            </svg>
+          </div>
+        </div>
+
         <h2 className="mb-6 text-xl font-bold">Basic Information</h2>
 
-        <div className="mb-6 grid grid-cols-2 gap-6">
-          <div className="relative col-span-2 flex flex-col">
+        <div className="mb-6 grid grid-cols-2  gap-6">
+          <div className="relative flex flex-col">
+            <label htmlFor="productName" className="">
+              Product Name *
+            </label>
             <input
               id="productName"
               type="text"
@@ -491,96 +513,12 @@ const ProductForm = () => {
               required
               className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 disabled:bg-gray-100 disabled:hover:border-gray-200"
             />
-            <label
-              htmlFor="productName"
-              className="absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-blue-600 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4 dark:bg-gray-900 dark:text-gray-400 peer-focus:dark:text-blue-500"
-            >
-              Product Name *
-            </label>
-          </div>
-
-          {/* <div className="relative col-span-2 mb-4 flex flex-col">
-            <div className="form-input">
-              {imageUrls.map((url, index) => (
-                <div key={index} className="relative mb-2 flex items-center">
-                  <input
-                    id={`imageUrl-${index}`}
-                    type="text"
-                    name={`imageUrl-${index}`}
-                    value={url}
-                    onChange={(e) => updateImageUrl(index, e.target.value)}
-                    className="peer flex-grow border border-gray-200 px-4 text-base placeholder:text-gray-500 hover:border-primary focus:border-primary focus:outline-none focus:ring-4 focus:ring-primary/20 disabled:bg-gray-100 disabled:hover:border-gray-200"
-                    required={
-                      !customFields.find(
-                        (field) => field.name === "images" && field.external
-                      )
-                    }
-                  />
-                  <label htmlFor={`imageUrl-${index}`}>
-                    {customFields.find(
-                      (field) => field.name === "images" && field.external
-                    )
-                      ? "Press the plus icon to fill out the External API Parameters"
-                      : "Image URL"}
-                  </label>
-                  <button
-                    onClick={(e) => {
-                      e.preventDefault();
-                      addImageUrl();
-                    }}
-                    className="ml-2 text-blue-500 hover:text-blue-700"
-                    aria-label="Add another image URL"
-                  >
-                    <FontAwesomeIcon icon={faPlus} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div> */}
-
-          <div className="relative flex flex-col">
-            <select
-              id="productType"
-              name="productType"
-              value={productType}
-              onChange={handleProductTypeChange}
-              className="peer block w-full appearance-none border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 disabled:bg-gray-100 disabled:hover:border-gray-200"
-            >
-              <option value="" disabled selected>
-                Select Product Type
-              </option>
-              {productTypes.map((type, index) => (
-                <option key={index} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-
-            <label
-              htmlFor="productType"
-              className="absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-blue-600 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4 dark:bg-gray-900 dark:text-gray-400 peer-focus:dark:text-blue-500"
-            >
-              Travel Product Type
-            </label>
-
-            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-              <svg
-                className="h-5 w-5 text-gray-500"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  // stroke-width="2"
-                  d="M19 9l-7 7-7-7"
-                ></path>
-              </svg>
-            </div>
           </div>
 
           <div className="relative flex flex-col">
+            <label htmlFor="price" className="">
+              Price *
+            </label>
             <input
               id="price"
               type="number"
@@ -590,12 +528,6 @@ const ProductForm = () => {
               required
               className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 disabled:bg-gray-100 disabled:hover:border-gray-200"
             />
-            <label
-              htmlFor="price"
-              className="absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-blue-600 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4 dark:bg-gray-900 dark:text-gray-400 peer-focus:dark:text-blue-500"
-            >
-              Price *
-            </label>
           </div>
 
           {/* room type */}
@@ -625,286 +557,127 @@ const ProductForm = () => {
           )}
           {/* ending room type */}
 
-          {/* <div className="col-span-2 flex items-center">
-            <label className="flex cursor-pointer items-center">
-              <input
-                type="checkbox"
-                checked={dynamicInventory}
-                onChange={() => setDynamicInventory(!dynamicInventory)}
-                className="mr-2"
-              />
-              Enable Dynamic Inventory
-            </label>
-            <div className="tooltip ml-2">
-              <FontAwesomeIcon icon={faInfoCircle} className="text-gray-500" />
-              <span className="tooltiptext">
-                Headers set here need to be added to custom fields section!
-              </span>
-            </div>
-          </div> */}
+          <h1 className="relative col-span-2 flex flex-col">
+            Fill out the custom fields below to add the product.
+          </h1>
 
-          {/* {dynamicInventory && (
-            <>
-              <div className="relative col-span-2 flex flex-col">
-                <input
-                  id="apiURLInventory"
-                  type="text"
-                  value={apiURLInventory}
-                  onChange={(e) => setApiURLInventory(e.target.value)}
-                  required
-                  className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 disabled:bg-gray-100 disabled:hover:border-gray-200"
-                />
-                <label
-                  htmlFor="apiURLInventory"
-                  className="absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-blue-600 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4 dark:bg-gray-900 dark:text-gray-400 peer-focus:dark:text-blue-500"
-                >
-                  API URL
-                </label>
-              </div>
-
-              {apiHeadersInventory.map((header, index) => (
-                <div key={index} className="col-span-2 grid grid-cols-2 gap-6">
-                  <input
-                    type="text"
-                    placeholder="Header Key"
-                    value={header.key}
-                    onChange={(e) => handleHeaderChangeInventory(index, 'key', e.target.value)}
-                    className="col-span-1 rounded-md border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Header Value"
-                    value={header.value}
-                    onChange={(e) => handleHeaderChangeInventory(index, 'value', e.target.value)}
-                    className="col-span-1 rounded-md border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              ))}
-              <div className="relative col-span-2 flex flex-col">
-                <label
-                  htmlFor="payloadBodyInventory"
-                  className="absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-blue-600 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4 dark:bg-gray-900 dark:text-gray-400 peer-focus:dark:text-blue-500"
-                >
-                  Payload Body
-                </label>
-                <textarea
-                  id="payloadBodyInventory"
-                  value={payloadBodyInventory}
-                  onChange={(e) => setPayloadBodyInventory(e.target.value)}
-                  className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 disabled:bg-gray-100 disabled:hover:border-gray-200"
-                />
-              </div>
-
-              <div className="col-span-2">
-                <button
-                  type="button"
-                  onClick={handleAddHeaderFieldInventory}
-                  className="transform rounded bg-blue-500 px-4 py-2 text-white transition-transform hover:scale-105 hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  Add Header Field
-                </button>
-              </div>
-            </>
-          )} */}
-
-          {/* <div className="col-span-2 flex items-center">
-            <label className="flex cursor-pointer items-center">
-              <input
-                type="checkbox"
-                checked={dynamicPrice}
-                onChange={() => setDynamicPrice(!dynamicPrice)}
-                className="mr-2"
-              />
-              Enable Dynamic Price
-            </label>
-            <div className="tooltip ml-2">
-              <FontAwesomeIcon icon={faInfoCircle} className="text-gray-500" />
-              <span className="tooltiptext">
-                Headers set here need to be added to custom fields section!
-              </span>
-            </div>
-          </div>
-
-          {dynamicPrice && (
-            <>
-              <div className="col-span-2 flex flex-col">
-                <label className="mb-2 font-medium text-gray-700">API URL</label>
-                <input
-                  type="text"
-                  value={apiURLPrice}
-                  onChange={(e) => setApiURLPrice(e.target.value)}
-                  className="rounded-md border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              {apiHeadersPrice.map((header, index) => (
-                <div key={index} className="col-span-2 grid grid-cols-2 gap-6">
-                  <input
-                    type="text"
-                    placeholder="Header Key"
-                    value={header.key}
-                    onChange={(e) => handleHeaderChangePrice(index, 'key', e.target.value)}
-                    className="col-span-1 rounded-md border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="Header Value"
-                    value={header.value}
-                    onChange={(e) => handleHeaderChangePrice(index, 'value', e.target.value)}
-                    className="col-span-1 rounded-md border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                </div>
-              ))}
-              <div className="col-span-2">
-                <button
-                  type="button"
-                  onClick={handleAddHeaderFieldPrice}
-                  className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  Add Header Field
-                </button>
-              </div>
-              <div className="col-span-2 flex flex-col">
-                <label className="mb-2 font-medium text-gray-700">Payload Body</label>
-                <textarea
-                  value={payloadBodyPrice}
-                  onChange={(e) => setPayloadBodyPrice(e.target.value)}
-                  className="rounded-md border px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </>
-          )} */}
-
-          <h1>Fill out the custom fields below to add the product.</h1>
           {isLoading ? (
             <div className="col-span-2 flex justify-center items-center">
               <div className="spinner"></div>
             </div>
           ) : (
-            customFields.map((field, index) => {
-              if (
-                field.name === "name" ||
-                field.name === "images" ||
-                field.name === "price" ||
-                field.name === "hotelname"
-              ) {
-                return null;
-              }
+            (() => {
+              return customFields.map((field, index) => {
+                if (
+                  field.name === "name" ||
+                  field.name === "images" ||
+                  field.name === "price" ||
+                  field.name === "hotelname"
+                ) {
+                  return null;
+                }
 
-              if (field?.options) {
-                console.log("field.name:", field.name);
-                console.log("field.options:", field.options);
+                if (field?.options) {
+                  console.log("field.name:", field.name);
+                  console.log("field.options:", field.options);
 
-                const transformedOptions = field.options.map((option) => ({
-                  value: option.id,
-                  label: option.name,
-                }));
+                  const transformedOptions = field.options.map((option) => ({
+                    value: option.id,
+                    label: option.name,
+                  }));
+
+                  return (
+                    <div key={index} className="flex flex-col mb-4">
+                      {/* Container for fields */}
+                      <div className="flex flex-col w-full">
+                        <div className="mb-2">
+                          <label htmlFor={`customField-${index}`}>
+                            {field.name}
+                          </label>
+                        </div>
+
+                        <Select
+                          id={`customField-${index}`}
+                          styles={customStyles}
+                          isMulti={true}
+                          options={transformedOptions}
+                          menuPortalTarget={document.body}
+                          className="basic-multi-select dropdown-high-z"
+                          classNamePrefix="select"
+                          onChange={(selectedOptions) => {
+                            console.log("selectedOptions", selectedOptions);
+                            const optionsArray = Array.isArray(selectedOptions)
+                              ? selectedOptions
+                              : [selectedOptions];
+                            const values = optionsArray.map(
+                              (option) => option.value
+                            );
+                            handleCustomFieldChange(index, values.join(","));
+                          }}
+                          value={transformedOptions.filter((option) =>
+                            field.value
+                              .split(",")
+                              .includes(option.value.toString())
+                          )}
+                        />
+                      </div>
+                    </div>
+                  );
+                }
 
                 return (
-                  <div
-                    key={index}
-                    className="col-span-2 grid grid-cols-2 gap-6"
-                  >
-                    <div className="flex justify-end items-center ">
-                      <p htmlFor={`customField-${index}`}>{field.name}</p>
-                    </div>
-
-                    <Select
-                      id={`customField-${index}`}
-                      styles={customStyles}
-                      isMulti={true}
-                      options={transformedOptions}
-                      menuPortalTarget={document.body}
-                      className="basic-multi-select dropdown-high-z"
-                      classNamePrefix="select"
-                      onChange={(selectedOptions) => {
-                        console.log("selectedOptions", selectedOptions);
-                        const optionsArray = Array.isArray(selectedOptions)
-                          ? selectedOptions
-                          : [selectedOptions];
-                        const values = optionsArray.map(
-                          (option) => option.value
-                        );
-                        handleCustomFieldChange(index, values.join(","));
-                      }}
-                      value={transformedOptions.filter((option) =>
-                        field.value.split(",").includes(option.value.toString())
+                  <div key={index} className="grid grid-rows-1 gap-6">
+                    <div
+                      className={
+                        field.type === "TextBlob" ? "col-span-2" : "relative"
+                      }
+                    >
+                      <label htmlFor={`customValue-${index}`}>
+                        {capitalizeFirstLetter(field.name)}
+                      </label>
+                      {console.log(field)} {/* Debugging line */}
+                      {field.type === "TextBlob" ? (
+                        <Editor
+                          id={`customValue-${index}`}
+                          value={field.value || ""}
+                          onChange={(newValue) =>
+                            handleCustomFieldChange(index, newValue)
+                          }
+                          disabled={field.external}
+                          className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
+                        />
+                      ) : field.name?.toLowerCase() === "startdate" ||
+                        field.name?.toLowerCase() === "enddate" ? (
+                        <input
+                          id={`customValue-${index}`}
+                          type="date"
+                          value={field.value || ""}
+                          onChange={(e) =>
+                            handleCustomFieldChange(index, e.target.value)
+                          }
+                          disabled={field.external}
+                          className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
+                        />
+                      ) : (
+                        <input
+                          id={`customValue-${index}`}
+                          type="text"
+                          value={field.value || ""}
+                          onChange={(e) =>
+                            handleCustomFieldChange(index, e.target.value)
+                          }
+                          disabled={field.external}
+                          className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
+                        />
                       )}
-                    />
+                    </div>
                   </div>
                 );
-              }
-
-              return (
-                <div key={index} className="col-span-2 grid grid-cols-2 gap-6">
-                  <div className="relative">
-                    <input
-                      id={`customName-${index}`}
-                      type="text"
-                      value={field.name}
-                      readOnly
-                      className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
-                    />
-                    <label
-                      htmlFor={`customName-${index}`}
-                      className="absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-blue-600 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4 dark:bg-gray-900 dark:text-gray-400 peer-focus:dark:text-blue-500"
-                    >
-                      Custom Field Key
-                    </label>
-                  </div>
-                  <div className="relative">
-                    <input
-                      id={`customValue-${index}`}
-                      type="text"
-                      placeholder="Enter value"
-                      value={field.value || ""}
-                      onChange={(e) =>
-                        handleCustomFieldChange(index, e.target.value)
-                      }
-                      disabled={field.external}
-                      className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
-                    />
-                    <label
-                      htmlFor={`customValue-${index}`}
-                      className="absolute start-1 top-2 z-10 origin-[0] -translate-y-4 scale-75 transform bg-white px-2 text-sm text-gray-500 duration-300 peer-placeholder-shown:top-1/2 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:scale-100 peer-focus:top-2 peer-focus:-translate-y-4 peer-focus:scale-75 peer-focus:px-2 peer-focus:text-blue-600 rtl:peer-focus:left-auto rtl:peer-focus:translate-x-1/4 dark:bg-gray-900 dark:text-gray-400 peer-focus:dark:text-blue-500"
-                    >
-                      Custom Field Value
-                    </label>
-                  </div>
-                </div>
-              );
-            })
+              });
+            })()
           )}
         </div>
 
-        {/* pop up window for external fields */}
-        {/* <Dialog
-          open={openDialogExternal}
-          onClose={handleCloseDialogExternal}
-          aria-labelledby="form-dialog-title"
-        >
-          <DialogTitle id="form-dialog-title">Add External Data</DialogTitle>
-          <DialogContent>
-            <DialogContent>Please enter the external data for this field.</DialogContent>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="externalData"
-              label="External Data"
-              type="text"
-              fullWidth
-              value={externalData}
-              onChange={handleExternalDataChange}
-            />
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={handleCloseDialogExternal} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={handleCloseDialogExternal} color="primary">
-              Save
-            </Button>
-          </DialogActions>
-        </Dialog> */}
         <Dialog
           open={openDialogExternal}
           onClose={handleCloseDialogExternal}
@@ -982,17 +755,6 @@ const ProductForm = () => {
           </DialogActions>
         </Dialog>
 
-        {/* <div className="flex justify-evenly">
-          <button
-            type="submit"
-            className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Save
-          </button>
-          <div>
-            <input type="file" />
-          </div>
-        </div> */}
         <div className="mt-4 flex justify-center space-x-4">
           <button
             type="submit"

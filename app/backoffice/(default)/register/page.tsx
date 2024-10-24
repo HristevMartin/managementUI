@@ -157,7 +157,7 @@ const Register: React.FC = () => {
 
     setErrors({ email: emailError, password: passwordError, repeatPassword: repeatPasswordError });
 
-    const registrationData = { email, password, password2: repeatPassword, role: 'management' };
+    const registrationData = { email, password, password2: repeatPassword, role: 'USER' };
     if (!emailError && !passwordError && !repeatPasswordError) {
       console.log('Registration details:', registrationData);
       try {
