@@ -31,13 +31,6 @@ const HeaderManagement = () => {
       if (hasRequiredRole(user?.roles, "/backoffice/admin")) {
         allowedLinks.push({ name: "ADMIN", url: "/backoffice/admin", subLinks: [] });
       }
-      USER,
-      ADMIN,
-      AGENT,
-      PRODUCTOWNER,
-      PACKAGEUPLOADER,
-      MANAGEMENT,
-      SUPERVISOR 
       if (hasRequiredRole(user?.roles, "PRODUCTOWNER")) {
         allowedLinks.push({
           name: "Products",
