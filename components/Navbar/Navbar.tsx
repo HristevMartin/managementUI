@@ -29,10 +29,16 @@ const HeaderManagement = () => {
     if (user?.id) {
       allowedLinks.push({ name: "Home", url: "/backoffice/management", subLinks: [] });
       if (hasRequiredRole(user?.roles, "/backoffice/admin")) {
-        allowedLinks.push({ name: "Admin", url: "/backoffice/admin", subLinks: [] });
+        allowedLinks.push({ name: "ADMIN", url: "/backoffice/admin", subLinks: [] });
       }
-      
-      if (hasRequiredRole(user?.roles, "ProductOwner")) {
+      USER,
+      ADMIN,
+      AGENT,
+      PRODUCTOWNER,
+      PACKAGEUPLOADER,
+      MANAGEMENT,
+      SUPERVISOR 
+      if (hasRequiredRole(user?.roles, "PRODUCTOWNER")) {
         allowedLinks.push({
           name: "Products",
           url: "#",
@@ -58,7 +64,7 @@ const HeaderManagement = () => {
           ],
         });
       }
-      if (hasRequiredRole(user?.roles, "ProductOwner")) {
+      if (hasRequiredRole(user?.roles, "PRODUCTOWNER")) {
         allowedLinks.push({
           name: "Rule Management",
           url: "/backoffice/RuleGrid",

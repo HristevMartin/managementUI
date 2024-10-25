@@ -15,7 +15,7 @@ const AdminPage = () => {
     if (user.access_token) {
       console.log('heree')
       console.log('user.access_token is ', user.access_token);
-      if (hasRequiredRole(user.role, "admin")) {
+      if (hasRequiredRole(user.role, "ADMIN")) {
         setHasAccess(true);
       }
       setLoading(false);
