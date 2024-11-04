@@ -4,6 +4,8 @@ import "./globals.css";
 import { AuthContextProvider } from "@/context/AuthContext";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { JHipsterProvider } from "@/context/JHipsterContext";
+// import { SessionProvider } from 'next-auth/react';
+import { NextAuthProvider } from "@/pages/provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,13 +21,15 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <JHipsterProvider>
-        <SidebarProvider>
-          <AuthContextProvider>
-            <body className={inter.className}>{children}</body>
-          </AuthContextProvider>
-        </SidebarProvider>
-      </JHipsterProvider>
+      <NextAuthProvider>
+        <JHipsterProvider>
+          <SidebarProvider>
+            <AuthContextProvider>
+              <body className={inter.className}>{children}</body>
+            </AuthContextProvider>
+          </SidebarProvider>
+        </JHipsterProvider>
+      </NextAuthProvider>
     </html>
   );
 }

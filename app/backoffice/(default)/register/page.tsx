@@ -179,7 +179,7 @@ const Register: React.FC = () => {
 
   return (
     <div>
-      <div className="bg-opacity-none flex h-[620px] flex-col items-center justify-center bg-gray-100">
+      <div className="bg-opacity-none flex h-[620px] flex-col items-center justify-center bg-gray-100 text-black">
         <div className="mt-20 rounded bg-white p-8 shadow-md">
           <h1 className="mb-4 text-center text-xl font-bold">Register</h1>
           <form onSubmit={handleSubmit} className="space-y-4">

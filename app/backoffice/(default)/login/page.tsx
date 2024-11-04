@@ -5,6 +5,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import './login.css';
 import { useAuth } from '@/context/AuthContext';
 import { loginUser } from '@/services/userService';
+import { signIn } from 'next-auth/react';
+import { sign } from 'crypto';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -12,7 +14,7 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string>('');
   const { login } = useAuth();
   const router = useRouter();
-//   const { isSidebarOpen } = useSidebar();
+  //   const { isSidebarOpen } = useSidebar();
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -22,8 +24,15 @@ const Login: React.FC = () => {
     try {
       const result = await loginUser(loginData);
       if (result.success) {
-        login(result.message);
-        router.push('/backoffice/management');
+
+        let payload = {
+          id: result.message.id,
+          role: result.message.roles,
+          callbackUrl: '/backoffice/management',
+        }
+
+        console.log('show me the payload signIn', payload);
+        signIn('credentials', payload);
       } else {
         setError(result.error || 'Login failed');
       }
@@ -33,10 +42,10 @@ const Login: React.FC = () => {
     }
   };
 
-//   const containerClass = `login-container ${isSidebarOpen ? 'sidebar-open-login-form' : 'sidebar-closed-login-form'}`;
+  //   const containerClass = `login-container ${isSidebarOpen ? 'sidebar-open-login-form' : 'sidebar-closed-login-form'}`;
 
   return (
-    <div style={{position:'relative', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
+    <div style={{ position: 'relative', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'black' }}>
       <div>
         <div className="login-form-smaller-laptop-screen rounded bg-white p-8 shadow-md">
           <div className="form-wrapper">

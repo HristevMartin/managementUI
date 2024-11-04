@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import HeaderManagement from "@/components/Navbar/Navbar";
 
+
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {

@@ -8,6 +8,7 @@ import "./sidenav.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useSidebar } from "@/context/SidebarContext";
+import { useSession } from 'next-auth/react';
 
 const HeaderManagement = () => {
   const { user, logout } = useAuth();
@@ -20,18 +21,23 @@ const HeaderManagement = () => {
   });
   const { isSidebarOpen, toggleSidebar } = useSidebar();
 
+  const { data: session } = useSession();
+
+  let userId = session?.user?.id
+  let userRoles = session?.user?.role
+
   const handleLogout = () => {
     logout();
   };
 
   useEffect(() => {
     let allowedLinks = [];
-    if (user?.id) {
+    if (userId) {
       allowedLinks.push({ name: "Home", url: "/backoffice/management", subLinks: [] });
-      if (hasRequiredRole(user?.roles, "/backoffice/admin")) {
+      if (hasRequiredRole(userRoles, "ADMIN")) {
         allowedLinks.push({ name: "ADMIN", url: "/backoffice/admin", subLinks: [] });
       }
-      if (hasRequiredRole(user?.roles, "PRODUCTOWNER")) {
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
           name: "Products",
           url: "#",
@@ -57,7 +63,7 @@ const HeaderManagement = () => {
           ],
         });
       }
-      if (hasRequiredRole(user?.roles, "PRODUCTOWNER")) {
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
           name: "Rule Management",
           url: "/backoffice/RuleGrid",
@@ -177,7 +183,7 @@ const HeaderManagement = () => {
             ))}
           </nav>
 
-          {user && user?.id && user?.id.length > 0 ? (
+          {userId ? (
             <div className="mt-auto p-5" style={{ backgroundColor: "#273a8a" }}>
               <button
                 onClick={handleLogout}
