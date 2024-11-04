@@ -38,18 +38,10 @@ const authOptions: AuthOptions = {
       console.log('signIn is being called');
     },
 
-    // async signOut() {
-    //   const cookieCartId = cookies().get('cartId')?.value;
-
-    //   if (cookieCartId) {
-    //     try {
-    //       await unassignCartFromCustomer(cookieCartId);
-    //     } catch (error) {
-    //       // eslint-disable-next-line no-console
-    //       console.error(error);
-    //     }
-    //   }
-    // },
+    signOut(user) {
+      console.log('user:', user);
+      console.log('signOut is being called');
+    },
   },
   providers: [
     CredentialsProvider({

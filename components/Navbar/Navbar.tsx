@@ -8,7 +8,7 @@ import "./sidenav.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useSidebar } from "@/context/SidebarContext";
-import { useSession } from 'next-auth/react';
+import { signOut, useSession } from 'next-auth/react';
 
 const HeaderManagement = () => {
   const { user, logout } = useAuth();
@@ -27,7 +27,7 @@ const HeaderManagement = () => {
   let userRoles = session?.user?.role
 
   const handleLogout = () => {
-    logout();
+    signOut();
   };
 
   useEffect(() => {
