@@ -463,22 +463,24 @@ const handleDelete = async () => {
   };
 
   const handleSubmitOrUpdate = async () => {
-
-        // Check if searchType is selected
-        if (!searchType) {
-          setWarningMessage('Please select a type of search before submitting.');
-          return; // Prevent further execution
-      }
-
-        // Check if at least one related attribute is selected
-  const hasSelectedRelatedAttribute = searchableRelationFields.length > 0;
-  if (!hasSelectedRelatedAttribute) {
-    setWarningMessage('Please select at least one related attribute before submitting.');
-    return;
-  }
+    // Check if searchType is selected
+    if (!searchType) {
+      setWarningMessage('Please select a type of search before submitting.');
+      return; // Prevent further execution
+    }
   
-      // Clear any existing warning message
-      setWarningMessage('');
+    // Clear any existing warning message
+    setWarningMessage('');
+  
+    // Check for related attributes only if searchType is 'searchEngine'
+    if (searchType === 'searchEngine') {
+      const hasSelectedRelatedAttribute = searchableRelationFields.length > 0;
+      if (!hasSelectedRelatedAttribute) {
+        setWarningMessage('Please select at least one related attribute before submitting.');
+        return;
+      }
+    }
+  
     const payload = createPayload();
     try {
       if (isDataPresent) {
@@ -510,9 +512,9 @@ const handleDelete = async () => {
         setNotificationMessage('Submission successful!');
         console.log('Submit successful', response);
       }
-      setWarningMessage('');
     } catch (error) {
       console.error("Submit/Update error", error);
+      setWarningMessage('An error occurred while submitting/updating. Please try again.');
     }
   };
   const checkIfDataPresent = async () => {
