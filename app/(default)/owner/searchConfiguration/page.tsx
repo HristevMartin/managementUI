@@ -461,7 +461,6 @@ const handleDelete = async () => {
       console.error("Delete error", error);
     }
   };
-
   const handleSubmitOrUpdate = async () => {
     // Check if searchType is selected
     if (!searchType) {
@@ -476,8 +475,15 @@ const handleDelete = async () => {
     if (searchType === 'searchEngine') {
       const hasSelectedRelatedAttribute = searchableRelationFields.length > 0;
       if (!hasSelectedRelatedAttribute) {
-        setWarningMessage('Please select at least one related attribute before submitting.');
-        return;
+        // Check if there are any related attributes available
+        const hasRelatedAttributes = selectedAttributes.some(attr => 
+          attr.relationships && attr.relationships.length > 0
+        );
+  
+        if (hasRelatedAttributes) {
+          setWarningMessage('Please select at least one related attribute before submitting.');
+          return;
+        }
       }
     }
   
