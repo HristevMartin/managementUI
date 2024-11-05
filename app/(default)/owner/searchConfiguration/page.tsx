@@ -34,7 +34,7 @@ const AddProductCategoryPage = () => {
   const [notificationMessage, setNotificationMessage] = useState('');
    // Function to clear error messages
    const clearError = () => setErrorMessage('');
-
+   const [recommendation, setRecommendation] = useState(false);
   console.log("result",searchableRelationFields)
   const handleHeaderChange = (index, field, value, attribute) => {
     const updatedHeaders = apiDetails.headers.map((header, idx) => {
@@ -422,6 +422,7 @@ const AddProductCategoryPage = () => {
       return {
         entityName: category,
         entitySearchType: searchType,
+        recommendation: recommendation,
         searchableFields: searchableAttributes.filter(attr => !relationFieldNames.includes(attr)), // Filter out relation field names
         searchableRelationFields: searchableRelationFields, // Keep this as is
         externalAttributesMetaData: externalAttributesMetaData // No external attributes for search engine
@@ -433,6 +434,7 @@ const AddProductCategoryPage = () => {
       entityName: category,
       entitySearchType: searchType,
       Searchable: searchableAttributes,
+      recommendation: recommendation,
       externalEntityMetaData: {
         ...entityData,
         headers: entityData.headers.filter(header => header.key && header.value),
@@ -532,7 +534,7 @@ const handleDelete = async () => {
         setExistingData(data);
         setSearchType(data.entitySearchType);
         setSelectedAttributes([...data.externalAttributesMetaData, { ...data.externalEntityMetaData, attribute: 'external' }]);
-  
+        setRecommendation(data.recommendation || false);
         // Handle related attributes
         if (data.searchableRelationFields) {
           const newRelatedAttributes = {};
@@ -622,6 +624,16 @@ const handleDelete = async () => {
             <label><input type="radio" name="searchType" value="vectorSearch" checked={searchType === 'vectorSearch'} onChange={handleSearchTypeChange} /> Vector Search</label>
           </div>
         </fieldset>
+        <div className="recommendation-checkbox">
+  <label>
+    <input
+      type="checkbox"
+      checked={recommendation}
+      onChange={(e) => setRecommendation(e.target.checked)}
+    />
+    Enable Recommendations
+  </label>
+</div>
 
         <div id="searchType-accordion-container">
           {searchType === 'external' && selectedAttributes.find(e => (e.attribute === 'external')) && (

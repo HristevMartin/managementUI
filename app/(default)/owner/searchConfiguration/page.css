@@ -270,3 +270,23 @@ footer .legal-links a {
   color: green; /* You can change this color based on success or error */
   margin: 10px 0;
 }
+
+.recommendation-checkbox {
+  margin: 10px 0;
+  margin-left: 10px;
+}
+
+.recommendation-checkbox label {
+  display: flex;
+  align-items: center;
+  font-size: inherit;
+  color: inherit;
+}
+
+.recommendation-checkbox input[type="checkbox"] {
+  margin-right: 10px;
+  width: 12px;  /* Adjust width */
+  height: 12px; /* Adjust height */
+  transform: scale(1.5); /* Scale the checkbox */
+  cursor: pointer; /* Change cursor to pointer */
+}
