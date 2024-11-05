@@ -434,7 +434,6 @@ const AddProductCategoryPage = () => {
       entityName: category,
       entitySearchType: searchType,
       Searchable: searchableAttributes,
-      recommendation: recommendation,
       externalEntityMetaData: {
         ...entityData,
         headers: entityData.headers.filter(header => header.key && header.value),
@@ -621,19 +620,21 @@ const handleDelete = async () => {
           <div className="radio-group">
             <label><input type="radio" name="searchType" value="external" checked={searchType === 'external'} onChange={handleSearchTypeChange} /> External</label>
             <label><input type="radio" name="searchType" value="searchEngine" checked={searchType === 'searchEngine'} onChange={handleSearchTypeChange} /> Search Engine</label>
-            <label><input type="radio" name="searchType" value="vectorSearch" checked={searchType === 'vectorSearch'} onChange={handleSearchTypeChange} /> Vector Search</label>
-          </div>
+            </div>
         </fieldset>
-        <div className="recommendation-checkbox">
-  <label>
-    <input
-      type="checkbox"
-      checked={recommendation}
-      onChange={(e) => setRecommendation(e.target.checked)}
-    />
-    Enable Recommendations
-  </label>
-</div>
+
+        {searchType === 'searchEngine' && (
+  <div className="recommendation-checkbox">
+    <label>
+      <input
+        type="checkbox"
+        checked={recommendation}
+        onChange={(e) => setRecommendation(e.target.checked)}
+      />
+      Enable Recommendations
+    </label>
+  </div>
+)}
 
         <div id="searchType-accordion-container">
           {searchType === 'external' && selectedAttributes.find(e => (e.attribute === 'external')) && (
