@@ -26,12 +26,12 @@ const HeaderManagement = () => {
 
   useEffect(() => {
     let allowedLinks = [];
-    if (user?.user_id) {
+    if (user?.id) {
       allowedLinks.push({ name: "Home", url: "/backoffice/management", subLinks: [] });
-      if (hasRequiredRole(user?.role, "/backoffice/admin")) {
-        allowedLinks.push({ name: "Admin", url: "/backoffice/admin", subLinks: [] });
+      if (hasRequiredRole(user?.roles, "/backoffice/admin")) {
+        allowedLinks.push({ name: "ADMIN", url: "/backoffice/admin", subLinks: [] });
       }
-      if (hasRequiredRole(user?.role, "ProductOwner")) {
+      if (hasRequiredRole(user?.roles, "PRODUCTOWNER")) {
         allowedLinks.push({
           name: "Products",
           url: "#",
@@ -57,7 +57,7 @@ const HeaderManagement = () => {
           ],
         });
       }
-      if (hasRequiredRole(user?.role, "ProductOwner")) {
+      if (hasRequiredRole(user?.roles, "PRODUCTOWNER")) {
         allowedLinks.push({
           name: "Rule Management",
           url: "/backoffice/RuleGrid",
@@ -177,7 +177,7 @@ const HeaderManagement = () => {
             ))}
           </nav>
 
-          {user && user?.user_id && user.user_id.length > 0 ? (
+          {user && user?.id && user?.id.length > 0 ? (
             <div className="mt-auto p-5" style={{ backgroundColor: "#273a8a" }}>
               <button
                 onClick={handleLogout}

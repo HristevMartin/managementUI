@@ -8,9 +8,10 @@ import { useAuth } from '@/context/AuthContext';
 const sample = () => {
 
   const { user } = useAuth();
-  let loggedUser = user.user_id ? true : false;
-  let userRoles = user.role;
+  let loggedUser = user?.id ? true : false;
 
+  let userRoles = user.roles;
+  
   if (!loggedUser) {
     return (
       <div>
@@ -21,7 +22,7 @@ const sample = () => {
 
   console.log('userRole:', userRoles);
 
-  if (!userRoles.includes('management')) {
+  if (!userRoles.includes('MANAGEMENT')) {
     return (
       <div>
         <h1>Not authorized</h1>

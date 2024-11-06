@@ -15,7 +15,7 @@ const ProductOwner = () => {
 
   useEffect(() => {
     if (user) {
-      if (hasRequiredRole(user.role, "ProductOwner")) {
+      if (hasRequiredRole(user.role, "PRODUCTOWNER")) {
         setHasAccess(true);
       }
       setLoading(false);

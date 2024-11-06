@@ -1,0 +1,217 @@
+.app-container {
+    max-width: 1261px;
+    margin: 93px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgb(0 0 0 / 49%);
+  }
+  
+  h1 {
+    text-align: center;
+    color: #0a0a0a;
+    font-weight: bold;
+    font-size: 29px;
+  }
+  
+  .rule-form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #555;
+  }
+  
+  select,
+  input[type="text"],
+  textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+    transition: border 0.3s;
+  }
+  
+  select:focus,
+  input[type="text"]:focus,
+  textarea:focus {
+    border-color: #007bff;
+    outline: none;
+  }
+  
+  .large-textarea {
+    height: 100px;
+  }
+  
+  .submit-button {
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .submit-button:hover {
+    background-color: #218838;
+  }
+  
+  .rules-table {
+    margin-top: 30px;
+    overflow-x: auto;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    border-radius: 8px;
+   
+  }
+  
+  th, td {
+    padding: 10px;
+    border: 1px solid #55555524;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #3953bb;
+  }
+  
+  tr:hover {
+    background-color: #f1f1f1;
+  }
+  
+  .icon-button {
+    cursor: pointer;
+    margin-right: 10px;
+    display: inline-flex;
+    align-items: center;
+  }
+  
+  .message {
+    margin-top: 10px;
+    padding: 10px;
+    border-radius: 5px;
+  }
+  
+  .success {
+    background-color: #d4edda;
+    color: #0ce63f;
+    border: 1px solid #c3e6cb;
+  }
+  
+  .combined-row {
+    display: flex;
+    gap: 20px; 
+    align-items: center; 
+  }
+  
+  .form-group {
+    flex: 1; 
+  }
+  
+  .rules-table th, .rules-table td {
+    padding: 9px; 
+  }
+  
+  
+  .custom-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+  }
+  
+  .modal-content {
+    background: #fff;
+    padding: 35px;
+    border-radius: 10px;
+    width: 640px;
+    box-shadow: 0px 0px 10px rgb(0 0 0 / 84%);
+  }
+  .delete-button {
+    background: rgb(9, 22, 143);
+    color: white;
+    border: none;
+    padding: 10px;
+    margin-top: 10px;
+    cursor: pointer;
+    margin-right: 10px; 
+      border-radius: 5px;
+  }
+  
+  .submit-button {
+    background: green;
+    color: white;
+    border: none;
+    padding: 10px;
+    margin-top: 10px;
+    cursor: pointer;
+  }
+  
+  button {
+    display: block;
+    margin-top: 10px;
+  }
+  .date-picker-row {
+    display: flex;
+    justify-content: space-between; 
+    align-items: center; 
+  }
+  
+  .date-picker-row > div {
+    flex: 1; 
+    margin-right: 10px;
+  }
+  
+  .date-picker-row > div:last-child {
+    margin-right: 0; 
+  }
+  .button-row {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 11px;
+  }
+  
+  .button-row button {
+    margin-right: 10px; 
+  }
+  
+  .button-row button:last-child {
+    margin-right: 0; 
+  }
+  .cancel-button {
+    background: rgb(247, 1, 1);
+    color: white;
+    border: none;
+    padding: 10px;
+    margin-top: 10px;
+    cursor: pointer;
+    margin-right: 10px; 
+      border-radius: 5px;
+  }
+  
+  .cancel-button:hover {
+    background-color: #b80909; 
+  
+  }
+  
