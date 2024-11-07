@@ -21,6 +21,8 @@ const Searchproduct = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [error, setError] = useState("");
   const [payload, setPayload] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1); // Start with page 1
+  const [totalPages, setTotalPages] = useState(0); // Track total pages
   const [dropdownOpenIndex, setDropdownOpenIndex] = useState(null);
   const { jHipsterAuthToken } = useAuthJHipster();
 
@@ -69,24 +71,59 @@ const Searchproduct = () => {
     fetchData();
   }, [jHipsterAuthToken]);
 
+  const size = process.env.NEXT_PUBLIC_ITEMS_PER_PAGE; // Number of items per page
+
+  const calculateTotalPages = (totalCount) => {
+    // Calculate the total pages based on total count and items per page
+    return Math.ceil(totalCount / size);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       if (payload) {
         setIsLoading(true);
+        console.log("Fetching data...");
+        console.log("Payload:", payload);
+        console.log("Page:", currentPage); // This will be the current page (1-based)
+        console.log("Items per page (size):", size);
+
         try {
-          const results = await search(payload);
-          setSearchResults(results);
+          const results = await search(payload, currentPage, size); // Pass 0-based page to the API (page - 1)
+          console.log("Search results:", results);
+          setSearchResults(results.searchData);
+
+          const totalCount = results.totalCount;
+          console.log("Total count from the results:", totalCount);
+
+          const totalPages = calculateTotalPages(totalCount); // Calculate total pages
+          setTotalPages(totalPages); // Update total pages
+          console.log("Total pages calculated:", totalPages);
         } catch (error) {
           console.error("Search error:", error);
           setError("Failed to fetch search results. Please try again.");
         } finally {
           setIsLoading(false);
+          console.log("Data fetch complete.");
         }
       }
     };
 
-    fetchData();
-  }, [payload]);
+    fetchData(); // Fetch data based on the current page
+  }, [payload, currentPage]); // Effect runs whenever payload or currentPage changes
+
+  const handleNext = () => {
+    // Increment currentPage if it's less than totalPages
+    if (currentPage < totalPages) {
+      setCurrentPage((prevPage) => prevPage + 1); // Increment page
+    }
+  };
+
+  const handlePrevious = () => {
+    // Decrement currentPage if it's greater than 1
+    if (currentPage > 1) {
+      setCurrentPage((prevPage) => prevPage - 1); // Decrement page
+    }
+  };
 
   const handleProductTypeChange = (e) => {
     const selectedType = e.target.value;
@@ -411,6 +448,29 @@ const Searchproduct = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex justify-between items-center mt-4">
+              <button
+                onClick={handlePrevious}
+                disabled={currentPage === 1}
+                className="bg-gray-300 text-gray-700 py-2 px-4 rounded disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="text-gray-700">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={handleNext}
+                disabled={currentPage === totalPages}
+                className="bg-gray-300 text-gray-700 py-2 px-4 rounded disabled:opacity-50"
+              >
+                Next
+              </button>
             </div>
           )}
         </div>
