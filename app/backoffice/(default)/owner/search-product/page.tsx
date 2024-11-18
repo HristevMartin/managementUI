@@ -4,8 +4,6 @@ import { useAuthJHipster } from "@/context/JHipsterContext";
 import { mapProductTypesToCustomFields } from "@/services/productFormService";
 import { search } from "./components/search";
 import "font-awesome/css/font-awesome.min.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 
 const Searchproduct = () => {
