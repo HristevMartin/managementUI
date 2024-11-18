@@ -31,6 +31,8 @@ const Searchproduct = () => {
   const handleEdit = (index) => {
     const id = searchResults[index].id;
     const selectedType = productType;
+    console.log('the id', id)
+    console.log('the selectedType', selectedType)
     router.push(
       `/backoffice/owner/edit-product?id=${id}&selectedType=${selectedType}`
     );
@@ -217,6 +219,7 @@ const Searchproduct = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('in here ee')
 
     const searchFields = selectedCustomFields
       .map((field) => {
@@ -248,7 +251,7 @@ const Searchproduct = () => {
 
   return (
     <>
-      <div className="container">
+      <div className="container text-black">
         <form
           className="w-[600px] mx-auto p-6 bg-white rounded-lg shadow-lg" // Fixed width
           onSubmit={handleSubmit}
@@ -409,6 +412,7 @@ const Searchproduct = () => {
                 <tbody>
                   {searchResults.map((result, index) => (
                     <tr
+
                       key={index}
                       className="hover:bg-gray-50 transition-colors"
                     >

@@ -1,6 +1,6 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import React, { useState, useEffect, Suspense } from "react";
+// import { useSearchParams } from "next/navigation";
 import {
   CircularProgress,
   Typography,
@@ -8,19 +8,19 @@ import {
   TextField,
   Button,
   FormControl,
-  InputLabel,
   Select,
   MenuItem,
   Chip,
 } from "@mui/material";
-
 import { data } from "./components/data";
 import { dataByid } from "./components/data-by-id";
 import { edit } from "./components/edit";
 import Editor from "@/app/backoffice/editor/page";
 import { pagination } from "./components/pagination";
+import { useSearchParams } from "next/navigation";
 
-export function getPluralForm(singular) {
+
+export function getPluralForm(singular = '') {
   const irregulars = {
     ancillary: "ancillaries",
     ticketselection: "ticket-selections",
@@ -49,6 +49,8 @@ const pluralizeType = (type) => {
   return pluralized;
 };
 
+
+
 const EditForm = () => {
   const [formData, setFormData] = useState({});
   const [error, setError] = useState(null);
@@ -68,23 +70,31 @@ const EditForm = () => {
   const [finalPayload, setFinalPayload] = useState({});
   const [selectedChips, setSelectedChips] = useState({});
 
+
   const searchParams = useSearchParams();
-  const selectedType = searchParams.get("selectedType");
-  const id = searchParams.get("id");
+  const selectedType = searchParams?.get("selectedType");
+  const id = searchParams?.get("id");
+  console.log('show me the selectedType', selectedType);
+  console.log('show me the id', id);
   const pluralizedType = selectedType ? pluralizeType(selectedType) : "";
 
+
   useEffect(() => {
-    const storedOptions =
-      JSON.parse(localStorage.getItem("selectedOptions")) || {};
-    setSelectedOptions(storedOptions);
-    console.log("Loaded selected options from localStorage:", storedOptions);
+    if (typeof window !== "undefined") {
+      const storedOptions =
+        JSON.parse(localStorage.getItem("selectedOptions")) || {};
+      setSelectedOptions(storedOptions);
+      console.log("Loaded selected options from localStorage:", storedOptions);
+    }
   }, []);
 
   useEffect(() => {
-    const storedDynamicData =
-      JSON.parse(localStorage.getItem("dynamicData")) || {};
-    setDynamicData(storedDynamicData);
-    console.log("Loaded dynamic data from localStorage:", storedDynamicData);
+    if (typeof window !== "undefined") {
+      const storedDynamicData =
+        JSON.parse(localStorage.getItem("dynamicData")) || {};
+      setDynamicData(storedDynamicData);
+      console.log("Loaded dynamic data from localStorage:", storedDynamicData);
+    }
   }, []);
 
   useEffect(() => {
@@ -128,13 +138,13 @@ const EditForm = () => {
             // Check if 'items' is an array
             const transformedItems = Array.isArray(items)
               ? items.map((item) => ({
-                  id: item.id,
-                  name: item.name,
-                }))
+                id: item.id,
+                name: item.name,
+              }))
               : // Check if 'items' is a single object with 'id' and 'name' properties
               items && items.id && items.name
-              ? [{ id: items.id, name: items.name }] // Wrap single object in an array
-              : []; // If neither, return an empty array
+                ? [{ id: items.id, name: items.name }] // Wrap single object in an array
+                : []; // If neither, return an empty array
 
             // Add the transformed items to the accumulator
             const formattedKey = capitalizeAndTrimS(key);
@@ -160,6 +170,7 @@ const EditForm = () => {
         console.error("Error fetching data:", err);
       } finally {
         if (isMounted) setLoading(false);
+        // setLoading(false);
         console.log("Loading finished");
       }
     };
@@ -399,36 +410,36 @@ const EditForm = () => {
         );
       }
 
- 
+
       return updatedDynamicData;
     });
 
-    
+
     setSelectedOptions((prevSelectedOptions) => {
       const updatedSelections = { ...prevSelectedOptions };
 
       if (updatedSelections[readableRelationship]) {
-        
+
         updatedSelections[readableRelationship] = updatedSelections[
           readableRelationship
         ].filter((id) => id !== optionId);
       }
 
-      
+
       localStorage.setItem(
         "selectedOptions",
         JSON.stringify(updatedSelections)
       );
       console.log("Updated selected options:", updatedSelections);
 
-     
+
       return updatedSelections;
     });
 
-    
+
   };
-  
-  
+
+
 
 
 
