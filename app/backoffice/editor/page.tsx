@@ -1,9 +1,7 @@
 
 "use client";
-import { Suspense, useRef } from "react";
-// import JoditEditor from "jodit-react";
+import { useRef } from "react";
 import dynamic from 'next/dynamic';
-import { useRouter } from "next/navigation";
 
 const JoditEditor = dynamic(() => import('jodit-react'), {
   ssr: false,
