@@ -635,7 +635,7 @@ const ProductForm = () => {
                       <label htmlFor={`customValue-${index}`}>
                         {capitalizeFirstLetter(field.name)}
                       </label>
-                      {console.log(field)} {/* Debugging line */}
+                  
                       {field.type === "TextBlob" ? (
                         <Editor
                           id={`customValue-${index}`}
@@ -643,7 +643,7 @@ const ProductForm = () => {
                           onChange={(newValue) =>
                             handleCustomFieldChange(index, newValue)
                           }
-                          disabled={field.external}
+                          disabled={field.external || false}
                           className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
                         />
                       ) : field.name?.toLowerCase() === "startdate" ||

@@ -1,10 +1,19 @@
 
 "use client";
 import { useRef } from "react";
-import JoditEditor from "jodit-react";
+import dynamic from 'next/dynamic';
 
-const Editor = ({ value, onChange, disabled }) => {
+const JoditEditor = dynamic(() => import('jodit-react'), {
+  ssr: false,
+});
+
+const Editor = ({ value = '', onChange, disabled = false  }) => {
   const editor = useRef(null);
+
+  console.log("Editor received props:", { value, onChange, disabled });
+  if (!value || !onChange || !disabled) {
+    console.error("Missing props in Editor component");
+  }
 
   const handleChange = (newContent) => {
     onChange(newContent); // Call the passed onChange prop
@@ -23,5 +32,10 @@ const Editor = ({ value, onChange, disabled }) => {
     </div>
   );
 };
+
+{/* <Suspense fallback={<div>Loading...</div>}>
+  <Editor />
+</Suspense> */}
+
 
 export default Editor;

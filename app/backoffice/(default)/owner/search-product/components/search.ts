@@ -36,6 +36,7 @@ export const search = async (payload, page, size) => {
 
     if (!response.ok) {
       const errorMessage = await response.text();
+      console.log('the error message', errorMessage);
       throw new Error(`Failed to fetch data: ${response.status} - ${errorMessage}`);
     }
 

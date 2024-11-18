@@ -41,7 +41,7 @@ const Login: React.FC = () => {
         <div className="login-form-smaller-laptop-screen rounded bg-white p-8 shadow-md">
           <div className="form-wrapper">
             <h1 className="mb-4 text-center text-xl font-bold">Login</h1>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form style={{color: 'black'}} onSubmit={handleLogin} className="space-y-4 text-black">
               <label htmlFor="email" className="block">
                 Email
                 <input
