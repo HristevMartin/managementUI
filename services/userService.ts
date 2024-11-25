@@ -1,5 +1,3 @@
-import { useAuth } from '~/context/AuthContext';
-
 interface RegisterData {
   email: string;
   password: string;
@@ -16,6 +14,7 @@ let apiUrlip = process.env.NEXT_PUBLIC_LOCAL_BASE_URL;
 
 export const registerUser = async (data: RegisterData): Promise<any> => {
   const apiUrl = `${apiUrlip}/register`;
+  console.log('the apiURL', apiUrl);
 
   try {
     const response = await fetch(apiUrl, {
@@ -26,9 +25,15 @@ export const registerUser = async (data: RegisterData): Promise<any> => {
       body: JSON.stringify(data),
     });
 
-    const responseData = await response.json();
+    if (!response.ok){
+      console.log('error while calling the api', response);
+    }
 
-    if (response.status === 201) {
+    console.log('show me the response!!', response);
+    const responseData = await response.json();
+    console.log('show me the response.status', response.status);
+
+    if (response.status === 200) {
       return { success: true, data: responseData };
     } else {
       console.log('Registration failed:', responseData.message);

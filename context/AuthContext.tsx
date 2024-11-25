@@ -90,13 +90,13 @@ export const AuthContextProvider = ({ children }) => {
     let accessToken = user.access_token;
 
     try {
-      await logOutUser(accessToken);
-
       setUser(initialUserState);
-      const isManagement = user.role.includes("MANAGEMENT");
-
       router.push("/backoffice/login");
-     
+
+      // send request to the travel-security api to invalidate the token
+      // await logOutUser(accessToken);
+
+      
     } catch (error) {
       console.error("Logout failed", error);
     }

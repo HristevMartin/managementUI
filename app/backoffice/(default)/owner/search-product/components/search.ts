@@ -7,7 +7,7 @@ export const search = async (payload, page, size) => {
   console.log("size per page", size);
 
   // Use a URL object for the base URL and to modify the query parameters
-  const apiUrl = new URL(`${process.env.NEXT_PUBLIC_BASE_URL}/search-entities`);
+  const apiUrl = new URL(`${process.env.NEXT_PUBLIC_BASE_URL_SPRING}/search-entities`);
 
   // Append pagination parameters to the URL's search params
   apiUrl.searchParams.append("page", page);

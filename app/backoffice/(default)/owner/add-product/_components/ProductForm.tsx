@@ -63,8 +63,6 @@ const ProductForm = () => {
   const [headers, setHeaders] = useState([{ key: "", value: "" }]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
-
   const capitalizeFirstLetter = (string) => {
     if (!string) return "";
     return string.charAt(0).toUpperCase() + string.slice(1);
@@ -213,10 +211,6 @@ const ProductForm = () => {
     const description = customFields.find(
       (field) => field.name === "description"
     );
-    console.log("description:", description?.value);
-    // let imagePayload;
-
-    // imagePayload = imageUrls.filter((url) => url !== "");
 
     if (productType === "Room" && selectedHotel) {
       customFieldsPayload = {
@@ -449,7 +443,7 @@ const ProductForm = () => {
   };
 
   return (
-    <div className="bg-opacity-none flex min-h-screen flex-col items-center justify-center bg-gray-100">
+    <div className="bg-opacity-none flex min-h-screen flex-col items-center justify-center bg-gray-100 text-black">
       <div className="ml-40 text-2xl font-bold mt-3">
         {productType ? `Add ${productType}` : "Add Product"}
       </div>
@@ -755,16 +749,16 @@ const ProductForm = () => {
           </DialogActions>
         </Dialog>
 
-        <div className="mt-4 flex justify-center space-x-4">
+        <div className="mt-4 flex justify-center space-x-2">
           <button
             type="submit"
-            className="rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 h-[44px] mt-[10px]"
           >
             Save
           </button>
           <label
             htmlFor="file-upload"
-            className="cursor-pointer rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className=" mt-[10px] mb-[0px] cursor-pointer rounded bg-blue-500 px-6 py-2.5 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             Upload File
             <input
@@ -778,12 +772,13 @@ const ProductForm = () => {
             <button
               type="button" // Use 'button' here to prevent form submission when clicking this button
               onClick={handleSubmitFile}
-              className="rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 h-[44px] mt-[10px]"
             >
               Submit File
             </button>
           )}
         </div>
+
       </form>
       <AlertDialogSlide
         open={openDialog}

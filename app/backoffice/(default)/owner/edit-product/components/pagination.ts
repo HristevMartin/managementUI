@@ -4,7 +4,7 @@
 export const pagination = async (productType, page, size) => {
   console.log("selected type pagination", productType);
 
-  const apiUrl = new URL(`${process.env.NEXT_PUBLIC_BASE_URL}/${productType}`);
+  const apiUrl = new URL(`${process.env.NEXT_PUBLIC_BASE_URL_SPRING}/${productType}`);
 
   // Append pagination parameters
   apiUrl.searchParams.append("page", page);
