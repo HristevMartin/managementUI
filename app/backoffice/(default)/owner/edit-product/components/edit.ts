@@ -19,7 +19,7 @@ export const edit = async (formData, selectedType, id) => {
   console.log("Singular Type:", singularType);
 
   // Constructing the API URL
-  const apiUrlWithId = `${process.env.NEXT_PUBLIC_BASE_URL}/${singularType}/${id}`;
+  const apiUrlWithId = `${process.env.NEXT_PUBLIC_BASE_URL_SPRING}/${singularType}/${id}`;
 
   try {
     const response = await fetch(apiUrlWithId, {

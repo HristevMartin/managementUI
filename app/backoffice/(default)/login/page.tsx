@@ -36,7 +36,7 @@ const Login: React.FC = () => {
 //   const containerClass = `login-container ${isSidebarOpen ? 'sidebar-open-login-form' : 'sidebar-closed-login-form'}`;
 
   return (
-    <div style={{position:'relative', top: '50%', left: '50%', transform: 'translate(-50%, -50%)'}}>
+    <div style={{position:'relative', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'black'}}>
       <div>
         <div className="login-form-smaller-laptop-screen rounded bg-white p-8 shadow-md">
           <div className="form-wrapper">

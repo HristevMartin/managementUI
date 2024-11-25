@@ -11,6 +11,7 @@ const sample = () => {
   let loggedUser = user?.id ? true : false;
 
   let userRoles = user.roles;
+  console.log('userRoles:', userRoles);
   
   if (!loggedUser) {
     return (
@@ -22,7 +23,7 @@ const sample = () => {
 
   console.log('userRole:', userRoles);
 
-  if (!userRoles.includes('MANAGEMENT')) {
+  if (!userRoles.includes('USER')) {
     return (
       <div>
         <h1>Not authorized</h1>

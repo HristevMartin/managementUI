@@ -39,7 +39,7 @@ const HeaderManagement = () => {
             {
               name: "Type Definition",
               subLinks: [
-                { name: "UI Component", url: "/backoffice/owner/productcategory" },
+                // { name: "UI Component", url: "/backoffice/owner/productcategory" },
                 {
                   name: "Product Type",
                   url: "/backoffice/owner/addInitialProductCategory",
@@ -50,7 +50,11 @@ const HeaderManagement = () => {
               name: "Manage Data",
               subLinks: [
                 { name: "Product", url: "/backoffice/owner/add-product" },
-                { name: "UI Component", url: "/backoffice/owner/viewproductcategory" },
+              ],
+            },
+            {
+              name: "Search Configuration",
+              subLinks: [
                 { name: 'Search Configuration', url: '/backoffice/owner/searchConfiguration' },
               ],
             },
@@ -62,7 +66,13 @@ const HeaderManagement = () => {
           name: "Rule Management",
           url: "/backoffice/RuleGrid",
           sublinks: [],
-        });
+        },)
+        allowedLinks.push({
+          name: "Rule Interface",
+          url: "/backoffice/rule-interface",
+          sublinks: [],
+        },
+        )
       }
     } else {
       allowedLinks.push({ name: "Login", url: "/backoffice/login", subLinks: null });
@@ -82,9 +92,8 @@ const HeaderManagement = () => {
     <>
       <button
         onClick={toggleSidebar}
-        className={`toggle-button ${
-          isSidebarOpen ? "sidebar-open-button" : "sidebar-closed-button"
-        }`}
+        className={`toggle-button ${isSidebarOpen ? "sidebar-open-button" : "sidebar-closed-button"
+          }`}
       >
         <FontAwesomeIcon
           icon={isSidebarOpen ? faTimes : faBars}
@@ -93,9 +102,8 @@ const HeaderManagement = () => {
       </button>
 
       <div
-        className={`sidebar ${
-          isSidebarOpen ? "sidebar-open" : "sidebar-closed"
-        }`}
+        className={`sidebar ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"
+          }`}
       >
         <div className="flex h-full flex-col bg-gray-800 text-white">
           <div
@@ -123,18 +131,18 @@ const HeaderManagement = () => {
                     {expandedSections[link.name] && (
                       <div className="pl-4">
                         {link.subLinks.map((subLink) => (
-                          <div key={subLink.name}>
+                          <div style={{ width: '210px' }} key={subLink.name}>
                             {subLink.subLinks && subLink.subLinks.length > 0 ? (
                               <>
                                 <button
                                   onClick={() => toggleExpand(subLink.name)}
-                                  className="flex w-full items-center justify-between p-2 text-left hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
+                                  className=" flex w-full items-center justify-between p-2 text-left hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white"
                                   aria-expanded={expandedSections[subLink.name]}
                                 >
                                   <p className="mobile-button mobile-nav">
                                     {subLink.name}
                                   </p>
-                                  <span>
+                                  <span className="">
                                     {expandedSections[subLink.name] ? "▼" : "▶"}
                                   </span>
                                 </button>

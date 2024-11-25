@@ -162,6 +162,7 @@ const Register: React.FC = () => {
       console.log('Registration details:', registrationData);
       try {
         const result = await registerUser(registrationData);
+        console.log('show me the result', result);
         if (result.success) {
           alert('Registration successful');
           router.push('/backoffice/login');
