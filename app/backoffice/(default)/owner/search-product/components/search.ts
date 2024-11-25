@@ -1,6 +1,6 @@
 'use server';
 
-export const search = async (payload, page, size) => {
+export const search = async (payload: any, page: any, size: any, jHipsterAuthToken: string) => {
 
   console.log("payload for search api", payload);
   console.log("page no search api", page);
@@ -16,8 +16,7 @@ export const search = async (payload, page, size) => {
   console.log("search pagination URL", apiUrl.toString());
 
   // Ensure the token is available
-  const apiToken = process.env.NEXT_PUBLIC_API_TOKEN;
-  if (!apiToken) {
+  if (!jHipsterAuthToken) {
     throw new Error('API token is not defined');
   }
 
@@ -25,7 +24,7 @@ export const search = async (payload, page, size) => {
     const response = await fetch(apiUrl.toString(), {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${apiToken}`,
+        Authorization: `Bearer ${jHipsterAuthToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
