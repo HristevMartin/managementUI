@@ -85,9 +85,9 @@ const ProductForm = () => {
 
       try {
         const data = await mapProductTypesToCustomFields(jHipsterAuthToken);
-
+        console.log('show me the data', data);
+        
         if (data && data.length > 0) {
-          console.log("detailedCategories:", data);
 
           setCategoryDetails(data);
 
@@ -463,7 +463,7 @@ const ProductForm = () => {
             onChange={handleProductTypeChange}
             className="peer block w-full appearance-none border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 disabled:bg-gray-100 disabled:hover:border-gray-200"
           >
-            <option value="" disabled selected>
+            <option value="" disabled >
               Select Product Type
             </option>
             {productTypes.map((type, index) => (

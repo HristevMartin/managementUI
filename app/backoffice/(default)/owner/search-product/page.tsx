@@ -88,7 +88,7 @@ const Searchproduct = () => {
         console.log("Items per page (size):", size);
 
         try {
-          const results = await search(payload, currentPage, size); // Pass 0-based page to the API (page - 1)
+          const results = await search(payload, currentPage, size, jHipsterAuthToken); // Pass 0-based page to the API (page - 1)
           console.log("Search results:", results);
           setSearchResults(results.searchData);
 

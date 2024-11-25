@@ -18,6 +18,7 @@ import { edit } from "./components/edit";
 import Editor from "@/app/backoffice/editor/page";
 import { pagination } from "./components/pagination";
 import { useSearchParams } from "next/navigation";
+import { useAuthJHipster } from "@/context/JHipsterContext";
 
 
 export function getPluralForm(singular = '') {
@@ -70,6 +71,7 @@ const EditForm = () => {
   const [finalPayload, setFinalPayload] = useState({});
   const [selectedChips, setSelectedChips] = useState({});
 
+  const { jHipsterAuthToken } = useAuthJHipster();
 
   const searchParams = useSearchParams();
   const selectedType = searchParams?.get("selectedType");
@@ -100,13 +102,17 @@ const EditForm = () => {
   useEffect(() => {
     let isMounted = true;
 
+    if (!jHipsterAuthToken) {
+      return;
+    }
+
     const fetchData = async () => {
       if (!isMounted || !selectedType || !id) return;
 
       setLoading(true);
       console.log("Fetching data for:", selectedType, id);
       try {
-        const dataResponse = await data(selectedType);
+        const dataResponse = await data(selectedType, jHipsterAuthToken);
         setFields(dataResponse.fields);
         console.log("Fields loaded:", dataResponse.fields);
 
@@ -116,7 +122,7 @@ const EditForm = () => {
         setRelationshipTos(relationships);
         console.log("Relationships found:", relationships);
 
-        const dataByIdResponse = await dataByid(pluralizedType, id);
+        const dataByIdResponse = await dataByid(pluralizedType, id, jHipsterAuthToken);
         setFormData(dataByIdResponse);
         console.log("Data loaded by ID:", dataByIdResponse);
 
@@ -203,7 +209,7 @@ const EditForm = () => {
     const pluralForm = getPluralForm(relationshipKey);
 
     try {
-      const result = await pagination(pluralForm, page, itemsPerPage);
+      const result = await pagination(pluralForm, page, itemsPerPage, jHipsterAuthToken);
       const optionsData = result.data;
       const totalCount = result.totalCount;
 
@@ -449,7 +455,7 @@ const EditForm = () => {
 
     if (formData && selectedType && id) {
       try {
-        await edit(formData, selectedType, id);
+        await edit(formData, selectedType, id, jHipsterAuthToken);
         console.log("Edit successful");
       } catch (error) {
         setError(error);
