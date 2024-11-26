@@ -8,9 +8,9 @@ import "./sidenav.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useSidebar } from "@/context/SidebarContext";
+import { signOut, useSession } from 'next-auth/react';
 
 const HeaderManagement = () => {
-  const { user, logout } = useAuth();
   const [links, setLinks] = useState([]);
   const [expandedSections, setExpandedSections] = useState({
     Products: false,
@@ -20,18 +20,28 @@ const HeaderManagement = () => {
   });
   const { isSidebarOpen, toggleSidebar } = useSidebar();
 
+  const { data: session } = useSession();
+
+  let userId = session?.user?.id
+  let userRoles = session?.user?.role
+
+  console.log('show me the session?!!?!?', session)
+
+  console.log('show me the userId', userId)
+  console.log('show me the userRoles', userRoles)
+
   const handleLogout = () => {
-    logout();
+    signOut({ redirect: true, callbackUrl: '/backoffice/login' });
   };
 
   useEffect(() => {
     let allowedLinks = [];
-    if (user?.id) {
+    if (userId) {
       allowedLinks.push({ name: "Home", url: "/backoffice/management", subLinks: [] });
-      if (hasRequiredRole(user?.roles, "/backoffice/admin")) {
+      if (hasRequiredRole(userRoles, "ADMIN")) {
         allowedLinks.push({ name: "ADMIN", url: "/backoffice/admin", subLinks: [] });
       }
-      if (hasRequiredRole(user?.roles, "PRODUCTOWNER")) {
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
           name: "Products",
           url: "#",
@@ -60,7 +70,7 @@ const HeaderManagement = () => {
           ],
         });
       }
-      if (hasRequiredRole(user?.roles, "PRODUCTOWNER")) {
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
           name: "Rule Management",
           url: "/backoffice/RuleGrid",
@@ -78,7 +88,7 @@ const HeaderManagement = () => {
       allowedLinks.push({ name: "Register", url: "/backoffice/register", subLinks: null });
     }
     setLinks(allowedLinks);
-  }, [user]);
+  }, [session]);
 
   const toggleExpand = (sectionName) => {
     setExpandedSections((prev) => ({
@@ -184,7 +194,7 @@ const HeaderManagement = () => {
             ))}
           </nav>
 
-          {user && user?.id && user?.id.length > 0 ? (
+          {userId ? (
             <div className="mt-auto p-5" style={{ backgroundColor: "#273a8a" }}>
               <button
                 onClick={handleLogout}
