@@ -4,8 +4,6 @@ import { useAuthJHipster } from "@/context/JHipsterContext";
 import { mapProductTypesToCustomFields } from "@/services/productFormService";
 import { search } from "./components/search";
 import "font-awesome/css/font-awesome.min.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 
 const Searchproduct = () => {
@@ -31,6 +29,8 @@ const Searchproduct = () => {
   const handleEdit = (index) => {
     const id = searchResults[index].id;
     const selectedType = productType;
+    console.log('the id', id)
+    console.log('the selectedType', selectedType)
     router.push(
       `/backoffice/owner/edit-product?id=${id}&selectedType=${selectedType}`
     );
@@ -88,7 +88,7 @@ const Searchproduct = () => {
         console.log("Items per page (size):", size);
 
         try {
-          const results = await search(payload, currentPage, size); // Pass 0-based page to the API (page - 1)
+          const results = await search(payload, currentPage, size, jHipsterAuthToken); // Pass 0-based page to the API (page - 1)
           console.log("Search results:", results);
           setSearchResults(results.searchData);
 
@@ -217,6 +217,7 @@ const Searchproduct = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('in here ee')
 
     const searchFields = selectedCustomFields
       .map((field) => {
@@ -248,7 +249,7 @@ const Searchproduct = () => {
 
   return (
     <>
-      <div className="container">
+      <div className="container text-black">
         <form
           className="w-[600px] mx-auto p-6 bg-white rounded-lg shadow-lg" // Fixed width
           onSubmit={handleSubmit}
@@ -409,6 +410,7 @@ const Searchproduct = () => {
                 <tbody>
                   {searchResults.map((result, index) => (
                     <tr
+
                       key={index}
                       className="hover:bg-gray-50 transition-colors"
                     >
