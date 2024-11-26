@@ -14,6 +14,7 @@ let apiUrlip = process.env.NEXT_PUBLIC_LOCAL_BASE_URL;
 
 export const registerUser = async (data: RegisterData): Promise<any> => {
   const apiUrl = `${apiUrlip}/register`;
+  console.log('the apiURL', apiUrl);
 
   try {
     const response = await fetch(apiUrl, {
