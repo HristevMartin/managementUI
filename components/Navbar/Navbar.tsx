@@ -39,7 +39,6 @@ const HeaderManagement = () => {
             {
               name: "Type Definition",
               subLinks: [
-                // { name: "UI Component", url: "/backoffice/owner/productcategory" },
                 {
                   name: "Product Type",
                   url: "/backoffice/owner/addInitialProductCategory",
