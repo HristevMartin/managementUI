@@ -4,8 +4,7 @@ import "./globals.css";
 import { AuthContextProvider } from "@/context/AuthContext";
 import { SidebarProvider } from "@/context/SidebarContext";
 import { JHipsterProvider } from "@/context/JHipsterContext";
-// import { SessionProvider } from 'next-auth/react';
-import { NextAuthProvider } from "@/pages/provider";
+import NextAuthProvider from "@/context/provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
