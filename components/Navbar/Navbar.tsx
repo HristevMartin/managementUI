@@ -25,11 +25,6 @@ const HeaderManagement = () => {
   let userId = session?.user?.id
   let userRoles = session?.user?.role
 
-  console.log('show me the session?!!?!?', session)
-
-  console.log('show me the userId', userId)
-  console.log('show me the userRoles', userRoles)
-
   const handleLogout = () => {
     signOut({ redirect: true, callbackUrl: '/backoffice/login' });
   };
@@ -71,11 +66,6 @@ const HeaderManagement = () => {
         });
       }
       if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
-        allowedLinks.push({
-          name: "Rule Management",
-          url: "/backoffice/RuleGrid",
-          sublinks: [],
-        },)
         allowedLinks.push({
           name: "Rule Interface",
           url: "/backoffice/rule-interface",
