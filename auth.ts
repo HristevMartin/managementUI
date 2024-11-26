@@ -68,4 +68,4 @@ const { handlers, auth, signIn, signOut, update } = NextAuth(authOptions);
 const getSession = () => getServerSession(authOptions)
 
 // export { handlers, auth, signIn, signOut, update, authOptions, getSession }
-export { handlers, auth, signIn, signOut, update }
+export { handlers, auth, signIn, signOut, update, authOptions }
