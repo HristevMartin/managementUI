@@ -114,7 +114,6 @@ const ProductForm = () => {
     fetchData();
   }, [jHipsterAuthToken]);
 
-  console.log("cuustom fields:", customFields);
 
   const [selectedHotel, setSelectedHotel] = useState("");
   const [hotels, setHotels] = useState([]);
