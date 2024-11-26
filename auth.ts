@@ -21,7 +21,7 @@ const authOptions: AuthOptions = {
     },
     session({ session, token }) {
       session.user ||= session.user || {};
-      session.user.id = token.sub ? parseInt(token.sub, 10) : undefined;
+      session.user.id = token.sub ? token.sub : undefined;
       session.user.role = token.role;
 
       session.user.customerTokenId = token.customerTokenId;
@@ -51,7 +51,7 @@ const authOptions: AuthOptions = {
       },
       async authorize(credentials) {
         let roles = credentials?.role.split(',');
-
+        console.log('show me the credentials', credentials);
         return {
           id: credentials?.id,
           role: roles,

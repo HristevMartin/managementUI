@@ -12,9 +12,6 @@ const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const { login } = useAuth();
-  const router = useRouter();
-  //   const { isSidebarOpen } = useSidebar();
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -23,8 +20,9 @@ const Login: React.FC = () => {
 
     try {
       const result = await loginUser(loginData);
-      if (result.success) {
+      console.log('show me the result', result);
 
+      if (result.success) {
         let payload = {
           id: result.message.id,
           role: result.message.roles,
@@ -45,12 +43,12 @@ const Login: React.FC = () => {
   //   const containerClass = `login-container ${isSidebarOpen ? 'sidebar-open-login-form' : 'sidebar-closed-login-form'}`;
 
   return (
-    <div style={{ position: 'relative', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'black' }}>
+    <div style={{position:'relative', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'black'}}>
       <div>
         <div className="login-form-smaller-laptop-screen rounded bg-white p-8 shadow-md">
           <div className="form-wrapper">
             <h1 className="mb-4 text-center text-xl font-bold">Login</h1>
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form style={{color: 'black'}} onSubmit={handleLogin} className="space-y-4 text-black">
               <label htmlFor="email" className="block">
                 Email
                 <input

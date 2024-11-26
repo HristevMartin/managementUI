@@ -7,14 +7,9 @@ import { useAuth } from '@/context/AuthContext';
 import { useSession } from 'next-auth/react';
 
 const sample = () => {
-
-  const { user } = useAuth();
-  let loggedUser = user?.id ? true : false;
-
   const { data: session } = useSession();
-  console.log('session:????', session);
-
-  let userRoles = user?.roles;
+  let userRoles = session?.user?.role;
+  let loggedUser = session?.user?.id ? true : false;
   
   if (!loggedUser) {
     return (
@@ -24,9 +19,7 @@ const sample = () => {
     );
   }
 
-  console.log('userRole:', userRoles);
-
-  if (!userRoles.includes('MANAGEMENT')) {
+  if (!userRoles.includes('USER')) {
     return (
       <div>
         <h1>Not authorized</h1>

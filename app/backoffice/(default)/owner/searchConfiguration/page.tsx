@@ -34,7 +34,7 @@ const AddProductCategoryPage = () => {
   const [notificationMessage, setNotificationMessage] = useState('');
    // Function to clear error messages
    const clearError = () => setErrorMessage('');
-
+   const [recommendation, setRecommendation] = useState(false);
   console.log("result",searchableRelationFields)
   const handleHeaderChange = (index, field, value, attribute) => {
     const updatedHeaders = apiDetails.headers.map((header, idx) => {
@@ -422,6 +422,7 @@ const AddProductCategoryPage = () => {
       return {
         entityName: category,
         entitySearchType: searchType,
+        recommendation: recommendation,
         searchableFields: searchableAttributes.filter(attr => !relationFieldNames.includes(attr)), // Filter out relation field names
         searchableRelationFields: searchableRelationFields, // Keep this as is
         externalAttributesMetaData: externalAttributesMetaData // No external attributes for search engine
@@ -460,24 +461,32 @@ const handleDelete = async () => {
       console.error("Delete error", error);
     }
   };
-
   const handleSubmitOrUpdate = async () => {
-
-        // Check if searchType is selected
-        if (!searchType) {
-          setWarningMessage('Please select a type of search before submitting.');
-          return; // Prevent further execution
-      }
-
-        // Check if at least one related attribute is selected
-  const hasSelectedRelatedAttribute = searchableRelationFields.length > 0;
-  if (!hasSelectedRelatedAttribute) {
-    setWarningMessage('Please select at least one related attribute before submitting.');
-    return;
-  }
+    // Check if searchType is selected
+    if (!searchType) {
+      setWarningMessage('Please select a type of search before submitting.');
+      return; // Prevent further execution
+    }
   
-      // Clear any existing warning message
-      setWarningMessage('');
+    // Clear any existing warning message
+    setWarningMessage('');
+  
+    // Check for related attributes only if searchType is 'searchEngine'
+    if (searchType === 'searchEngine') {
+      const hasSelectedRelatedAttribute = searchableRelationFields.length > 0;
+      if (!hasSelectedRelatedAttribute) {
+        // Check if there are any related attributes available
+        const hasRelatedAttributes = selectedAttributes.some(attr => 
+          attr.relationships && attr.relationships.length > 0
+        );
+  
+        if (hasRelatedAttributes) {
+          setWarningMessage('Please select at least one related attribute before submitting.');
+          return;
+        }
+      }
+    }
+  
     const payload = createPayload();
     try {
       if (isDataPresent) {
@@ -509,9 +518,9 @@ const handleDelete = async () => {
         setNotificationMessage('Submission successful!');
         console.log('Submit successful', response);
       }
-      setWarningMessage('');
     } catch (error) {
       console.error("Submit/Update error", error);
+      setWarningMessage('An error occurred while submitting/updating. Please try again.');
     }
   };
   const checkIfDataPresent = async () => {
@@ -532,7 +541,7 @@ const handleDelete = async () => {
         setExistingData(data);
         setSearchType(data.entitySearchType);
         setSelectedAttributes([...data.externalAttributesMetaData, { ...data.externalEntityMetaData, attribute: 'external' }]);
-  
+        setRecommendation(data.recommendation || false);
         // Handle related attributes
         if (data.searchableRelationFields) {
           const newRelatedAttributes = {};
@@ -619,9 +628,21 @@ const handleDelete = async () => {
           <div className="radio-group">
             <label><input type="radio" name="searchType" value="external" checked={searchType === 'external'} onChange={handleSearchTypeChange} /> External</label>
             <label><input type="radio" name="searchType" value="searchEngine" checked={searchType === 'searchEngine'} onChange={handleSearchTypeChange} /> Search Engine</label>
-            <label><input type="radio" name="searchType" value="vectorSearch" checked={searchType === 'vectorSearch'} onChange={handleSearchTypeChange} /> Vector Search</label>
-          </div>
+            </div>
         </fieldset>
+
+        {searchType === 'searchEngine' && (
+  <div className="recommendation-checkbox">
+    <label>
+      <input
+        type="checkbox"
+        checked={recommendation}
+        onChange={(e) => setRecommendation(e.target.checked)}
+      />
+      Enable Recommendations
+    </label>
+  </div>
+)}
 
         <div id="searchType-accordion-container">
           {searchType === 'external' && selectedAttributes.find(e => (e.attribute === 'external')) && (

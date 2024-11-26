@@ -17,6 +17,7 @@
     "@mui/icons-material": "^5.16.4",
     "@mui/material": "^5.16.4",
     "axios": "^1.7.7",
+    "font-awesome": "^4.7.0",
     "html-react-parser": "^5.1.17",
     "jodit-react": "^4.1.2",
     "js-cookie": "^3.0.5",
