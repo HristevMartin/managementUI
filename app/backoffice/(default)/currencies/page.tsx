@@ -6,12 +6,13 @@ interface Currency {
   id: string;
   currencyCode: string;
   currencySymbol: string;
-  exchangeRate: string;  // Change to string
-  updatedAt: string;
+  exchangeRate: string; // Change to string for easier handling
+  updatedAt: string | { $date: string } | Array<number>; // Handle backend formats
 }
-const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
-const apiToken = process.env.NEXT_PUBLIC_API_TOKEN; 
+const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
+const apiToken = process.env.NEXT_PUBLIC_API_TOKEN;
+
 export default function CurrenciesPage() {
   const [currencies, setCurrencies] = useState<Currency[] | null>(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -22,28 +23,54 @@ export default function CurrenciesPage() {
     fetchCurrencies();
   }, []);
 
+  // Utility to show user-friendly errors
+  const handleError = (message: string) => {
+    alert(message); // Replace this with a toast notification for better UX
+  };
+
+  // Generic fetch function with authorization header
+  const fetchWithToken = async (url: string, options: RequestInit) => {
+    try {
+      const response = await fetch(url, {
+        ...options,
+        headers: {
+          Authorization: `Bearer ${apiToken}`,
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
+      });
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+      return response.json();
+    } catch (error) {
+      console.error(error);
+      handleError("An error occurred. Please try again later.");
+      throw error;
+    }
+  };
+
   const fetchCurrencies = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${apiUrlSpring}/api/currencies/`);
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data: Currency[] = await response.json();
-      setCurrencies(data);
+      const data = await fetchWithToken(`${apiUrlSpring}/api/currencies`, {
+        method: "GET",
+      });
+      const mappedData = mapCurrencyData(data);
+      setCurrencies(mappedData);
     } catch (error) {
       console.error("Error fetching currencies:", error);
-      alert("Failed to fetch currencies. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-  
 
   const handleRefreshCurrencies = async () => {
     setLoading(true);
     try {
-      await fetch(`${apiUrlSpring}/api/currencies/refresh`, { method: "POST" });
+      await fetchWithToken(`${apiUrlSpring}/api/currencies/refresh`, {
+        method: "POST",
+      });
       await fetchCurrencies();
     } catch (error) {
       console.error("Error refreshing currencies:", error);
@@ -51,6 +78,18 @@ export default function CurrenciesPage() {
       setLoading(false);
     }
   };
+
+
+  const mapCurrencyData = (data: any[]): Currency[] => {
+    return data.map((item) => ({
+      id: item.id.toString(),
+      currencyCode: item.currency_code,
+      currencySymbol: item.token || "",
+      exchangeRate: item.currency_exchange_rate.toString(), // Ensure this is a string
+      updatedAt: item.updated_at,
+    }));
+  };
+  
 
   const handleEdit = (currency: Currency) => {
     setIsEditing(true);
@@ -65,11 +104,19 @@ export default function CurrenciesPage() {
   const handleSave = async () => {
     if (editCurrency && parseFloat(editCurrency.exchangeRate) > 0) {
       try {
-        await fetch(`${apiUrlSpring}/api/currencies/${editCurrency.id}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ exchangeRate: editCurrency.exchangeRate }),
-        });
+        // Directly send the exchange rate as a string in the request body
+        await fetchWithToken(
+          `${apiUrlSpring}/api/currencies/${editCurrency.currencyCode}`,
+          {
+            method: "PUT",
+            body: editCurrency.exchangeRate, // Send the exchange rate as a raw string
+            headers: {
+              Authorization: `Bearer ${apiToken}`,
+            }, // Avoid setting "Content-Type" since it's not JSON
+          }
+        );
+  
+        // Refresh the currency list after the update
         await fetchCurrencies();
       } catch (error) {
         console.error("Error saving currency:", error);
@@ -78,19 +125,43 @@ export default function CurrenciesPage() {
         setEditCurrency(null);
       }
     } else {
-      alert("Please enter a valid exchange rate.");
+      handleError("Please enter a valid exchange rate.");
     }
   };
+  
+  
+  
+  
 
-  const formatDate = (dateString: string) => {
-    const options: Intl.DateTimeFormatOptions = {
+  const formatDate = (date: string | { $date: string } | Array<number>) => {
+    let dateString: string;
+
+    if (typeof date === "string") {
+      dateString = date;
+    } else if (Array.isArray(date)) {
+      const [year, month, day, hour, minute, second] = date;
+      const constructedDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+      return constructedDate.toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } else if (date && typeof date === "object" && "$date" in date) {
+      dateString = date.$date;
+    } else {
+      return "Invalid date";
+    }
+
+    const parsedDate = new Date(dateString);
+    return parsedDate.toLocaleString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    };
-    return new Intl.DateTimeFormat("en-US", options).format(new Date(dateString));
+    });
   };
 
   return (
@@ -126,36 +197,53 @@ export default function CurrenciesPage() {
             <tbody>
               {currencies.map((currency) => (
                 <tr key={currency.id}>
-                  <td>{currency.currencyCode}</td>
-                  <td>{currency.currencySymbol}</td>
-                  <td>
-                    {isEditing && editCurrency?.id === currency.id ? (
-                      <input
-                        type="number"
-                        value={editCurrency.exchangeRate}
-                        onChange={(e) =>
-                          setEditCurrency({
-                            ...editCurrency,
-                            exchangeRate: e.target.value,
-                          })
-                        }
-                      />
-                    ) : (
-                      currency.exchangeRate
-                    )}
-                  </td>
-                  <td>{formatDate(currency.updatedAt)}</td>
-                  <td>
-                    {isEditing && editCurrency?.id === currency.id ? (
-                      <>
-                        <button onClick={handleSave}>Save</button>
-                        <button onClick={handleCancelEdit}>Cancel</button>
-                      </>
-                    ) : (
-                      <button onClick={() => handleEdit(currency)}>Edit</button>
-                    )}
-                  </td>
-                </tr>
+                <td>{currency.currencyCode}</td>
+                <td>{currency.currencySymbol}</td>
+                <td>
+                  {isEditing && editCurrency?.id === currency.id ? (
+                    <input
+  type="number"
+  value={editCurrency.exchangeRate}
+  onChange={(e) => setEditCurrency({
+    ...editCurrency,
+    exchangeRate: e.target.value, // Ensure this is a string representing a valid number
+  })}
+  className="border border-gray-300 rounded p-1"
+/>
+
+
+
+                  ) : (
+                    currency.exchangeRate
+                  )}
+                </td>
+                <td>{formatDate(currency.updatedAt)}</td>
+                <td>
+                  {isEditing && editCurrency?.id === currency.id ? (
+                    <>
+                      <button
+                        onClick={handleSave}
+                        className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 mx-1"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 mx-1"
+                      >
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => handleEdit(currency)}
+                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
+                    >
+                      Edit
+                    </button>
+                  )}
+                </td>
+              </tr>  
               ))}
             </tbody>
           </table>
@@ -164,4 +252,3 @@ export default function CurrenciesPage() {
     </div>
   );
 }
-
