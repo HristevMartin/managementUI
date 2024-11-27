@@ -53,7 +53,9 @@ const HeaderManagement = () => {
             {
               name: "Manage Data",
               subLinks: [
-                { name: "Product", url: "/backoffice/owner/add-product" },
+                { name: "Add Product", url: "/backoffice/owner/add-product" },
+                // { name: "Edit Product", url: "/backoffice/owner/edit-product" },
+                { name: "Search Product", url: "/backoffice/owner/search-product" },
               ],
             },
             {

@@ -82,7 +82,7 @@ const Login: React.FC = () => {
                   Login
                 </button>
                 <a
-                  href="/register"
+                  href="/backoffice/register"
                   className="management-login-signup text-blue-500 no-underline hover:no-underline"
                 >
                   Do not have an Account? Sign up now.

@@ -5,10 +5,11 @@ export const search = async (payload: any, page: any, size: any, jHipsterAuthTok
   console.log("payload for search api", payload);
   console.log("page no search api", page);
   console.log("size per page", size);
+  console.log("size per payload", payload);
 
   // Use a URL object for the base URL and to modify the query parameters
-  const apiUrl = new URL(`${process.env.NEXT_PUBLIC_BASE_URL_SPRING}/search-entities`);
-
+  const apiUrl = new URL(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/search-entities`);
+  console.log('the api url is', apiUrl);
   // Append pagination parameters to the URL's search params
   apiUrl.searchParams.append("page", page);
   apiUrl.searchParams.append("size", size);

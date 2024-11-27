@@ -19,8 +19,9 @@ export const edit = async (formData: any, selectedType: any, id: string, jHipste
   console.log("Singular Type:", singularType);
 
   // Constructing the API URL
-  const apiUrlWithId = `${process.env.NEXT_PUBLIC_BASE_URL_SPRING}/${singularType}/${id}`;
-
+  const apiUrlWithId = `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/${singularType}/${id}`;
+  console.log('API URL with ID:', apiUrlWithId);
+  
   try {
     const response = await fetch(apiUrlWithId, {
       method: 'PUT',

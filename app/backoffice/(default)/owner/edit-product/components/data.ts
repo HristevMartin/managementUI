@@ -2,7 +2,7 @@
 
 export const data = async (productType: any, jHipsterAuthToken: string) => {
   console.log("selectedtype", productType);
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL_SPRING}/jdl/get-entity-by-name/${productType}`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${productType}`;
 
   console.log("selectedtype url", apiUrl);
 
