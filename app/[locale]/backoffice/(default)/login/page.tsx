@@ -8,6 +8,7 @@ import { loginUser } from '@/services/userService';
 import { signIn } from 'next-auth/react';
 import { sign } from 'crypto';
 import path from 'path';
+import LocaleSwitcher from '@/components/LocaleSwitcher';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -22,8 +23,6 @@ const Login: React.FC = () => {
     event.preventDefault();
     const loginData = { email: email, password: password };
     console.log('loginData:', loginData);
-
-
 
     try {
       const result = await loginUser(loginData);
@@ -99,6 +98,9 @@ const Login: React.FC = () => {
             </form>
           </div>
         </div>
+      </div>
+      <div>
+        <LocaleSwitcher />
       </div>
     </div>
   );

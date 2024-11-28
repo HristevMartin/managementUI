@@ -8,6 +8,7 @@ import "./sidenav.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useSidebar } from "@/context/SidebarContext";
+import { usePathname } from 'next/navigation';
 import { signOut, useSession } from 'next-auth/react';
 
 const HeaderManagement = () => {
@@ -18,7 +19,11 @@ const HeaderManagement = () => {
     Admin: false,
     Agent: false,
   });
+
   const { isSidebarOpen, toggleSidebar } = useSidebar();
+  const pathname = usePathname();
+  const locale = pathname?.split('/')[1];
+  console.log('show me the pathname', locale);
 
   const { data: session } = useSession();
 
@@ -26,7 +31,7 @@ const HeaderManagement = () => {
   let userRoles = session?.user?.role
 
   const handleLogout = () => {
-    signOut({ redirect: true, callbackUrl: '/en/backoffice/login' });
+    signOut({ redirect: true, callbackUrl: `/${locale}/backoffice/login` });
   };
 
   useEffect(() => {
