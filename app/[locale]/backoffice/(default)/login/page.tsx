@@ -7,16 +7,23 @@ import { useAuth } from '@/context/AuthContext';
 import { loginUser } from '@/services/userService';
 import { signIn } from 'next-auth/react';
 import { sign } from 'crypto';
+import path from 'path';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const pathname = usePathname();
+  const locale = pathname?.split('/')[1];
+  console.log('show me the pathname', locale);
+
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     const loginData = { email: email, password: password };
     console.log('loginData:', loginData);
+
+
 
     try {
       const result = await loginUser(loginData);
@@ -26,7 +33,7 @@ const Login: React.FC = () => {
         let payload = {
           id: result.message.id,
           role: result.message.roles,
-          callbackUrl: '/backoffice/management',
+          callbackUrl: `${locale}/backoffice/management`,
         }
 
         console.log('show me the payload signIn', payload);

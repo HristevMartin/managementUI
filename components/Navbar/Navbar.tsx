@@ -26,7 +26,7 @@ const HeaderManagement = () => {
   let userRoles = session?.user?.role
 
   const handleLogout = () => {
-    signOut({ redirect: true, callbackUrl: '/backoffice/login' });
+    signOut({ redirect: true, callbackUrl: '/en/backoffice/login' });
   };
 
   useEffect(() => {
