@@ -104,15 +104,21 @@ export default function CurrenciesPage() {
   const handleSave = async () => {
     if (editCurrency && parseFloat(editCurrency.exchangeRate) > 0) {
       try {
-        // Directly send the exchange rate as a string in the request body
+        // Create the request body with the desired key
+        const requestBody = {
+          currency_exchange_rate: editCurrency.exchangeRate, // Use the specified key
+        };
+  
+        // Send the request body as a JSON object
         await fetchWithToken(
-          `${apiUrlSpring}/api/currencies/${editCurrency.currencyCode}`,
+          `${apiUrlSpring}/api/currencies/${editCurrency.id}`,
           {
             method: "PUT",
-            body: editCurrency.exchangeRate, // Send the exchange rate as a raw string
+            body: JSON.stringify(requestBody), // Convert the object to a JSON string
             headers: {
+              "Content-Type": "application/json", // Set the content type to JSON
               Authorization: `Bearer ${apiToken}`,
-            }, // Avoid setting "Content-Type" since it's not JSON
+            },
           }
         );
   
@@ -128,10 +134,6 @@ export default function CurrenciesPage() {
       handleError("Please enter a valid exchange rate.");
     }
   };
-  
-  
-  
-  
 
   const formatDate = (date: string | { $date: string } | Array<number>) => {
     let dateString: string;
@@ -197,56 +199,60 @@ export default function CurrenciesPage() {
             <tbody>
               {currencies.map((currency) => (
                 <tr key={currency.id}>
-                <td>{currency.currencyCode}</td>
-                <td>{currency.currencySymbol}</td>
-                <td>
-                  {isEditing && editCurrency?.id === currency.id ? (
-                    <input
-  type="number"
-  value={editCurrency.exchangeRate}
-  onChange={(e) => setEditCurrency({
-    ...editCurrency,
-    exchangeRate: e.target.value, // Ensure this is a string representing a valid number
-  })}
-  className="border border-gray-300 rounded p-1"
-/>
-
-
-
-                  ) : (
-                    currency.exchangeRate
-                  )}
-                </td>
-                <td>{formatDate(currency.updatedAt)}</td>
-                <td>
-                  {isEditing && editCurrency?.id === currency.id ? (
-                    <>
+                  <td>{currency.currencyCode}</td>
+                  <td>{currency.currencySymbol}</td>
+                  <td>
+                    {isEditing && editCurrency?.id === currency.id ? (
+                      <input
+                        type="number"
+                        value={editCurrency.exchangeRate}
+                        onChange={(e) => setEditCurrency({
+                          ...editCurrency,
+                          exchangeRate: e.target.value, // Ensure this is a string representing a valid number
+                        })}
+                        className="border border-gray-300 rounded p-1"
+                      />
+                    ) : (
+                      currency.exchangeRate
+                    )}
+                  </td>
+                  <td>{formatDate(currency.updatedAt)}</td>
+                  <td>
+                    {isEditing && editCurrency?.id === currency.id ? (
+                      <>
+                        <button
+                          onClick={handleSave}
+                          className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 mx-1"
+                        >
+                          Save
+                        </button>
+                        <button
+                          onClick={handleCancelEdit}
+                          className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 mx-1"
+                        >
+                          Cancel
+                        </button>
+                      </>
+                    ) : (
                       <button
-                        onClick={handleSave}
-                        className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 mx-1"
+                        onClick={() => handleEdit(currency)}
+                        className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                       >
-                        Save
+                        Edit
                       </button>
-                      <button
-                        onClick={handleCancelEdit}
-                        className="px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600 mx-1"
-                      >
-                        Cancel
-                      </button>
-                    </>
-                  ) : (
-                    <button
-                      onClick={() => handleEdit(currency)}
-                      className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                    >
-                      Edit
-                    </button>
-                  )}
-                </td>
-              </tr>  
+                    )}
+                  </td>
+                </tr>  
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Loading Spinner */}
+      {loading && (
+        <div className="absolute inset-0 flex justify-center items-center bg-gray-800 bg-opacity-50 z-10">
+          <div className="spinner">Loading...</div> {/* Replace with a spinner component */}
         </div>
       )}
     </div>
