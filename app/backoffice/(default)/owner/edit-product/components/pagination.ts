@@ -1,10 +1,10 @@
 
 "use server";
 
-export const pagination = async (productType, page, size) => {
+export const pagination = async (productType: any, page: any, size: any, jHipsterAuthToken: string) => {
   console.log("selected type pagination", productType);
 
-  const apiUrl = new URL(`${process.env.NEXT_PUBLIC_BASE_URL}/${productType}`);
+  const apiUrl = new URL(`${process.env.NEXT_PUBLIC_BASE_URL_SPRING}/${productType}`);
 
   // Append pagination parameters
   apiUrl.searchParams.append("page", page);
@@ -16,7 +16,7 @@ export const pagination = async (productType, page, size) => {
     const response = await fetch(apiUrl.toString(), {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+        Authorization: `Bearer ${jHipsterAuthToken}`,
         "Content-Type": "application/json",
       },
     });

@@ -1,3 +1,5 @@
+import pluralize from 'pluralize';
+
 let apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 console.log("this is the api url", apiUrlSpring);
 
@@ -67,17 +69,26 @@ const parseField = async (fieldString, relationshipFields, apiToken) => {
   return results;
 };
 
-export function getPluralForm(singular: String) {
+
+export function getPluralForm(singular: string) {
   const irregulars = {
     ancillary: "ancillaries",
     ticketselection: "ticket-selections",
     seatingarea: "seating-areas",
   };
-  if (irregulars[singular.toLowerCase()]) {
-    return irregulars[singular.toLowerCase()];
+
+  const lowerCased = singular.toLowerCase();
+
+  if (irregulars[lowerCased]) {
+    return irregulars[lowerCased];
   }
-  return singular.toLowerCase() + "s";
+
+  let plural = pluralize(lowerCased)
+  console.log('plural is', plural);
+
+  return plural;
 }
+
 
 const fetchRelationshipDetails = async (relationshipTo, apiToken) => {
   console.log("fetching relationship details for:", relationshipTo);
@@ -129,6 +140,7 @@ export const mapProductTypesToCustomFields = async (apiToken) => {
           detail.relationships,
           apiToken
         );
+
         return {
           categoryName: detail.entityName,
           customFields: customFields,

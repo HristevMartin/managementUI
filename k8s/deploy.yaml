@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $APPD
+spec:
+  selector:
+    matchLabels:
+      run: $APPD
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        run: $APPD
+    spec:
+      containers:
+      - name: $APPD
+        image: $IMAGE
+        ports:
+        - containerPort: $APPPORT
+        env:
+        - name: MONGO_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: $APPD-config
+              key: MONGO_HOST
+        - name: MONGO_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: $APPD-config
+              key: MONGO_PORT
+        - name: MONGO_DB
+          valueFrom:
+            configMapKeyRef:
+              name: $APPD-config
+              key: MONGO_DB
+        - name: MONGO_DB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: $APPD-config
+              key: MONGO_DB_USER
+        - name: DNS_FRONTEND_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: $APPD-config
+              key: DNS_FRONTEND_NAME
+        - name: DNS_BACKOFFICE_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: $APPD-config
+              key: DNS_BACKOFFICE_NAME                           
+        - name: MONGO_INITDB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mongo-secret
+              key: MONGO_INITDB_ROOT_PASSWORD
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $APPS
+  labels:
+    run: $APPS
+  annotations:
+    cloud.google.com/load-balancer-type: "Internal"
+spec:
+  type: LoadBalancer
+  ports:
+  - port: $APPSPORT # Update this to the correct service port
+    protocol: TCP
+  selector:
+    run: $APPD

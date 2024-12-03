@@ -4,8 +4,6 @@ import { useAuthJHipster } from "@/context/JHipsterContext";
 import { mapProductTypesToCustomFields } from "@/services/productFormService";
 import { search } from "./components/search";
 import "font-awesome/css/font-awesome.min.css";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faPencilAlt } from "@fortawesome/free-solid-svg-icons";
 import { useRouter } from "next/navigation";
 
 const Searchproduct = () => {
@@ -31,6 +29,8 @@ const Searchproduct = () => {
   const handleEdit = (index) => {
     const id = searchResults[index].id;
     const selectedType = productType;
+    console.log('the id', id)
+    console.log('the selectedType', selectedType)
     router.push(
       `/backoffice/owner/edit-product?id=${id}&selectedType=${selectedType}`
     );
@@ -80,6 +80,7 @@ const Searchproduct = () => {
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('beeing called', payload);
       if (payload) {
         setIsLoading(true);
         console.log("Fetching data...");
@@ -88,7 +89,7 @@ const Searchproduct = () => {
         console.log("Items per page (size):", size);
 
         try {
-          const results = await search(payload, currentPage, size); // Pass 0-based page to the API (page - 1)
+          const results = await search(payload, currentPage, size, jHipsterAuthToken); // Pass 0-based page to the API (page - 1)
           console.log("Search results:", results);
           setSearchResults(results.searchData);
 
@@ -144,11 +145,14 @@ const Searchproduct = () => {
 
   const handleCustomFieldChange = (e) => {
     const value = e.target.value;
+
     const updatedSelection = selectedCustomFields.includes(value)
       ? selectedCustomFields.filter((field) => field !== value)
       : [...selectedCustomFields, value];
 
     setSelectedCustomFields(updatedSelection);
+
+    console.log('input values are', inputValues);
 
     const updatedInputValues = { ...inputValues };
     updatedSelection.forEach((field) => {
@@ -217,6 +221,7 @@ const Searchproduct = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    console.log('in here ee')
 
     const searchFields = selectedCustomFields
       .map((field) => {
@@ -248,7 +253,7 @@ const Searchproduct = () => {
 
   return (
     <>
-      <div className="container">
+      <div className="container text-black mt-10">
         <form
           className="w-[600px] mx-auto p-6 bg-white rounded-lg shadow-lg" // Fixed width
           onSubmit={handleSubmit}
@@ -310,15 +315,18 @@ const Searchproduct = () => {
 
           <div className="space-y-4">
             {selectedCustomFields.map((field, index) => (
-              <div key={index} className="bg-gray-50 p-4 rounded shadow-md">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-center">
+              <div key={index} style={{width: '100%', padding: '10px 5px'}} className="bg-gray-50 rounded shadow-md w-full">
+
+                <div
+                  style={{ gridTemplateColumns: '0.5fr 1fr 1fr 0.5fr', width: '100%' }}
+                  className="grid grid-cols-1 md:grid-cols-4 gap-5 items-center w-full">
                   <span className="text-lg font-semibold">{field}</span>
 
                   <div className="w-full">
                     <label
+                      style={{ display: 'inline-block' }}
                       htmlFor={`filterOperation_${field}`}
-                      className="block text-md font-semibold mb-1"
-                      required
+                      className="block text-md font-semibold mb-1 w-[180px]"
                     >
                       Select Filter Operation
                     </label>
@@ -331,7 +339,7 @@ const Searchproduct = () => {
                       required
                     >
                       <option value="" disabled>
-                        Select Filter Operation
+                        Filters
                       </option>
                       {getFilterOptions(field).map((option, idx) => (
                         <option key={idx} value={option}>
@@ -360,6 +368,7 @@ const Searchproduct = () => {
                   </div>
 
                   <button
+                    className="w-full"
                     type="button"
                     onClick={() => handleDeleteField(field)}
                     className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:ring-2 focus:ring-red-300"
@@ -367,6 +376,7 @@ const Searchproduct = () => {
                     Delete
                   </button>
                 </div>
+
               </div>
             ))}
           </div>
@@ -409,6 +419,7 @@ const Searchproduct = () => {
                 <tbody>
                   {searchResults.map((result, index) => (
                     <tr
+
                       key={index}
                       className="hover:bg-gray-50 transition-colors"
                     >
@@ -417,7 +428,7 @@ const Searchproduct = () => {
                         .map(([key, value], i) => (
                           <td key={i} className="py-2 px-4 border-b">
                             {typeof value === "string" &&
-                            value.startsWith("http") ? (
+                              value.startsWith("http") ? (
                               <img
                                 src={value}
                                 alt={key}

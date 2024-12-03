@@ -1,8 +1,8 @@
 "use server";
 
-export const data = async (productType) => {
+export const data = async (productType: any, jHipsterAuthToken: string) => {
   console.log("selectedtype", productType);
-  const apiUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/jdl/get-entity-by-name/${productType}`;
+  const apiUrl = `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${productType}`;
 
   console.log("selectedtype url", apiUrl);
 
@@ -10,7 +10,7 @@ export const data = async (productType) => {
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+        Authorization: `Bearer ${jHipsterAuthToken}`,
         "Content-Type": "application/json",
       },
     });
