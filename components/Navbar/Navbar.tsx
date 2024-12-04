@@ -1,15 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import hasRequiredRole from "@/utils/checkRole";
 import "./sidenav.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useSidebar } from "@/context/SidebarContext";
-import { usePathname } from 'next/navigation';
-import { signOut, useSession } from 'next-auth/react';
+import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
 
 const HeaderManagement = () => {
   const [links, setLinks] = useState([]);
@@ -27,19 +27,34 @@ const HeaderManagement = () => {
 
   const { data: session } = useSession();
 
-  let userId = session?.user?.id
-  let userRoles = session?.user?.role
+  let userId = session?.user?.id;
+  let userRoles = session?.user?.role;
 
   const handleLogout = () => {
     signOut({ redirect: true, callbackUrl: `/${locale}/backoffice/login` });
   };
 
+  const sidebarRef = useRef(null);
+  const handleClickOutside = (event) => {
+    if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+      toggleSidebar();
+    }
+  };
+
   useEffect(() => {
     let allowedLinks = [];
     if (userId) {
-      allowedLinks.push({ name: "Home", url: "/backoffice/management", subLinks: [] });
+      allowedLinks.push({
+        name: "Home",
+        url: "/backoffice/management",
+        subLinks: [],
+      });
       if (hasRequiredRole(userRoles, "ADMIN")) {
-        allowedLinks.push({ name: "ADMIN", url: "/backoffice/admin", subLinks: [] });
+        allowedLinks.push({
+          name: "ADMIN",
+          url: "/backoffice/admin",
+          subLinks: [],
+        });
       }
       if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
@@ -59,13 +74,19 @@ const HeaderManagement = () => {
               name: "Manage Data",
               subLinks: [
                 { name: "Add Product", url: "/backoffice/owner/add-product" },
-                { name: "Search Product", url: "/backoffice/owner/search-product" },
+                {
+                  name: "Search Product",
+                  url: "/backoffice/owner/search-product",
+                },
               ],
             },
             {
               name: "Search Configuration",
               subLinks: [
-                { name: 'Search Configuration', url: '/backoffice/owner/searchConfiguration' },
+                {
+                  name: "Search Configuration",
+                  url: "/backoffice/owner/searchConfiguration",
+                },
               ],
             },
           ],
@@ -76,12 +97,19 @@ const HeaderManagement = () => {
           name: "Rule Interface",
           url: "/backoffice/rule-interface",
           sublinks: [],
-        },
-        )
+        });
       }
     } else {
-      allowedLinks.push({ name: "Login", url: "/backoffice/login", subLinks: null });
-      allowedLinks.push({ name: "Register", url: "/backoffice/register", subLinks: null });
+      allowedLinks.push({
+        name: "Login",
+        url: "/backoffice/login",
+        subLinks: null,
+      });
+      allowedLinks.push({
+        name: "Register",
+        url: "/backoffice/register",
+        subLinks: null,
+      });
     }
     setLinks(allowedLinks);
   }, [session]);
@@ -93,12 +121,25 @@ const HeaderManagement = () => {
     }));
   };
 
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSidebarOpen]);
+
   return (
     <>
       <button
         onClick={toggleSidebar}
-        className={`toggle-button ${isSidebarOpen ? "sidebar-open-button" : "sidebar-closed-button"
-          }`}
+        className={`toggle-button ${
+          isSidebarOpen ? "sidebar-open-button" : "sidebar-closed-button"
+        }`}
       >
         <FontAwesomeIcon
           icon={isSidebarOpen ? faTimes : faBars}
@@ -107,8 +148,10 @@ const HeaderManagement = () => {
       </button>
 
       <div
-        className={`sidebar ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"
-          }`}
+        ref={sidebarRef}
+        className={`sidebar ${
+          isSidebarOpen ? "sidebar-open" : "sidebar-closed"
+        }`}
       >
         <div className="flex h-full flex-col bg-gray-800 text-white">
           <div
@@ -136,7 +179,7 @@ const HeaderManagement = () => {
                     {expandedSections[link.name] && (
                       <div className="pl-4">
                         {link.subLinks.map((subLink) => (
-                          <div style={{ width: '210px' }} key={subLink.name}>
+                          <div style={{ width: "210px" }} key={subLink.name}>
                             {subLink.subLinks && subLink.subLinks.length > 0 ? (
                               <>
                                 <button
