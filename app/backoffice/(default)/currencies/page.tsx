@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useAuthJHipster } from "@/context/JHipsterContext"; // Update with the correct path
 
 interface Currency {
   id: string;
@@ -11,30 +12,30 @@ interface Currency {
 }
 
 const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
-const apiToken = process.env.NEXT_PUBLIC_API_TOKEN;
 
 export default function CurrenciesPage() {
+  const { jHipsterAuthToken } = useAuthJHipster(); // Get the token from context
   const [currencies, setCurrencies] = useState<Currency[] | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editCurrency, setEditCurrency] = useState<Currency | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchCurrencies();
-  }, []);
+    if (jHipsterAuthToken) {
+      fetchCurrencies();
+    }
+  }, [jHipsterAuthToken]); // Trigger when the token is available
 
-  // Utility to show user-friendly errors
   const handleError = (message: string) => {
-    alert(message); // Replace this with a toast notification for better UX
+    alert(message); // Replace with a toast notification for better UX
   };
 
-  // Generic fetch function with authorization header
   const fetchWithToken = async (url: string, options: RequestInit) => {
     try {
       const response = await fetch(url, {
         ...options,
         headers: {
-          Authorization: `Bearer ${apiToken}`,
+          Authorization: `Bearer ${jHipsterAuthToken}`,
           "Content-Type": "application/json",
           ...options.headers,
         },
@@ -104,25 +105,16 @@ export default function CurrenciesPage() {
   const handleSave = async () => {
     if (editCurrency && parseFloat(editCurrency.exchangeRate) > 0) {
       try {
-        // Create the request body with the desired key
         const requestBody = {
-          currency_exchange_rate: editCurrency.exchangeRate, // Use the specified key
+          currency_exchange_rate: editCurrency.exchangeRate,
         };
-  
-        // Send the request body as a JSON object
         await fetchWithToken(
           `${apiUrlSpring}/api/currencies/${editCurrency.id}`,
           {
             method: "PUT",
-            body: JSON.stringify(requestBody), // Convert the object to a JSON string
-            headers: {
-              "Content-Type": "application/json", // Set the content type to JSON
-              Authorization: `Bearer ${apiToken}`,
-            },
+            body: JSON.stringify(requestBody),
           }
         );
-  
-        // Refresh the currency list after the update
         await fetchCurrencies();
       } catch (error) {
         console.error("Error saving currency:", error);
@@ -137,12 +129,13 @@ export default function CurrenciesPage() {
 
   const formatDate = (date: string | { $date: string } | Array<number>) => {
     let dateString: string;
-
     if (typeof date === "string") {
       dateString = date;
     } else if (Array.isArray(date)) {
       const [year, month, day, hour, minute, second] = date;
-      const constructedDate = new Date(Date.UTC(year, month - 1, day, hour, minute, second));
+      const constructedDate = new Date(
+        Date.UTC(year, month - 1, day, hour, minute, second)
+      );
       return constructedDate.toLocaleString("en-US", {
         year: "numeric",
         month: "short",
@@ -206,10 +199,12 @@ export default function CurrenciesPage() {
                       <input
                         type="number"
                         value={editCurrency.exchangeRate}
-                        onChange={(e) => setEditCurrency({
-                          ...editCurrency,
-                          exchangeRate: e.target.value, // Ensure this is a string representing a valid number
-                        })}
+                        onChange={(e) =>
+                          setEditCurrency({
+                            ...editCurrency,
+                            exchangeRate: e.target.value,
+                          })
+                        }
                         className="border border-gray-300 rounded p-1"
                       />
                     ) : (
@@ -242,17 +237,10 @@ export default function CurrenciesPage() {
                       </button>
                     )}
                   </td>
-                </tr>  
+                </tr>
               ))}
             </tbody>
           </table>
-        </div>
-      )}
-
-      {/* Loading Spinner */}
-      {loading && (
-        <div className="absolute inset-0 flex justify-center items-center bg-gray-800 bg-opacity-50 z-10">
-          <div className="spinner">Loading...</div> {/* Replace with a spinner component */}
         </div>
       )}
     </div>
