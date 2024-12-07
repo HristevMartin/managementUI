@@ -1,245 +1,160 @@
+// Adjust the path as needed
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useAuthJHipster } from "@/context/JHipsterContext"; // Adjust the path as needed
 
-// The page component
+interface Language {
+  code: string;
+  name: string;
+}
+
+const apiUrl = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
+
+const fetchWithToken = async (url: string, options: RequestInit, token: string) => {
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...options.headers,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error: ${response.statusText}`);
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error(error);
+    throw new Error("An error occurred. Please try again later.");
+  }
+};
+
 const LanguageSettingsPage: React.FC = () => {
-  const [data, setData] = useState<any | null>(null); // To store the parsed API response
-  const [languages, setLanguages] = useState<{ code: string; name: string }[]>(
-    []
-  ); // To store available languages
-  const [selectedLanguage, setSelectedLanguage] = useState<string>(""); // To store the selected language code
-  const [isEditing, setIsEditing] = useState<boolean>(false); // To toggle edit mode
-  const [loading, setLoading] = useState<boolean>(false); // To manage loading state
-  const [errorMessage, setErrorMessage] = useState<string>(""); // To handle errors
+  const { jHipsterAuthToken } = useAuthJHipster();
+  const [data, setData] = useState<any | null>(null);
+  const [languages, setLanguages] = useState<Language[]>([]);
+  const [selectedLanguage, setSelectedLanguage] = useState<string>("");
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
-  // Fetch URL and Bearer token from environment variables
-  const apiUrl = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
-  const bearerToken = process.env.NEXT_PUBLIC_BEARER_TOKEN;
-
-  // Function to handle refresh button click
-  const refreshLanguageSettings = async () => {
-    if (!apiUrl || !bearerToken) {
-      setErrorMessage("API URL or Bearer Token is missing.");
+  const fetchLanguages = async () => {
+    if (!apiUrl || !jHipsterAuthToken) {
+      setErrorMessage("API URL or Auth Token is missing.");
       return;
     }
-  
+
+    try {
+      const data = await fetchWithToken(`${apiUrl}/api/languages`, { method: "GET" }, jHipsterAuthToken);
+      setLanguages(data.map((lang: Language) => ({ code: lang.code, name: lang.name })));
+    } catch (error) {
+      setErrorMessage("Failed to fetch languages.");
+    }
+  };
+
+  const refreshLanguageSettings = async () => {
+    if (!apiUrl || !jHipsterAuthToken) {
+      setErrorMessage("API URL or Auth Token is missing.");
+      return;
+    }
+
     setLoading(true);
     setErrorMessage("");
-    setData(null);
-  
+
     try {
-      const response = await fetch(`${apiUrl}/api/language/refresh`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${bearerToken}`,
-          "Content-Type": "application/json",
-        },
-      });
-  
-      if (response.ok) {
-        const jsonData = await response.json();
-        console.log("Received Data:", jsonData);
-  
-        // Keep id in the data and update state
-        setData(jsonData); // Store the entire jsonData instead of filtering out id
-        setSelectedLanguage(jsonData.defaultShopperLanguage); // Set the initial selected language
-      } else {
-        setErrorMessage("Failed to refresh language settings.");
-      }
+      const data = await fetchWithToken(`${apiUrl}/api/language/refresh`, { method: "GET" }, jHipsterAuthToken);
+      setData(data);
+      setSelectedLanguage(data.defaultShopperLanguage);
     } catch (error) {
-      console.error("Error:", error);
-      setErrorMessage("An error occurred while refreshing language settings.");
+      setErrorMessage("Failed to refresh language settings.");
     } finally {
       setLoading(false);
     }
-  };  
-  
-  // useEffect(() => {
-  //   if (data && data.id) {
-  //     saveLanguage(); // Automatically trigger save when data has been updated
-  //   }
-  // }, [data]); // Trigger when data changes
-  
-  
-
-  // Fetch available languages
-  const fetchLanguages = async () => {
-    if (!apiUrl || !bearerToken) {
-      setErrorMessage("API URL or Bearer Token is missing.");
-      return;
-    }
-
-    try {
-      const response = await fetch(`${apiUrl}/api/languages`, {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${bearerToken}`, // Include Bearer token
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (response.ok) {
-        const languages = await response.json();
-        setLanguages(
-          languages.map((lang: { code: string; name: string }) => ({
-            code: lang.code,
-            name: lang.name,
-          }))
-        );
-      } else {
-        setErrorMessage("Failed to fetch languages.");
-      }
-    } catch (error) {
-      console.error("Error fetching languages:", error);
-      setErrorMessage("An error occurred while fetching languages.");
-    }
   };
 
-  // Save the updated language
   const saveLanguage = async () => {
-    if (!apiUrl || !bearerToken) {
-      setErrorMessage("API URL or Bearer Token is missing.");
+    if (!apiUrl || !jHipsterAuthToken || !data) {
+      setErrorMessage("API URL, Auth Token, or data is missing.");
       return;
     }
-  
-    // Log the data state to confirm its value before using it
-    console.log("Data before saving:", data);
-  
-    // Ensure the payload has the required fields
+
     const payload = {
-      id: data.id, // Use id from the data state
-      defaultShopperLanguage: selectedLanguage, // Set the selected language
-      shopperLanguageSelectionMethod: data.shopperLanguageSelectionMethod, // Existing method
-      storeCountry: data.storeCountry, // Existing country
+      id: data.id,
+      defaultShopperLanguage: selectedLanguage,
+      shopperLanguageSelectionMethod: data.shopperLanguageSelectionMethod,
+      storeCountry: data.storeCountry,
     };
-  
-    console.log("Request payload:", payload); // Log the payload for debugging
-  
+
     try {
-      const response = await fetch(`${apiUrl}/api/language/update`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${bearerToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-  
-      if (response.ok) {
-        setIsEditing(false); // Exit edit mode
-        refreshLanguageSettings(); // Refresh the settings after update
-      } else {
-        setErrorMessage("Failed to save language settings.");
-      }
+      await fetchWithToken(`${apiUrl}/api/language/update`, { method: "PUT", body: JSON.stringify(payload) }, jHipsterAuthToken);
+      setIsEditing(false);
+      refreshLanguageSettings();
     } catch (error) {
-      console.error("Error saving language:", error);
-      setErrorMessage("An error occurred while saving the language setting.");
+      setErrorMessage("Failed to save language settings.");
     }
   };
-  
-  
-  
+
   useEffect(() => {
-    fetchLanguages();
-  }, []);
+    if (jHipsterAuthToken) {
+      fetchLanguages();
+    }
+  }, [jHipsterAuthToken]);
 
   return (
     <div className="p-4">
-      <h1 className="text-xl mb-4">Language Settings</h1>
-      <button
-        onClick={refreshLanguageSettings}
-        className="px-4 py-2 bg-blue-500 text-white rounded"
-        disabled={loading}
-      >
+      <h1 className="text-xl font-bold mb-4">Language Settings</h1>
+      <button onClick={refreshLanguageSettings} className="px-4 py-2 bg-blue-500 text-white rounded" disabled={loading}>
         {loading ? "Refreshing..." : "Refresh Language Settings"}
       </button>
-
-      <div className="mt-4">
-        {errorMessage && <p className="text-red-500">{errorMessage}</p>}
-
-        {data && (
-          <table className="table-auto border-collapse border border-gray-300 mt-4 w-full">
-            <thead>
-              <tr>
-                <th className="border border-gray-300 px-4 py-2 bg-gray-100">
-                  defaultShopperLanguage
-                </th>
-                <th className="border border-gray-300 px-4 py-2 bg-gray-100">
-                  shopperLanguageSelectionMethod
-                </th>
-                <th className="border border-gray-300 px-4 py-2 bg-gray-100">
-                  storeCountry
-                </th>
-                <th className="border border-gray-300 px-4 py-2 bg-gray-100">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                {isEditing ? (
-                  <>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <select
-                        value={selectedLanguage}
-                        onChange={(e) => setSelectedLanguage(e.target.value)}
-                        className="px-2 py-1 border border-gray-300 rounded"
-                      >
-                        {languages.map((lang) => (
-                          <option key={lang.code} value={lang.code}>
-                            {lang.name}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {data.shopperLanguageSelectionMethod}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {data.storeCountry}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <button
-                        onClick={saveLanguage}
-                        className="px-2 py-1 bg-green-500 text-white rounded mr-2"
-                      >
-                        Save
-                      </button>
-                      <button
-                        onClick={() => setIsEditing(false)}
-                        className="px-2 py-1 bg-gray-500 text-white rounded"
-                      >
-                        Cancel
-                      </button>
-                    </td>
-                  </>
-                ) : (
-                  <>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {data.defaultShopperLanguage}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {data.shopperLanguageSelectionMethod}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      {data.storeCountry}
-                    </td>
-                    <td className="border border-gray-300 px-4 py-2">
-                      <button
-                        onClick={() => setIsEditing(true)}
-                        className="px-2 py-1 bg-blue-500 text-white rounded"
-                      >
-                        Edit
-                      </button>
-                    </td>
-                  </>
-                )}
-              </tr>
-            </tbody>
-          </table>
-        )}
-      </div>
+      {errorMessage && <p className="text-red-500 mt-4">{errorMessage}</p>}
+      {data && (
+        <table className="table-auto border-collapse border border-gray-300 mt-4 w-full">
+          <thead>
+            <tr>
+              <th className="border border-gray-300 px-4 py-2 bg-gray-100">Default Shopper Language</th>
+              <th className="border border-gray-300 px-4 py-2 bg-gray-100">Shopper Language Selection Method</th>
+              <th className="border border-gray-300 px-4 py-2 bg-gray-100">Store Country</th>
+              <th className="border border-gray-300 px-4 py-2 bg-gray-100">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              {isEditing ? (
+                <>
+                  <td className="border border-gray-300 px-4 py-2">
+                    <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)} className="px-2 py-1 border border-gray-300 rounded">
+                      {languages.map((lang) => (
+                        <option key={lang.code} value={lang.code}>
+                          {lang.name}
+                        </option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="border border-gray-300 px-4 py-2">{data.shopperLanguageSelectionMethod}</td>
+                  <td className="border border-gray-300 px-4 py-2">{data.storeCountry}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    <button onClick={saveLanguage} className="px-2 py-1 bg-green-500 text-white rounded mr-2">Save</button>
+                    <button onClick={() => setIsEditing(false)} className="px-2 py-1 bg-gray-500 text-white rounded">Cancel</button>
+                  </td>
+                </>
+              ) : (
+                <>
+                  <td className="border border-gray-300 px-4 py-2">{data.defaultShopperLanguage}</td>
+                  <td className="border border-gray-300 px-4 py-2">{data.shopperLanguageSelectionMethod}</td>
+                  <td className="border border-gray-300 px-4 py-2">{data.storeCountry}</td>
+                  <td className="border border-gray-300 px-4 py-2">
+                    <button onClick={() => setIsEditing(true)} className="px-2 py-1 bg-blue-500 text-white rounded">Edit</button>
+                  </td>
+                </>
+              )}
+            </tr>
+          </tbody>
+        </table>
+      )}
     </div>
   );
 };
