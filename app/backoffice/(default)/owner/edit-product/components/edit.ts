@@ -10,7 +10,7 @@ const customForm = (selectedType) => {
 };
 
 
-export const edit = async (formData, selectedType, id) => {
+export const edit = async (formData: any, selectedType: any, id: string, jHipsterAuthToken: string) => {
   console.log("Payload selectedType:", selectedType);
   console.log("Payload id:", id);
   console.log("Payload formData:", formData);
@@ -19,13 +19,14 @@ export const edit = async (formData, selectedType, id) => {
   console.log("Singular Type:", singularType);
 
   // Constructing the API URL
-  const apiUrlWithId = `${process.env.NEXT_PUBLIC_BASE_URL}/${singularType}/${id}`;
-
+  const apiUrlWithId = `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/${singularType}/${id}`;
+  console.log('API URL with ID:', apiUrlWithId);
+  
   try {
     const response = await fetch(apiUrlWithId, {
       method: 'PUT',
       headers: {
-        Authorization: `Bearer ${process.env.NEXT_PUBLIC_API_TOKEN}`,
+        Authorization: `Bearer ${jHipsterAuthToken}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(formData),

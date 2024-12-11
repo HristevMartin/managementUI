@@ -18,6 +18,7 @@ import { edit } from "./components/edit";
 import Editor from "@/app/backoffice/editor/page";
 import { pagination } from "./components/pagination";
 import { useSearchParams } from "next/navigation";
+import { useAuthJHipster } from "@/context/JHipsterContext";
 
 
 export function getPluralForm(singular = '') {
@@ -54,7 +55,7 @@ const pluralizeType = (type) => {
 const EditForm = () => {
   const [formData, setFormData] = useState({});
   const [error, setError] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [fields, setFields] = useState([]);
   const [relationshipTos, setRelationshipTos] = useState([]);
   const [relationshipSelections, setRelationshipSelections] = useState({});
@@ -70,6 +71,7 @@ const EditForm = () => {
   const [finalPayload, setFinalPayload] = useState({});
   const [selectedChips, setSelectedChips] = useState({});
 
+  const { jHipsterAuthToken } = useAuthJHipster();
 
   const searchParams = useSearchParams();
   const selectedType = searchParams?.get("selectedType");
@@ -100,13 +102,24 @@ const EditForm = () => {
   useEffect(() => {
     let isMounted = true;
 
+    console.log('jhipster token', jHipsterAuthToken);
+    if (!jHipsterAuthToken) {
+      return;
+    }
+
     const fetchData = async () => {
-      if (!isMounted || !selectedType || !id) return;
+      if (!isMounted || !selectedType || !id) {
+        console.log('no selectedType or id');
+        return
+      };
+
+      console.log("Fetching data for:", selectedType, id);
 
       setLoading(true);
       console.log("Fetching data for:", selectedType, id);
       try {
-        const dataResponse = await data(selectedType);
+        console.log('before the fetch');
+        const dataResponse = await data(selectedType, jHipsterAuthToken);
         setFields(dataResponse.fields);
         console.log("Fields loaded:", dataResponse.fields);
 
@@ -116,7 +129,7 @@ const EditForm = () => {
         setRelationshipTos(relationships);
         console.log("Relationships found:", relationships);
 
-        const dataByIdResponse = await dataByid(pluralizedType, id);
+        const dataByIdResponse = await dataByid(pluralizedType, id, jHipsterAuthToken);
         setFormData(dataByIdResponse);
         console.log("Data loaded by ID:", dataByIdResponse);
 
@@ -168,19 +181,19 @@ const EditForm = () => {
       } catch (err) {
         setError(err);
         console.error("Error fetching data:", err);
+
       } finally {
-        if (isMounted) setLoading(false);
-        // setLoading(false);
+        setLoading(false);
         console.log("Loading finished");
       }
     };
 
     fetchData();
 
-    return () => {
-      isMounted = false;
-    };
-  }, [selectedType, id, pluralizedType]);
+    // return () => {
+    //   isMounted = false;
+    // };
+  }, [selectedType, id, pluralizedType, jHipsterAuthToken]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -203,7 +216,7 @@ const EditForm = () => {
     const pluralForm = getPluralForm(relationshipKey);
 
     try {
-      const result = await pagination(pluralForm, page, itemsPerPage);
+      const result = await pagination(pluralForm, page, itemsPerPage, jHipsterAuthToken);
       const optionsData = result.data;
       const totalCount = result.totalCount;
 
@@ -435,12 +448,7 @@ const EditForm = () => {
 
       return updatedSelections;
     });
-
-
   };
-
-
-
 
 
   const handleSubmit = async (e) => {
@@ -449,7 +457,8 @@ const EditForm = () => {
 
     if (formData && selectedType && id) {
       try {
-        await edit(formData, selectedType, id);
+        await edit(formData, selectedType, id, jHipsterAuthToken);
+        alert("Edit successful");
         console.log("Edit successful");
       } catch (error) {
         setError(error);
@@ -528,10 +537,11 @@ const EditForm = () => {
   }
 
   return (
-    <Box className="w-full max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <Box className="w-full max-w-6xl mx-auto p-6 bg-white rounded-lg shadow-md mt-10">
       <Typography variant="h4" align="center" gutterBottom>
         Edit {selectedType}
       </Typography>
+
       <form onSubmit={handleSubmit}>
         <Box className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {fields.map((field, index) => {
@@ -613,7 +623,7 @@ const EditForm = () => {
                     })}
 
                     {/* Render chips for dynamicData */}
-                    {transformedDynamicData[formattedRelationship]?.map(
+                    {transformedDynamicData && Object.keys(transformedDynamicData).length > 0 && Object.keys(transformedDynamicData[formattedRelationship])?.map(
                       (item) => (
                         <Chip
                           key={item.id}

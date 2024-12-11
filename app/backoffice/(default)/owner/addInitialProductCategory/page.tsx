@@ -36,17 +36,16 @@ const AddProductCategoryPage = () => {
     { entityType: "", relationshipType: "" },
   ]);
 
-  console.log('relationshipConfigs<>!?!>', relationshipConfigs);
-
   useEffect(() => {
     const fetchData = async () => {
+      console.log('here ee')
       const response = await fetch(`${apiUrlSpring}/api/jdl/get-all-entities`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${jHipsterAuthToken}`,
         },
       });
-
+      console.log('response!!??!?!', response);
       if (!response.ok) {
         console.error("Error fetching data from API");
         return;
@@ -250,23 +249,6 @@ const AddProductCategoryPage = () => {
 
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
-  // const transformRelationships = (selectedRelationships, entityType) => {
-  //   return selectedRelationships.map((rel) => {
-  //     const cleanEntityType = entityType.trim();
-  //     const cleanLabel = rel.label.trim().toLowerCase();
-
-  //     const pluralLabel = cleanLabel.endsWith("s")
-  //       ? `${cleanLabel}es`
-  //       : `${cleanLabel}s`;
-
-  //     return {
-  //       relationshipType: "ManyToMany",
-  //       relationshipFrom: `${cleanEntityType}{${pluralLabel}(name)}`,
-  //       relationshipTo: rel.label.trim(),
-  //     };
-  //   });
-  // };
-
   const transformRelationships = (relationshipConfigs, categoryName) => {
     return relationshipConfigs.map((rel) => {
       const cleanEntityType = categoryName.trim();
@@ -294,11 +276,6 @@ const AddProductCategoryPage = () => {
 
     console.log("relationshipConfigs", relationshipConfigs);
 
-    // const transformedRelationships = transformRelationships(
-    //   selectedRelationships,
-    //   categoryName
-    // );
-
     const transformedRelationships = transformRelationships(relationshipConfigs, categoryName);
 
     console.log(
@@ -311,8 +288,6 @@ const AddProductCategoryPage = () => {
         ...field,
       };
     });
-
-    console.log("Enhanced Custom Fields:", enhancedCustomFields);
 
     let payload = {
       entityName: categoryName,

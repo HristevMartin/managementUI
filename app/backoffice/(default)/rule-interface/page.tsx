@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -26,7 +27,8 @@ const RuleForm = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const drool_server_url = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING || "http://localhost:8080";
+  const drool_server_url = process.env.NEXT_PUBLIC_DROOLS_SERVER_URL || "http://localhost:8081";
+  console.log('drool_server_url', drool_server_url)
 
   const regexPatterns = {
     Hotel: /^Hotel\(hotelName == "([^"]+)", checkInTime >= "([^"]+)", checkOutTime <= "([^"]+)"\)$/,
@@ -46,7 +48,9 @@ const RuleForm = () => {
   useEffect(() => {
     const fetchTemplates = async () => {
       try {
+        console.log('being called here')
         const response = await axios.get(`${drool_server_url}/api/rules/templates`);
+        console.log('response data is', response)
         setTemplates(response.data);
       } catch (error) {
         console.error("Error fetching templates:", error);

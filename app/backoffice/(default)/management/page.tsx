@@ -4,13 +4,12 @@ import  Barchart  from './components/Barchart';
 import Piechart from './components/Piechart';
 import Scatterchart from './components/Scatterchart';
 import { useAuth } from '@/context/AuthContext';
+import { useSession } from 'next-auth/react';
 
 const sample = () => {
-
-  const { user } = useAuth();
-  let loggedUser = user?.id ? true : false;
-
-  let userRoles = user.roles;
+  const { data: session } = useSession();
+  let userRoles = session?.user?.role;
+  let loggedUser = session?.user?.id ? true : false;
   
   if (!loggedUser) {
     return (
@@ -20,9 +19,7 @@ const sample = () => {
     );
   }
 
-  console.log('userRole:', userRoles);
-
-  if (!userRoles.includes('MANAGEMENT')) {
+  if (!userRoles.includes('USER')) {
     return (
       <div>
         <h1>Not authorized</h1>
