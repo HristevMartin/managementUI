@@ -378,7 +378,8 @@ const ProductForm = () => {
   };
 
   return (
-    <div className="w-3/5 max-w-screen flex flex-col items-center">
+    <div className="w-3/5 max-w-screen flex flex-col items-center"
+    >
 
       <div className="text-2xl font-bold mt-3 w-4/5 flex justify-center flex mt-[20px] mb-[20px]">
         {productType ? `Add ${productType}` : "Add Product"}
@@ -386,6 +387,7 @@ const ProductForm = () => {
 
       <form
         onSubmit={handleSubmit}
+        style={{ width: "100%" }}
         className="w-full max-w-4xl rounded-lg bg-white p-8 shadow-md input-form-move"
       >
         <div className="relative mb-4" style={{ width: "300px" }}>
