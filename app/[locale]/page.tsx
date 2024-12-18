@@ -7,9 +7,7 @@ const Home = async ({ params }: any) => {
   const session = await getServerSession(authOptions);
   const userId = session?.user?.id;
 
-  const t = await getTranslations("Homepage");
-
-  console.log('blqblqblq', params);
+  // const t = await getTranslations("Homepage");
   const lang = params.locale;
 
   if (userId) {
