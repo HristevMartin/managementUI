@@ -1,14 +1,16 @@
 'use client';
 
 import React, { useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
 import './login.css';
-import { useAuth } from '@/context/AuthContext';
 import { loginUser } from '@/services/userService';
 import { signIn } from 'next-auth/react';
+<<<<<<< HEAD:app/[locale]/backoffice/(default)/login/page.tsx
 import { sign } from 'crypto';
 import path from 'path';
 import LocaleSwitcher from '@/components/LocaleSwitcher';
+=======
+
+>>>>>>> locale-management:app/backoffice/(default)/login/page.tsx
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
@@ -22,7 +24,6 @@ const Login: React.FC = () => {
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
     const loginData = { email: email, password: password };
-    console.log('loginData:', loginData);
 
     try {
       const result = await loginUser(loginData);
@@ -32,10 +33,14 @@ const Login: React.FC = () => {
         let payload = {
           id: result.message.id,
           role: result.message.roles,
+<<<<<<< HEAD:app/[locale]/backoffice/(default)/login/page.tsx
           callbackUrl: `${locale}/backoffice/management`,
+=======
+          token: result.message.token,
+          callbackUrl: '/backoffice/management',
+>>>>>>> locale-management:app/backoffice/(default)/login/page.tsx
         }
 
-        console.log('show me the payload signIn', payload);
         signIn('credentials', payload);
       } else {
         setError(result.error || 'Login failed');
@@ -46,15 +51,13 @@ const Login: React.FC = () => {
     }
   };
 
-  //   const containerClass = `login-container ${isSidebarOpen ? 'sidebar-open-login-form' : 'sidebar-closed-login-form'}`;
-
   return (
-    <div style={{position:'relative', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', color: 'black'}}>
-      <div>
+    <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100vw' }}>
+      <div className='login-form-container'>
         <div className="login-form-smaller-laptop-screen rounded bg-white p-8 shadow-md">
           <div className="form-wrapper">
             <h1 className="mb-4 text-center text-xl font-bold">Login</h1>
-            <form style={{color: 'black'}} onSubmit={handleLogin} className="space-y-4 text-black">
+            <form style={{ color: 'black' }} onSubmit={handleLogin} className="space-y-4 text-black">
               <label htmlFor="email" className="block">
                 Email
                 <input

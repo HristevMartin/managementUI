@@ -13,7 +13,7 @@ import {
   Autocomplete,
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditIcon from '@mui/icons-material/Edit';
+
 
 const CustomTable = ({
   data,
@@ -24,13 +24,16 @@ const CustomTable = ({
   typeOptions,
   validationRules,
   mode,
-  setApiFieldIndex,
-  handleOpenApiDialog,
+}: {
+  data: any;
+  handleFieldChange: any;
+  handleValidationChange: any;
+  handleTypeChange: any;
+  removeField: any;
+  typeOptions: any;
+  validationRules: any;
+  mode: any;
 }) => {
-  const removeFieldProducts = (index) => {
-    // data.splice(index, 1);
-    console.log('removing field', index);
-  };
 
   return (
     <Table>
@@ -42,12 +45,13 @@ const CustomTable = ({
           <TableCell sx={{ fontWeight: 'bold' }}>Max</TableCell>
           <TableCell sx={{ fontWeight: 'bold' }}>Unique</TableCell>
           <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Required</TableCell>
+          <TableCell sx={{ fontWeight: 'bold', width: '10%' }}>Locale</TableCell>
           {mode === 'fields' && <TableCell sx={{ fontWeight: 'bold' }}>Action</TableCell>}
         </TableRow>
       </TableHead>
 
       <TableBody>
-        {data.map((field, index) => (
+        {data.map((field: any, index: number) => (
           <TableRow key={index}>
             <TableCell>
               {mode === 'fields' ? (
@@ -83,8 +87,8 @@ const CustomTable = ({
             </TableCell>
             <TableCell>
               {mode === 'fields' &&
-              validationRules[field.type] &&
-              validationRules[field.type].includes('min') ? (
+                validationRules[field.type] &&
+                validationRules[field.type].includes('min') ? (
                 <TextField
                   type="number"
                   size="small"
@@ -100,8 +104,8 @@ const CustomTable = ({
             </TableCell>
             <TableCell>
               {mode === 'fields' &&
-              validationRules[field.type] &&
-              validationRules[field.type].includes('max') ? (
+                validationRules[field.type] &&
+                validationRules[field.type].includes('max') ? (
                 <TextField
                   type="number"
                   size="small"
@@ -117,8 +121,8 @@ const CustomTable = ({
             </TableCell>
             <TableCell>
               {mode === 'fields' &&
-              validationRules[field.type] &&
-              validationRules[field.type].includes('unique') ? (
+                validationRules[field.type] &&
+                validationRules[field.type].includes('unique') ? (
                 <Checkbox
                   checked={field.validations.unique}
                   onChange={(e) => handleValidationChange(index, 'unique', e.target.checked)}
@@ -137,16 +141,21 @@ const CustomTable = ({
                 <Checkbox checked={field.required} disabled />
               )}
             </TableCell>
+            <TableCell>
+              {mode === 'fields' ? (
+                <Checkbox
+                  checked={field.locale}
+                  onChange={(e) => handleFieldChange(index, 'locale', e.target.checked)}
+                />
+              ) : (
+                <Checkbox checked={field.locale} disabled />
+              )}
+            </TableCell>
             {mode === 'fields' && (
               <TableCell>
                 <IconButton onClick={() => removeField(index)}>
                   <DeleteIcon />
                 </IconButton>
-                {field.external && (
-                  <IconButton onClick={() => handleOpenApiDialog(index)}>
-                    <EditIcon />
-                  </IconButton>
-                )}
               </TableCell>
             )}
           </TableRow>

@@ -1,12 +1,11 @@
 "use client";
 
-import hasRequiredRole from "@/utils/checkRole";
 import ProductForm from "./_components/ProductForm";
 import './_components/ProductForm.css';
 
 const ProductOwner = () => {
   return (
-    <div>
+    <div style={{ minHeight: '100vh', display: 'flex', width: '100vw', justifyContent: 'center' }}>
       <ProductForm />
     </div>
   );

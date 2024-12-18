@@ -15,7 +15,6 @@ const sample = () => {
 
   const t = useTranslations("Management");
   const localeWord = t('title');
-  console.log('show me the localeWord', localeWord);
 
   if (!loggedUser) {
     return (

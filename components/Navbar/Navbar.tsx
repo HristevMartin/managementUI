@@ -87,10 +87,8 @@ const HeaderManagement = () => {
             {
               name: "Search Configuration",
               subLinks: [
-                {
-                  name: "Search Configuration",
-                  url: `/${lang}/backoffice/owner/searchConfiguration`,
-                },
+                { name: 'Search Configuration', url: `/${lang}/backoffice/owner/searchConfiguration`},
+                { name: 'External Search Configuration', url: `/${lang}/backoffice/owner/externalSearchConfiguration` },
               ],
             },
           ],

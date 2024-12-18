@@ -44,28 +44,27 @@ const parseField = async (fieldString, relationshipFields, apiToken) => {
     results.push({
       name: fieldName,
       type: fieldType,
-      required: fieldString.includes("required"),
-      external: fieldString.includes("external"),
+      required: field.includes("required"),
     });
   }
 
+
   for (let field of relationshipFields) {
-    console.log("field of relationship is", field.relationshipTo);
     let relationshipOptions = await fetchRelationshipDetails(
       field.relationshipTo,
       apiToken
     );
+
     let relationshipCustomField = {
-      name: field.relationshipTo,
+      name: field.relationshipFrom.split('{')[1].split('(')[0],
       type: "relationship",
       required: false,
-      external: false,
       options: relationshipOptions,
     };
+
     results.push(relationshipCustomField);
   }
 
-  console.log("Processed custom fields:", results);
   return results;
 };
 
@@ -93,7 +92,6 @@ export function getPluralForm(singular: string) {
 const fetchRelationshipDetails = async (relationshipTo, apiToken) => {
   console.log("fetching relationship details for:", relationshipTo);
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
-  // const endpoint = `${relationshipTo.toLowerCase()}s`;
   const endpoint = getPluralForm(relationshipTo);
 
   try {
@@ -121,12 +119,11 @@ const fetchRelationshipDetails = async (relationshipTo, apiToken) => {
   }
 };
 
-export const mapProductTypesToCustomFields = async (apiToken) => {
+export const mapProductTypesToCustomFields = async (apiToken: string) => {
   try {
     const entities = await fetchAllEntities(apiToken);
-    console.log("types", entities);
 
-    const detailsPromises = entities.map((entity) =>
+    const detailsPromises = entities.map((entity: any) =>
       fetchEntityDetails(entity.id, apiToken)
     );
 
@@ -141,15 +138,16 @@ export const mapProductTypesToCustomFields = async (apiToken) => {
           apiToken
         );
 
+        const localizedFields = detail.localizationsFields || [];
+
         return {
           categoryName: detail.entityName,
           customFields: customFields,
           categoryId: [detail.id],
+          localizedFields: localizedFields,
         };
       })
-    );
-
-    console.log("Transformed Custom Fields Data:", transformedData);
+    );  
 
     return transformedData;
   } catch (error) {

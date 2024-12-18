@@ -7,7 +7,7 @@ const JoditEditor = dynamic(() => import('jodit-react'), {
   ssr: false,
 });
 
-const Editor = ({ value = '', onChange, disabled = false  }) => {
+const Editor = ({ value = '', onChange, disabled = false  }: any) => {
   const editor = useRef(null);
 
   console.log("Editor received props:", { value, onChange, disabled });
@@ -24,18 +24,14 @@ const Editor = ({ value = '', onChange, disabled = false  }) => {
       <div className="text-black">
         <JoditEditor
           ref={editor}
-          value={value} // Use the passed value
-          onChange={handleChange} // Use the new handleChange function
-          disabled={disabled} // Handle the disabled state
+          value={value} 
+          onChange={handleChange} 
+          disabled={disabled} 
         />
       </div>
     </div>
   );
 };
-
-{/* <Suspense fallback={<div>Loading...</div>}>
-  <Editor />
-</Suspense> */}
 
 
 export default Editor;
