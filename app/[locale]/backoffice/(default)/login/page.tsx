@@ -99,9 +99,9 @@ const Login: React.FC = () => {
           </div>
         </div>
       </div>
-      <div>
+      {/* <div>
         <LocaleSwitcher />
-      </div>
+      </div> */}
     </div>
   );
 };

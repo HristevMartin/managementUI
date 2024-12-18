@@ -10,6 +10,8 @@ import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useSidebar } from "@/context/SidebarContext";
 import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
+import LocaleSwitcher from "../LocaleSwitcher";
+import Cookies from "js-cookie";
 
 const HeaderManagement = () => {
   const [links, setLinks] = useState([]);
@@ -30,6 +32,9 @@ const HeaderManagement = () => {
   let userId = session?.user?.id;
   let userRoles = session?.user?.role;
 
+  let lang = Cookies.get('NEXT_LOCALE');
+  console.log('show me the lang in here', lang);
+
   const handleLogout = () => {
     signOut({ redirect: true, callbackUrl: `/${locale}/backoffice/login` });
   };
@@ -46,13 +51,13 @@ const HeaderManagement = () => {
     if (userId) {
       allowedLinks.push({
         name: "Home",
-        url: "/backoffice/management",
+        url: `/${lang}/backoffice/management`,
         subLinks: [],
       });
       if (hasRequiredRole(userRoles, "ADMIN")) {
         allowedLinks.push({
           name: "ADMIN",
-          url: "/backoffice/admin",
+          url: `/${lang}/backoffice/admin`,
           subLinks: [],
         });
       }
@@ -66,17 +71,17 @@ const HeaderManagement = () => {
               subLinks: [
                 {
                   name: "Product Type",
-                  url: "/backoffice/owner/addInitialProductCategory",
+                  url: `/${lang}/backoffice/owner/addInitialProductCategory`,
                 },
               ],
             },
             {
               name: "Manage Data",
               subLinks: [
-                { name: "Add Product", url: "/backoffice/owner/add-product" },
+                { name: "Add Product", url: `/${lang}/backoffice/owner/add-product` },
                 {
                   name: "Search Product",
-                  url: "/backoffice/owner/search-product",
+                  url: `/${lang}/backoffice/owner/search-product`,
                 },
               ],
             },
@@ -85,7 +90,7 @@ const HeaderManagement = () => {
               subLinks: [
                 {
                   name: "Search Configuration",
-                  url: "/backoffice/owner/searchConfiguration",
+                  url: `/${lang}/backoffice/owner/searchConfiguration`,
                 },
               ],
             },
@@ -95,19 +100,19 @@ const HeaderManagement = () => {
       if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
           name: "Rule Interface",
-          url: "/backoffice/rule-interface",
+          url: `/${lang}/backoffice/rule-interface`,
           sublinks: [],
         });
       }
     } else {
       allowedLinks.push({
         name: "Login",
-        url: "/backoffice/login",
+        url: `/${lang}/backoffice/login`,
         subLinks: null,
       });
       allowedLinks.push({
         name: "Register",
-        url: "/backoffice/register",
+        url: `/${lang}/backoffice/register`,
         subLinks: null,
       });
     }
@@ -137,9 +142,8 @@ const HeaderManagement = () => {
     <>
       <button
         onClick={toggleSidebar}
-        className={`toggle-button ${
-          isSidebarOpen ? "sidebar-open-button" : "sidebar-closed-button"
-        }`}
+        className={`toggle-button ${isSidebarOpen ? "sidebar-open-button" : "sidebar-closed-button"
+          }`}
       >
         <FontAwesomeIcon
           icon={isSidebarOpen ? faTimes : faBars}
@@ -149,9 +153,8 @@ const HeaderManagement = () => {
 
       <div
         ref={sidebarRef}
-        className={`sidebar ${
-          isSidebarOpen ? "sidebar-open" : "sidebar-closed"
-        }`}
+        className={`sidebar ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"
+          }`}
       >
         <div className="flex h-full flex-col bg-gray-800 text-white">
           <div
@@ -232,6 +235,10 @@ const HeaderManagement = () => {
               </div>
             ))}
           </nav>
+
+          {/* <div>
+            <LocaleSwitcher />
+          </div> */}
 
           {userId ? (
             <div className="mt-auto p-5" style={{ backgroundColor: "#273a8a" }}>

@@ -25,7 +25,7 @@ import "./page.css";
 import { useAuthJHipster } from "@/context/JHipsterContext";
 import Select from "react-select";
 import { transformPayloadSubmitProduct } from "@/utils/managementFormUtils";
-import Editor from "@/app/backoffice/editor/page";
+import Editor from "@/app/[locale]/backoffice/editor/page";
 
 const ProductForm = () => {
   const [productName, setProductName] = useState("");
