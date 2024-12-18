@@ -87,10 +87,20 @@ const HeaderManagement = () => {
             {
               name: "Search Configuration",
               subLinks: [
-                { name: 'Search Configuration', url: `/${lang}/backoffice/owner/searchConfiguration`},
+                { name: 'Search Configuration', url: `/${lang}/backoffice/owner/searchConfiguration` },
                 { name: 'External Search Configuration', url: `/${lang}/backoffice/owner/externalSearchConfiguration` },
               ],
             },
+          ],
+        });
+      }
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+        allowedLinks.push({
+          name: "Localization",
+          url: "#",
+          subLinks: [
+            { name: "Currencies", url: `/${lang}/backoffice/currencies` },
+            { name: "Language Settings", url: `/${lang}/backoffice/language` },
           ],
         });
       }
