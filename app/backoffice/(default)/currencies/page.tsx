@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useAuthJHipster } from "@/context/JHipsterContext"; // Update with the correct path
+import { fetchWithToken } from "@/services/fetchCurrencies";
 
 interface Currency {
   id: string;
@@ -30,33 +31,12 @@ export default function CurrenciesPage() {
     alert(message); // Replace with a toast notification for better UX
   };
 
-  const fetchWithToken = async (url: string, options: RequestInit) => {
-    try {
-      const response = await fetch(url, {
-        ...options,
-        headers: {
-          Authorization: `Bearer ${jHipsterAuthToken}`,
-          "Content-Type": "application/json",
-          ...options.headers,
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
-      }
-      return response.json();
-    } catch (error) {
-      console.error(error);
-      handleError("An error occurred. Please try again later.");
-      throw error;
-    }
-  };
-
   const fetchCurrencies = async () => {
     setLoading(true);
     try {
       const data = await fetchWithToken(`${apiUrlSpring}/api/currencies`, {
         method: "GET",
-      });
+      }, jHipsterAuthToken, handleError);
       const mappedData = mapCurrencyData(data);
       setCurrencies(mappedData);
     } catch (error) {
@@ -71,7 +51,7 @@ export default function CurrenciesPage() {
     try {
       await fetchWithToken(`${apiUrlSpring}/api/currencies/refresh`, {
         method: "POST",
-      });
+      }, jHipsterAuthToken, handleError);
       await fetchCurrencies();
     } catch (error) {
       console.error("Error refreshing currencies:", error);
@@ -113,7 +93,7 @@ export default function CurrenciesPage() {
           {
             method: "PUT",
             body: JSON.stringify(requestBody),
-          }
+          }, jHipsterAuthToken, handleError
         );
         await fetchCurrencies();
       } catch (error) {
