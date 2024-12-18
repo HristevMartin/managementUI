@@ -1,12 +1,28 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
-const SidebarContext = createContext();
+interface AuthContextType {
+  jHipsterAuthToken: string | null;
+}
 
-export const useAuthJHipster = () => useContext(SidebarContext);
+interface JHipsterProviderProps {
+  children: ReactNode;
+}
 
-export const JHipsterProvider = ({ children }) => {
+const SidebarContext = createContext<AuthContextType | undefined>(undefined);
+
+export const useAuthJHipster = (): AuthContextType => {
+  const context = useContext(SidebarContext);
+
+  if (!context) {
+    throw new Error('useAuthJHipster must be used within a JHipsterProvider');
+  }
+
+  return context;
+}
+
+export const JHipsterProvider = ({ children }: JHipsterProviderProps) => {
   const [jHipsterAuthToken, setJHipsterAuth] = useState(null);
 
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
@@ -37,7 +53,7 @@ export const JHipsterProvider = ({ children }) => {
     };
 
     makeRequest();
-  }, []); 
+  }, []);
 
   return (
     <SidebarContext.Provider value={{ jHipsterAuthToken }}>

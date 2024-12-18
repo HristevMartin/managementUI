@@ -5,6 +5,7 @@ import { mapProductTypesToCustomFields } from "@/services/productFormService";
 import { search } from "./components/search";
 import "font-awesome/css/font-awesome.min.css";
 import { useRouter } from "next/navigation";
+import './page.css';
 
 const Searchproduct = () => {
   const [productType, setProductType] = useState("");
@@ -252,7 +253,7 @@ const Searchproduct = () => {
   }
 
   return (
-    <>
+    <div style={{ minHeight: '100vh', display: 'flex', width: '100vw', justifyContent: 'center' }}>
       <div className="container text-black mt-10">
         <form
           className="w-[600px] mx-auto p-6 bg-white rounded-lg shadow-lg" // Fixed width
@@ -389,9 +390,9 @@ const Searchproduct = () => {
           </button>
         </form>
 
-        <div className="bg-gray-100 p-6">
+        <div style={{margin: '0 auto', marginTop: '10px'}} className="bg-gray-100 p-6 search-results">
           <div className="mb-6">
-            <h3 className="text-xl font-semibold mb-4 text-gray-800">
+            <h3 className="text-xl font-semibold mb-4 text-gray-800 text-center">
               Search Results
             </h3>
           </div>
@@ -486,7 +487,7 @@ const Searchproduct = () => {
           )}
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

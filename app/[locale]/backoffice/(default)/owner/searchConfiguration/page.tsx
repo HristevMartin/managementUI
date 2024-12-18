@@ -28,15 +28,15 @@ const AddProductCategoryPage = () => {
   const [searchableAttributes, setSearchableAttributes] = useState([]);
   const [externalAttributes, setExternalAttributes] = useState([]);
   const [expandedAttributes, setExpandedAttributes] = useState({});
-   const [relatedAttributes, setRelatedAttributes] = useState({});
-  const [searchableRelationFields,setSearchableRelationFields] = useState([])
+  const [relatedAttributes, setRelatedAttributes] = useState({});
+  const [searchableRelationFields, setSearchableRelationFields] = useState([])
   const [errorMessage, setErrorMessage] = useState(''); // State for error messages
   const [warningMessage, setWarningMessage] = useState('');
   const [notificationMessage, setNotificationMessage] = useState('');
-   // Function to clear error messages
-   const clearError = () => setErrorMessage('');
-   const [recommendation, setRecommendation] = useState(false);
-  console.log("result",searchableRelationFields)
+  // Function to clear error messages
+  const clearError = () => setErrorMessage('');
+  const [recommendation, setRecommendation] = useState(false);
+  console.log("result", searchableRelationFields)
   const handleHeaderChange = (index, field, value, attribute) => {
     const updatedHeaders = apiDetails.headers.map((header, idx) => {
       if (idx === index) {
@@ -163,7 +163,7 @@ const AddProductCategoryPage = () => {
               Authorization: `Bearer ${jHipsterAuthToken}`
             }
           });
-      
+
           const data = response.data;
           const newAttributes = data.fields.map(field => {
             const [key, type, ...rest] = field.split(' ');
@@ -177,27 +177,27 @@ const AddProductCategoryPage = () => {
               relationships: [] // Store relationships for later use
             };
           });
-      
-    // Add relationship fields as attributes
-    data.relationships.forEach(relationship => {
-      const match = relationship.relationshipFrom.match(/\{(.+?)\(/);
-      if (match) {
-        const relationshipField = match[1];
-        newAttributes.push({
-          key: relationshipField,
-          type: 'Relationship',
-          required: false,
-          unique: false,
-          validations: [],
-          isChecked: false,
-          relationships: [relationship.relationshipTo]
-        });
-      }
-    });
-      
+
+          // Add relationship fields as attributes
+          data.relationships.forEach(relationship => {
+            const match = relationship.relationshipFrom.match(/\{(.+?)\(/);
+            if (match) {
+              const relationshipField = match[1];
+              newAttributes.push({
+                key: relationshipField,
+                type: 'Relationship',
+                required: false,
+                unique: false,
+                validations: [],
+                isChecked: false,
+                relationships: [relationship.relationshipTo]
+              });
+            }
+          });
+
           setAttributes(newAttributes);
           setExternalAttributes(newAttributes);
-      
+
           // Fetch related attributes for all attributes
           newAttributes.forEach(attr => {
             if (attr.relationships.length > 0) {
@@ -208,7 +208,7 @@ const AddProductCategoryPage = () => {
           });
         } catch (error) {
           setErrorMessage("Error fetching attributes");
-          
+
           console.error("Error fetching attributes", error);
         }
       };
@@ -217,15 +217,15 @@ const AddProductCategoryPage = () => {
         fetchAttributes();
       }
     }
-  }, [category, jHipsterAuthToken]); 
+  }, [category, jHipsterAuthToken]);
 
   const handleAttributeClick = (attribute) => {
     // Check if the attribute is currently expanded
     const isExpanded = expandedAttributes[attribute.key];
-    console.log(attribute," kk");
+    console.log(attribute, " kk");
     // Toggle the expanded state for the main attribute
     setExpandedAttributes(prev => ({ ...prev, [attribute.key]: !isExpanded }));
-    
+
     // If the attribute is being expanded, fetch related attributes if necessary
     if (!isExpanded && attribute.relationships.length > 0) {
       // Fetch related attributes if expanding
@@ -256,22 +256,22 @@ const AddProductCategoryPage = () => {
           isChecked: false
         };
       });
-      console.log("result1",relatedEntityName)
-      console.log("result3",relatedData)
-      
+      console.log("result1", relatedEntityName)
+      console.log("result3", relatedData)
+
       setRelatedAttributes(prev => ({ ...prev, [relatedEntityName]: relatedData }));
-       console.log("result2",relatedAttributes)
+      console.log("result2", relatedAttributes)
       // Only add new searchableRelationFields if it does not already exist
       setSearchableRelationFields(prevFields => {
         const alreadyExists = prevFields.some(
           field => field.fieldName === fieldName && field.relatedEntityName === relatedEntityName
         );
-        
+
         if (!alreadyExists && relatedData.length > 0) {
           return [
             ...prevFields,
             {
-              relatedEntityName: response?.data?.entityName, 
+              relatedEntityName: response?.data?.entityName,
               fieldName: fieldName,
               relatedFieldName: relatedData[0]?.key // Ensure valid relatedFieldName
             }
@@ -279,7 +279,7 @@ const AddProductCategoryPage = () => {
         }
         return prevFields;
       });
-  
+
       console.log(searchableAttributes, relatedData, " entity name 8 pm");
     } catch (error) {
       console.error("Error fetching related attributes", error);
@@ -296,7 +296,7 @@ const AddProductCategoryPage = () => {
         }
       });
       const data = response.data;
-  
+
       const newAttributes = data.externalAttributesMetaData.map(attr => ({
         key: attr.attributeName,
         type: attr.type,
@@ -304,7 +304,7 @@ const AddProductCategoryPage = () => {
         validations: attr.validations,
         isChecked: data.externalAttributesMetaData.some(dataAttr => dataAttr.attributeName === attr.attributeName)
       }));
-  
+
       setAttributes(newAttributes);
       setExternalAttributes(newAttributes);
     } catch (error) {
@@ -331,13 +331,13 @@ const AddProductCategoryPage = () => {
   };
 
 
-  const handleRelatedAttributeChange = (checked, relAttr,attr) => {
+  const handleRelatedAttributeChange = (checked, relAttr, attr) => {
     if (checked) {
       // Only add if it does not already exist
       setSearchableRelationFields(prevFields => {
-        const alreadyExists = prevFields.some(field => 
-          field.fieldName === attr.key && 
-          field.relatedEntityName === attr.relationships[0] && 
+        const alreadyExists = prevFields.some(field =>
+          field.fieldName === attr.key &&
+          field.relatedEntityName === attr.relationships[0] &&
           field.relatedFieldName === relAttr.key
         );
         if (!alreadyExists) {
@@ -355,13 +355,13 @@ const AddProductCategoryPage = () => {
     } else {
       // Remove the unchecked related attribute from searchableRelationFields
       setSearchableRelationFields(prevFields =>
-        prevFields.filter(field => 
+        prevFields.filter(field =>
           !(field.relatedFieldName === relAttr.key && field.fieldName === attr.key)
         )
       );
     }
   };
-  
+
 
   const handleExternalAttributesChange = (e) => {
     const { value, checked } = e.target;
@@ -381,7 +381,7 @@ const AddProductCategoryPage = () => {
           httpMethod: '',
           headers: [],
           payload: '',
-          responsePayload:[],
+          responsePayload: [],
           responseParser: []
         }];
       } else {
@@ -396,7 +396,7 @@ const AddProductCategoryPage = () => {
       httpMethod: '',
       headers: [],
       payload: '',
-      responsePayload:[],
+      responsePayload: [],
       responseParser: []
     });
   };
@@ -416,7 +416,8 @@ const AddProductCategoryPage = () => {
           payload: attribute.payload || {},
           responsePayload: attribute.responsePayload && Object.keys(attribute.responsePayload).length > 0 ? attribute.responsePayload : {},
           responseParser: attribute.responseParser.filter(parser => parser.key && parser.value) || {}
-        };     })      .filter(attribute => attribute !== null);
+        };
+      }).filter(attribute => attribute !== null);
     const entityData = selectedAttributes.find(e => e.attribute === searchType);
     // Check if the searchType is 'searchengine'
     if (searchType === 'searchEngine') {
@@ -445,7 +446,7 @@ const AddProductCategoryPage = () => {
     };
   };
 
-const handleDelete = async () => {
+  const handleDelete = async () => {
     try {
       const response = await axios.delete(
         `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/delete-entity-search-configuration/${category}`,
@@ -468,26 +469,26 @@ const handleDelete = async () => {
       setWarningMessage('Please select a type of search before submitting.');
       return; // Prevent further execution
     }
-  
+
     // Clear any existing warning message
     setWarningMessage('');
-  
+
     // Check for related attributes only if searchType is 'searchEngine'
     if (searchType === 'searchEngine') {
       const hasSelectedRelatedAttribute = searchableRelationFields.length > 0;
       if (!hasSelectedRelatedAttribute) {
         // Check if there are any related attributes available
-        const hasRelatedAttributes = selectedAttributes.some(attr => 
+        const hasRelatedAttributes = selectedAttributes.some(attr =>
           attr.relationships && attr.relationships.length > 0
         );
-  
+
         if (hasRelatedAttributes) {
           setWarningMessage('Please select at least one related attribute before submitting.');
           return;
         }
       }
     }
-  
+
     const payload = createPayload();
     try {
       if (isDataPresent) {
@@ -559,7 +560,7 @@ const handleDelete = async () => {
               newExpandedAttributes[field.fieldName] = true; // Expand the main attribute
             }
           });
-  
+
           // Merge with existing related attributes
           setRelatedAttributes(prev => {
             const merged = { ...prev };
@@ -578,16 +579,16 @@ const handleDelete = async () => {
             });
             return merged;
           });
-  
+
           // Update expanded attributes
           setExpandedAttributes(prev => ({ ...prev, ...newExpandedAttributes }));
         }
-  
+
         // Set searchable attributes
         if (data.searchableFields) {
           setSearchableAttributes(data.searchableFields);
         }
-  
+
         // Set searchable relation fields
         if (data.searchableRelationFields) {
           setSearchableRelationFields(data.searchableRelationFields);
@@ -629,75 +630,75 @@ const handleDelete = async () => {
           <div className="radio-group">
             <label><input type="radio" name="searchType" value="external" checked={searchType === 'external'} onChange={handleSearchTypeChange} /> External</label>
             <label><input type="radio" name="searchType" value="searchEngine" checked={searchType === 'searchEngine'} onChange={handleSearchTypeChange} /> Search Engine</label>
-            </div>
+          </div>
         </fieldset>
 
         {searchType === 'searchEngine' && (
-  <div className="recommendation-checkbox">
-    <label>
-      <input
-        type="checkbox"
-        checked={recommendation}
-        onChange={(e) => setRecommendation(e.target.checked)}
-      />
-      Enable Recommendations
-    </label>
-  </div>
-)}
+          <div className="recommendation-checkbox">
+            <label>
+              <input
+                type="checkbox"
+                checked={recommendation}
+                onChange={(e) => setRecommendation(e.target.checked)}
+              />
+              Enable Recommendations
+            </label>
+          </div>
+        )}
 
         <div id="searchType-accordion-container">
           {searchType === 'external' && selectedAttributes.find(e => (e.attribute === 'external')) && (
-            <Accordion attribute={searchType} existingData={existingData} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange}  handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser}   apiDetails={selectedAttributes.find(e => e.attribute === 'external')} addHeader={addHeader} addResponseParser={addResponseParser}/>
+            <Accordion attribute={searchType} existingData={existingData} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange} handleResponseParserChange={handleResponseParserChange} removeHeader={removeHeader} removeResponseParser={removeResponseParser} apiDetails={selectedAttributes.find(e => e.attribute === 'external')} addHeader={addHeader} addResponseParser={addResponseParser} />
           )}
         </div>
         {searchType == 'searchEngine' && (
-        <fieldset>
-          <legend>Select Searchable Attributes:</legend>
-          <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
-            {attributes.map(attr => (
-              <div key={attr.key}>
-                <label onClick={() => handleAttributeClick(attr)}>
-                  <input
-                    type="checkbox"
-                    name="Searchable-attributes"
-                    value={attr.key}
-                    checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
-                    onChange={handleSearchableAttributesChange}
-                    style={{ marginRight: '10px' }}
-                  />
-                  {attr.key.charAt(0).toUpperCase() + attr.key.slice(1)}
-                </label>
-                {expandedAttributes[attr.key] && attr.relationships.length > 0 && relatedAttributes[attr.relationships[0]] && (
-                  <div style={{ paddingLeft: '20px' }}>
-                    {relatedAttributes[attr.relationships[0]].map((relAttr) => (
-                      <div key={relAttr.key}>
-                        <label>
-                          <input
-                            type="checkbox"
-                            name="Related-attributes"
-                            value={relAttr.key}
-                            checked={relAttr.selected || searchableRelationFields.some(field => 
-                              field.fieldName === attr.key && 
-                              field.relatedEntityName === attr.relationships[0] && 
-                              field.relatedFieldName === relAttr.key
-                            )}
-                            onChange={(e) => {
-                              const { checked } = e.target;
-                              handleRelatedAttributeChange(checked, relAttr, attr);
-                            }}
-                            style={{ marginRight: '10px' }}
-                          />
-                          {relAttr.key.charAt(0).toUpperCase() + relAttr.key.slice(1)}
-                        </label>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </fieldset>
-      )}
+          <fieldset>
+            <legend>Select Searchable Attributes:</legend>
+            <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
+              {attributes.map(attr => (
+                <div key={attr.key}>
+                  <label onClick={() => handleAttributeClick(attr)}>
+                    <input
+                      type="checkbox"
+                      name="Searchable-attributes"
+                      value={attr.key}
+                      checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
+                      onChange={handleSearchableAttributesChange}
+                      style={{ marginRight: '10px' }}
+                    />
+                    {attr.key.charAt(0).toUpperCase() + attr.key.slice(1)}
+                  </label>
+                  {expandedAttributes[attr.key] && attr.relationships.length > 0 && relatedAttributes[attr.relationships[0]] && (
+                    <div style={{ paddingLeft: '20px' }}>
+                      {relatedAttributes[attr.relationships[0]].map((relAttr) => (
+                        <div key={relAttr.key}>
+                          <label>
+                            <input
+                              type="checkbox"
+                              name="Related-attributes"
+                              value={relAttr.key}
+                              checked={relAttr.selected || searchableRelationFields.some(field =>
+                                field.fieldName === attr.key &&
+                                field.relatedEntityName === attr.relationships[0] &&
+                                field.relatedFieldName === relAttr.key
+                              )}
+                              onChange={(e) => {
+                                const { checked } = e.target;
+                                handleRelatedAttributeChange(checked, relAttr, attr);
+                              }}
+                              style={{ marginRight: '10px' }}
+                            />
+                            {relAttr.key.charAt(0).toUpperCase() + relAttr.key.slice(1)}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </fieldset>
+        )}
         <fieldset>
           <legend>External Configuration:</legend>
           <label>Select Specific Attributes:</label>
@@ -712,28 +713,28 @@ const handleDelete = async () => {
                   onChange={handleExternalAttributesChange}
                   style={{ marginRight: '10px' }}
                 /> {attr.key.charAt(0).toUpperCase() + attr.key.slice(1)} {/* Capitalize first character */}
-      
+
               </label>
             ))}
           </div>
         </fieldset>
         {selectedAttributes.map(attr => {
           if (attr.attribute === 'external' || attr?.attributeName === 'external') return;
-          return <Accordion key={attr.attribute} attribute={attr.attribute} existingData={attr} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange} handleResponseParserChange={handleResponseParserChange}  removeHeader={removeHeader}  removeResponseParser={removeResponseParser} apiDetails={attr} addHeader={addHeader}  addResponseParser={addResponseParser} />
+          return <Accordion key={attr.attribute} attribute={attr.attribute} existingData={attr} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange} handleResponseParserChange={handleResponseParserChange} removeHeader={removeHeader} removeResponseParser={removeResponseParser} apiDetails={attr} addHeader={addHeader} addResponseParser={addResponseParser} />
         })}
-           {warningMessage && <p className="warning-message">{warningMessage}</p>}
-           {notificationMessage && <p className="notification-message">{notificationMessage}</p>}
+        {warningMessage && <p className="warning-message">{warningMessage}</p>}
+        {notificationMessage && <p className="notification-message">{notificationMessage}</p>}
 
-    <button type="button" id="submit-button" onClick={handleSubmitOrUpdate}>
-           {isDataPresent ? 'Update' : 'Submit'}
-          </button>
+        <button type="button" id="submit-button" onClick={handleSubmitOrUpdate}>
+          {isDataPresent ? 'Update' : 'Submit'}
+        </button>
         <button type="button" id="delete-button" onClick={handleDelete}>Delete</button>
       </section>
     </main>
   );
 };
 
-const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange, removeHeader, apiDetails, addHeader,addResponseParser, handleResponseParserChange,removeResponseParser  }) => {
+const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange, removeHeader, apiDetails, addHeader, addResponseParser, handleResponseParserChange, removeResponseParser }) => {
   const [error, setError] = useState('');
 
   const toggleAccordion = (e) => {
@@ -744,6 +745,7 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
 
   const handleJsonChange = (e, key, attribute) => {
     try {
+      console.log('e.target.value', e.target.value);
       const parsedJson = JSON.parse(e.target.value);
       setApiDetails(prev =>
         prev.map(item =>
@@ -804,9 +806,9 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
               onChange={(e) => handleHeaderChange(index, 'key', e.target.value, attribute)}
               style={{ marginRight: '10px' }}
             />
-            
-          
-            
+
+
+
             <TextField
               variant="standard"
               label="Header Value"
@@ -814,9 +816,9 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
               onChange={(e) => handleHeaderChange(index, 'value', e.target.value, attribute)}
             />
             <div className='ml-6'>
-            <IconButton onClick={() => removeHeader(index, attribute)}>
-              <DeleteIcon />
-            </IconButton>
+              <IconButton onClick={() => removeHeader(index, attribute)}>
+                <DeleteIcon />
+              </IconButton>
             </div>
           </div>
         ))}
@@ -837,34 +839,38 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
             }}
           >
             <TextField
-            variant="standard"
+              variant="standard"
               label="Response Parser Key"
               value={header.key}
               onChange={(e) => handleResponseParserChange(index, 'key', e.target.value, attribute)}
               style={{ marginRight: '10px' }}
             />
-            
-          
-            
             <TextField
-             variant="standard"
+              variant="standard"
               label="Response Parser Value"
               value={header.value}
               onChange={(e) => handleResponseParserChange(index, 'value', e.target.value, attribute)}
             />
             <div className='ml-6'>
-            <IconButton onClick={() => removeResponseParser(index, attribute)}>
-              <DeleteIcon />
-            </IconButton>
+              <IconButton onClick={() => removeResponseParser(index, attribute)}>
+                <DeleteIcon />
+              </IconButton>
             </div>
           </div>
         ))}
         <Button onClick={() => addResponseParser(attribute)} variant="outlined">
           Add Response Parser
         </Button>
-        
+
         <label htmlFor={`${attribute}-response-payload`}>Response Payload:</label>
-        <textarea id={`${attribute}-response-payload`} placeholder="Enter response payload details" defaultValue={existingData.responsePayload ? JSON.stringify(existingData.responsePayload[0]) : ''} onChange={(e) => handleJsonChange(e, 'responsePayload', attribute)}></textarea><br />
+        {console.log(" existingData responsePayload", existingData.responsePayload)}
+        {console.log("the attribute is", attribute)}
+        <textarea id={`${attribute}-response-payload`}
+          placeholder="Enter response payload details"
+          defaultValue={existingData.responsePayload ? JSON.stringify(existingData.responsePayload[0]) : ''}
+          onChange={(e) => handleJsonChange(e, 'responsePayload', attribute)}>
+        </textarea>
+        <br />
         {error && <p style={{ color: 'red' }}>{error}</p>}
       </div>
     </>
