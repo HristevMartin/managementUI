@@ -5,6 +5,7 @@ import axios from 'axios';
 import { Button, IconButton, TextField } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAuthJHipster } from "@/context/JHipsterContext"; // Import the context
+import { useTranslations } from 'next-intl';
 
 const AddProductCategoryPage = () => {
   const { jHipsterAuthToken } = useAuthJHipster(); // Get the token from context

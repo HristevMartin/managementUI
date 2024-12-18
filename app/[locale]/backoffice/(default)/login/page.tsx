@@ -7,11 +7,17 @@ import { useAuth } from '@/context/AuthContext';
 import { loginUser } from '@/services/userService';
 import { signIn } from 'next-auth/react';
 import { sign } from 'crypto';
+import path from 'path';
+import LocaleSwitcher from '@/components/LocaleSwitcher';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
+  const pathname = usePathname();
+  const locale = pathname?.split('/')[1];
+  console.log('show me the pathname', locale);
+
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -26,7 +32,7 @@ const Login: React.FC = () => {
         let payload = {
           id: result.message.id,
           role: result.message.roles,
-          callbackUrl: '/backoffice/management',
+          callbackUrl: `${locale}/backoffice/management`,
         }
 
         console.log('show me the payload signIn', payload);
@@ -93,6 +99,9 @@ const Login: React.FC = () => {
           </div>
         </div>
       </div>
+      {/* <div>
+        <LocaleSwitcher />
+      </div> */}
     </div>
   );
 };
