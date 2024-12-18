@@ -25,6 +25,7 @@ import "./page.css";
 import { useAuthJHipster } from "@/context/JHipsterContext";
 import Select from "react-select";
 import { transformPayloadSubmitProduct } from "@/utils/managementFormUtils";
+
 import Editor from "@/app/[locale]/backoffice/editor/page";
 
 const ProductForm = () => {
@@ -252,8 +253,7 @@ const ProductForm = () => {
       price,
       description: description?.value,
       categoryId,
-      // imageUrls,
-      // images: imagePayload,
+      imageUrls,
       customFields: customFieldsPayload,
       ...(dynamicInventory && {
         apiURLInventory,
@@ -282,14 +282,14 @@ const ProductForm = () => {
         }
       );
 
-      // tmp as running the spring api locally is returning error at the part of running the jhipster entity create process
+      
       alert("Product added successfully");
 
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
 
-      // const result = await response.json();
+
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
     }
@@ -342,36 +342,109 @@ const ProductForm = () => {
   const [file, setFile] = useState(null);
 
   const handleSubmitFile = async () => {
-    if (file) {
-      const formData = new FormData();
-      formData.append("file", file);
-      formData.append("categoryId", categoryId);
-
-      try {
-        const response = await fetch(`${apiUrl}/product-bulk-upload`, {
-          method: "POST",
-          body: formData,
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        if (response.status === 201) {
-          alert("File uploaded successfully");
-        }
-      } catch (error) {
-        console.error("Upload error:", error);
+    if (!productType) {
+      alert("Please select a product type before uploading the CSV file.");
+      return;
+    }
+  
+    if (!file) {
+      alert("No file selected");
+      return;
+    }
+  
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("categoryId", categoryId);
+  
+  
+    try {
+      const response = await fetch(`${apiUrl}/product-bulk-upload`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${jHipsterAuthToken}` },
+        body: formData,
+      });
+  
+      if (!response.ok) {
+        throw new Error("Bulk upload failed");
       }
-    } else {
-      console.log("No file selected");
+  
+      const products = await response.json();
+  
+    
+      for (const product of products) {
+        await saveProduct(product);
+      }
+  
+      alert("Bulk upload completed successfully.");
+    } catch (error) {
+      console.error("Error during bulk upload:", error);
+      alert("Bulk upload failed.");
     }
   };
+
+
+  const saveProduct = async (productData) => {
+    if (!productData.productType) {
+      console.error("Missing productType for product:", productData.name);
+      return;
+    }
+  
+    if (isNaN(productData.price)) {
+      console.error("Invalid price format:", productData.price);
+      return;
+    }
+  
+    const formData = {
+      productName: productData.name,
+      productType: productData.productType,
+      price: Number(productData.price),
+      description: productData.description,
+      images: productData.images ? productData.images.split(";") : [], 
+      customFields: productData.customFields || {},
+      ...(dynamicInventory && {
+        apiURLInventory,
+        apiHeadersInventory,
+        payloadBodyInventory,
+      }),
+      ...(dynamicPrice && { apiURLPrice, apiHeadersPrice, payloadBodyPrice }),
+    };
+  
+    const correctedEndpointPathName = getPluralForm(productData.productType);
+    if (!correctedEndpointPathName) {
+      console.error("Invalid product type:", productData.productType);
+      return;
+    }
+  
+    const transformedFormData = transformPayloadSubmitProduct(formData);
+  
+    try {
+      const response = await fetch(
+        `${SPRING_URL}/api/${correctedEndpointPathName}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${jHipsterAuthToken}`,
+          },
+          body: JSON.stringify(transformedFormData),
+        }
+      );
+  
+      if (!response.ok) {
+        throw new Error("Failed to save product");
+      }
+      console.log("Product saved successfully:", productData.name);
+    } catch (error) {
+      console.error("Error saving product:", productData.name, error);
+    }
+  };
+
 
   const handleFileChange = (e) => {
     setFile(e.target.files[0]);
     setShowSubmitButton(true);
   };
+
 
   const addHeader = () => {
     setHeaders([...headers, { key: "", value: "" }]);
@@ -628,7 +701,7 @@ const ProductForm = () => {
                       <label htmlFor={`customValue-${index}`}>
                         {capitalizeFirstLetter(field.name)}
                       </label>
-                  
+                    
                       {field.type === "TextBlob" ? (
                         <Editor
                           id={`customValue-${index}`}
@@ -636,7 +709,7 @@ const ProductForm = () => {
                           onChange={(newValue) =>
                             handleCustomFieldChange(index, newValue)
                           }
-                          disabled={field.external || false}
+                          disabled={field.external}
                           className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
                         />
                       ) : field.name?.toLowerCase() === "startdate" ||
@@ -769,7 +842,7 @@ const ProductForm = () => {
           </label>
           {showSubmitButton && (
             <button
-              type="button" // Use 'button' here to prevent form submission when clicking this button
+              type="button" 
               onClick={handleSubmitFile}
               className="rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 h-[44px] mt-[10px]"
             >

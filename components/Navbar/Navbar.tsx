@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import LocaleSwitcher from "../LocaleSwitcher";
 import Cookies from "js-cookie";
+import { getCurrentLocale } from "@/services/getCurrentLocale";
 
 const HeaderManagement = () => {
   const [links, setLinks] = useState([]);
@@ -25,15 +26,13 @@ const HeaderManagement = () => {
   const { isSidebarOpen, toggleSidebar } = useSidebar();
   const pathname = usePathname();
   const locale = pathname?.split('/')[1];
-  console.log('show me the pathname', locale);
 
   const { data: session } = useSession();
 
   let userId = session?.user?.id;
   let userRoles = session?.user?.role;
 
-  let lang = Cookies.get('NEXT_LOCALE');
-  console.log('show me the lang in here', lang);
+  let lang = getCurrentLocale();
 
   const handleLogout = () => {
     signOut({ redirect: true, callbackUrl: `/${locale}/backoffice/login` });
@@ -156,13 +155,15 @@ const HeaderManagement = () => {
         className={`sidebar ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"
           }`}
       >
-        <div className="flex h-full flex-col bg-gray-800 text-white">
+        <div className="flex h-full flex-col text-white">
+
           <div
             className="border-b border-gray-700 p-5 "
             style={{ backgroundColor: "#273a8a" }}
           >
             <h3 className="welcome-div mobile-nav">Welcome</h3>
           </div>
+
           <nav
             className="mobile-nav flex-grow p-5"
             style={{ backgroundColor: "#34313f" }}
@@ -236,9 +237,9 @@ const HeaderManagement = () => {
             ))}
           </nav>
 
-          {/* <div>
+          <div className="locale-switcher-wrapper">
             <LocaleSwitcher />
-          </div> */}
+          </div>
 
           {userId ? (
             <div className="mt-auto p-5" style={{ backgroundColor: "#273a8a" }}>

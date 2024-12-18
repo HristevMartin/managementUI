@@ -7,8 +7,16 @@ import { JHipsterProvider } from "@/context/JHipsterContext";
 import NextAuthProvider from "@/context/provider";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
+import { ReactNode } from "react";
 
 const inter = Inter({ subsets: ["latin"] });
+
+interface RootLayoutProps {
+  children: ReactNode;
+  params: {
+    locale: string;
+  };
+}
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,15 +25,15 @@ export const metadata: Metadata = {
 
 export default async function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
-  
+  params,
+}: RootLayoutProps) {
   const messages = await getMessages();
-  
+
+  const lang = params.locale;
+
   return (
     <NextIntlClientProvider messages={messages}>
-      <html lang="en">
+      <html lang={lang}>
         <NextAuthProvider>
           <JHipsterProvider>
             <SidebarProvider>
