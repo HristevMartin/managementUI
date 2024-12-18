@@ -88,9 +88,7 @@ const Login: React.FC = ({params}: any) => {
           </div>
         </div>
       </div>
-      {/* <div>
-        <LocaleSwitcher />
-      </div> */}
+ 
     </div>
   );
 };

@@ -80,7 +80,7 @@ const typeOptions = [
 
 const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
-const AddProductCategoryPage = () => {
+const AddProductCategoryPage = ({ params }: any) => {
   let [categoryName, setCategoryName] = useState("");
   const [customFields, setCustomFields] = useState<any>([]);
   const [entityType, setEntityType] = useState("Product");
@@ -91,10 +91,11 @@ const AddProductCategoryPage = () => {
   const [file, setFile] = useState(null);
   const [categoryErrorName, setErrorCategoryErrorName] = useState("");
   const [relationshipConfigs, setRelationshipConfigs] = useState([
-    { entityType: "", relationshipType: "" },
+   
   ])
 
   const router = useRouter();
+  const locale = params.locale;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -352,7 +353,7 @@ const AddProductCategoryPage = () => {
 
   const handlePressManageButton = () => {
     router.push(
-      "/backoffice/owner/addInitialProductCategory/manage-meta-category"
+      `/${locale}/backoffice/owner/addInitialProductCategory/manage-meta-category`
     );
   };
 
