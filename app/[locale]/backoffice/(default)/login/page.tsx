@@ -4,22 +4,13 @@ import React, { useState } from 'react';
 import './login.css';
 import { loginUser } from '@/services/userService';
 import { signIn } from 'next-auth/react';
-<<<<<<< HEAD:app/[locale]/backoffice/(default)/login/page.tsx
-import { sign } from 'crypto';
-import path from 'path';
-import LocaleSwitcher from '@/components/LocaleSwitcher';
-=======
 
->>>>>>> locale-management:app/backoffice/(default)/login/page.tsx
-
-const Login: React.FC = () => {
+const Login: React.FC = ({params}: any) => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
-  const pathname = usePathname();
-  const locale = pathname?.split('/')[1];
-  console.log('show me the pathname', locale);
-
+  
+  const lang = params.locale;
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -27,18 +18,13 @@ const Login: React.FC = () => {
 
     try {
       const result = await loginUser(loginData);
-      console.log('show me the result', result);
 
       if (result.success) {
         let payload = {
           id: result.message.id,
           role: result.message.roles,
-<<<<<<< HEAD:app/[locale]/backoffice/(default)/login/page.tsx
-          callbackUrl: `${locale}/backoffice/management`,
-=======
+          callbackUrl: `${lang}/backoffice/management`,
           token: result.message.token,
-          callbackUrl: '/backoffice/management',
->>>>>>> locale-management:app/backoffice/(default)/login/page.tsx
         }
 
         signIn('credentials', payload);

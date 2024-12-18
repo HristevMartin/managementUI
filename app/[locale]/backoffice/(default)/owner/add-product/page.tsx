@@ -5,7 +5,7 @@ import './_components/ProductForm.css';
 
 const ProductOwner = () => {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', width: '100vw', justifyContent: 'center' }}>
+    <div className="flex justify-center">
       <ProductForm />
     </div>
   );

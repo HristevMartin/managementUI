@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth";
-import { getTranslations } from "next-intl/server";
 
 const Home = async ({ params }: any) => {
   const session = await getServerSession(authOptions);
@@ -18,4 +17,3 @@ const Home = async ({ params }: any) => {
 };
 
 export default Home;
-

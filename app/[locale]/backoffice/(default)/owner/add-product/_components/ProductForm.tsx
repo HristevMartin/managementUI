@@ -1,28 +1,19 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import "./ProductForm.css";
 import AlertDialogSlide from "./AlertDialogSlide";
 import {
   getPluralForm,
   mapProductTypesToCustomFields,
 } from "@/services/productFormService";
-import "./page.css";
 import { useAuthJHipster } from "@/context/JHipsterContext";
 import Select from "react-select";
-<<<<<<< HEAD:app/[locale]/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
-import { transformPayloadSubmitProduct } from "@/utils/managementFormUtils";
-
-import Editor from "@/app/[locale]/backoffice/editor/page";
-=======
-import Editor from "@/app/backoffice/editor/page";
 import { useModal } from "@/context/useModal";
+import Editor from "@/components/editor/page";
 
-
-interface Language {
-  code: string;
-  name: string;
-}
+import "./ProductForm.css";
+import "./page.css";
+import { useTranslations } from "next-intl";
 
 interface AnyDict {
   [key: string]: any;
@@ -30,7 +21,6 @@ interface AnyDict {
 
 const SPRING_URL = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 let apiUrl = process.env.NEXT_PUBLIC_LOCAL_BASE_URL;
->>>>>>> locale-management:app/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
 
 const ProductForm = () => {
   const [productName, setProductName] = useState<string>("");
@@ -94,7 +84,6 @@ const ProductForm = () => {
     };
     fetchData();
   }, [jHipsterAuthToken]);
-
 
   useEffect(() => {
     const allLanguages = languages.map(obj => ({ 'code': obj.code, 'label': obj.name }));
@@ -200,15 +189,6 @@ const ProductForm = () => {
     }
 
     const formData = {
-<<<<<<< HEAD:app/[locale]/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
-      productName,
-      productType,
-      price,
-      description: description?.value,
-      categoryId,
-      imageUrls,
-=======
->>>>>>> locale-management:app/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
       customFields: customFieldsPayload,
     };
 
@@ -229,19 +209,10 @@ const ProductForm = () => {
         }
       );
 
-<<<<<<< HEAD:app/[locale]/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
-      
-      alert("Product added successfully");
-
-=======
->>>>>>> locale-management:app/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
 
-<<<<<<< HEAD:app/[locale]/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
-
-=======
       const saveLocales = customFields.some((x: any) => x?.isLocalized)
 
       if (response.status === 201) {
@@ -283,7 +254,6 @@ const ProductForm = () => {
       } else {
         showModal('fail', 'Please try again');
       }
->>>>>>> locale-management:app/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
     }
@@ -307,185 +277,78 @@ const ProductForm = () => {
 
 
   const handleSubmitFile = async () => {
-    if (!productType) {
-      alert("Please select a product type before uploading the CSV file.");
-      return;
-    }
-  
-    if (!file) {
-      alert("No file selected");
-      return;
-    }
-  
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append("categoryId", categoryId);
-  
-  
-    try {
-      const response = await fetch(`${apiUrl}/product-bulk-upload`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${jHipsterAuthToken}` },
-        body: formData,
-      });
-  
-      if (!response.ok) {
-        throw new Error("Bulk upload failed");
-      }
-  
-      const products = await response.json();
-  
-    
-      for (const product of products) {
-        await saveProduct(product);
-      }
-  
-      alert("Bulk upload completed successfully.");
-    } catch (error) {
-      console.error("Error during bulk upload:", error);
-      alert("Bulk upload failed.");
-    }
-  };
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("categoryId", categoryId);
 
-
-<<<<<<< HEAD:app/[locale]/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
-  const saveProduct = async (productData) => {
-    if (!productData.productType) {
-      console.error("Missing productType for product:", productData.name);
-      return;
-    }
-  
-    if (isNaN(productData.price)) {
-      console.error("Invalid price format:", productData.price);
-      return;
-    }
-  
-    const formData = {
-      productName: productData.name,
-      productType: productData.productType,
-      price: Number(productData.price),
-      description: productData.description,
-      images: productData.images ? productData.images.split(";") : [], 
-      customFields: productData.customFields || {},
-      ...(dynamicInventory && {
-        apiURLInventory,
-        apiHeadersInventory,
-        payloadBodyInventory,
-      }),
-      ...(dynamicPrice && { apiURLPrice, apiHeadersPrice, payloadBodyPrice }),
-    };
-  
-    const correctedEndpointPathName = getPluralForm(productData.productType);
-    if (!correctedEndpointPathName) {
-      console.error("Invalid product type:", productData.productType);
-      return;
-    }
-  
-    const transformedFormData = transformPayloadSubmitProduct(formData);
-  
-    try {
-      const response = await fetch(
-        `${SPRING_URL}/api/${correctedEndpointPathName}`,
-        {
+      try {
+        const response = await fetch(`${apiUrl}/product-bulk-upload`, {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${jHipsterAuthToken}`,
-          },
-          body: JSON.stringify(transformedFormData),
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      );
-  
-      if (!response.ok) {
-        throw new Error("Failed to save product");
+
+        if (response.status === 201) {
+          alert("File uploaded successfully");
+        }
+      } catch (error) {
+        console.error("Upload error:", error);
       }
-      console.log("Product saved successfully:", productData.name);
-    } catch (error) {
-      console.error("Error saving product:", productData.name, error);
+    } else {
+      console.log("No file selected");
     }
   };
 
 
-  const handleFileChange = (e) => {
-=======
   const handleFileChange = (e: any) => {
->>>>>>> locale-management:app/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
     setFile(e.target.files[0]);
     setShowSubmitButton(true);
   };
 
-<<<<<<< HEAD:app/[locale]/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
-
-  const addHeader = () => {
-    setHeaders([...headers, { key: "", value: "" }]);
-  };
-
-  const removeHeader = (index) => {
-    setHeaders(headers.filter((_, idx) => idx !== index));
-  };
-
-  const handleHeaderChange = (index, field, value) => {
-    const newHeaders = [...headers];
-    newHeaders[index] = { ...newHeaders[index], [field]: value };
-    setHeaders(newHeaders);
-  };
-
-  const handleSaveExternalData = () => {
-    const externalData = {
-      apiUrl,
-      headers: headers.reduce(
-        (acc, cur) => ({ ...acc, [cur.key]: cur.value }),
-        {}
-      ),
-      payloadBody,
-    };
-    console.log("External Data:", externalData);
-    handleCloseDialogExternal();
-  };
-
-  const priceField = customFields.find((field) => field.name === "price");
-=======
->>>>>>> locale-management:app/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
 
   const customStyles = {
-    control: (base) => ({
+    control: (base: any) => ({
       ...base,
       minHeight: '46px',
       height: 'auto',
     }),
-    valueContainer: (base) => ({
+    valueContainer: (base: any) => ({
       ...base,
       minHeight: "56px",
     }),
-    input: (base) => ({
+    input: (base: any) => ({
       ...base,
     }),
-    placeholder: (base) => ({
+    placeholder: (base: any) => ({
       ...base,
     }),
-    option: (base, state) => ({
+    option: (base: any, state: any) => ({
       ...base,
       backgroundColor: state.isFocused ? "lightgray" : "white",
       color: "black",
     }),
-    multiValue: (base) => ({
+    multiValue: (base: any) => ({
       ...base,
       backgroundColor: "lightblue",
       marginBottom: 12,
     }),
-    multiValueLabel: (base) => ({
+    multiValueLabel: (base: any) => ({
       ...base,
       color: "black",
     }),
-    dropdownIndicator: (base) => ({
+    dropdownIndicator: (base: any) => ({
       ...base,
       marginBottom: 12,
     }),
-    clearIndicator: (base) => ({
+    clearIndicator: (base: any) => ({
       ...base,
       marginBottom: 12,
     }),
-    multiValueRemove: (base) => ({
+    multiValueRemove: (base: any) => ({
       ...base,
       color: "red",
       ":hover": {
@@ -493,8 +356,8 @@ const ProductForm = () => {
         color: "white",
       },
     }),
-    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-    menu: (base) => ({ ...base, zIndex: 9999 }),
+    menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+    menu: (base: any) => ({ ...base, zIndex: 9999 }),
   };
 
   const isProductNameLocalized = customFields.some(field => field?.name === "name" && field?.isLocalized);
@@ -515,15 +378,17 @@ const ProductForm = () => {
   };
 
   return (
-    <div className="bg-opacity-none flex min-h-screen flex-col items-center justify-center bg-gray-100 text-black">
-      <div className="ml-40 text-2xl font-bold mt-3">
+    <div className="w-3/5 max-w-screen flex flex-col items-center">
+
+      <div className="text-2xl font-bold mt-3 w-4/5 flex justify-center flex mt-[20px] mb-[20px]">
         {productType ? `Add ${productType}` : "Add Product"}
       </div>
+
       <form
         onSubmit={handleSubmit}
-        className="ml-44 w-full max-w-4xl rounded-lg bg-white p-8 shadow-md input-form-move"
+        className="w-full max-w-4xl rounded-lg bg-white p-8 shadow-md input-form-move"
       >
-        <div className="relative flex flex-col mb-4" style={{ width: "300px" }}>
+        <div className="relative mb-4" style={{ width: "300px" }}>
           <label htmlFor="productType" className="">
             Travel Product Type
           </label>
@@ -717,23 +582,14 @@ const ProductForm = () => {
                       <label style={{ marginBottom: '2px', display: 'inline-block' }} htmlFor={`customValue-${index}`}>
                         {capitalizeFirstLetter(field?.name)}
                       </label>
-<<<<<<< HEAD:app/[locale]/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
-                    
-                      {field.type === "TextBlob" ? (
-=======
 
                       {field?.type === "TextBlob" ? (
->>>>>>> locale-management:app/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
                         <Editor
                           id={`customValue-${index}`}
                           value={field.value || ""}
                           onChange={(newValue: any) =>
                             handleCustomFieldChange(index, newValue)
                           }
-<<<<<<< HEAD:app/[locale]/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
-                          disabled={field.external}
-=======
->>>>>>> locale-management:app/backoffice/(default)/owner/add-product/_components/ProductForm.tsx
                           className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
                         />
                       ) : field.name?.toLowerCase() === "startdate" ||
@@ -770,6 +626,7 @@ const ProductForm = () => {
                                       }
                                     }));
 
+                                    // default to english
                                     if (lang.code === 'en') {
                                       handleCustomFieldChange(index, newValue);
                                     }
@@ -819,7 +676,7 @@ const ProductForm = () => {
           </label>
           {showSubmitButton && (
             <button
-              type="button" 
+              type="button"
               onClick={handleSubmitFile}
               className="rounded bg-blue-500 px-6 py-2 text-white hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 h-[44px] mt-[10px]"
             >
@@ -829,10 +686,12 @@ const ProductForm = () => {
         </div>
 
       </form>
+
       <AlertDialogSlide
         open={openDialog}
         handleClose={() => setOpenDialog(false)}
       />
+
     </div>
   );
 };
