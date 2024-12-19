@@ -10,6 +10,7 @@ const sample = () => {
   const { data: session } = useSession();
   let userRoles = session?.user?.role;
   let loggedUser = session?.user?.id ? true : false;
+  console.log("show session",session);
   
   if (!loggedUser) {
     return (

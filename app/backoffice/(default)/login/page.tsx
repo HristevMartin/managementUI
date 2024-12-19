@@ -21,11 +21,12 @@ const Login: React.FC = () => {
     try {
       const result = await loginUser(loginData);
       console.log('show me the result', result);
-
+      console.log('token isss', result.message.token);
       if (result.success) {
         let payload = {
           id: result.message.id,
           role: result.message.roles,
+          token: result.message.token,
           callbackUrl: '/backoffice/management',
         }
 

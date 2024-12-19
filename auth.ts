@@ -12,6 +12,7 @@ const authOptions: AuthOptions = {
       if (user) {
         token.sub = user.id.toString();
         token.role = user.role;
+        token.token = user.token;
       }
 
       if (trigger === 'update' && session?.user?.customerTokenId) {
@@ -24,6 +25,7 @@ const authOptions: AuthOptions = {
       session.user ||= session.user || {};
       session.user.id = token.sub ? token.sub : undefined;
       session.user.role = token.role;
+      session.user.token = token.token;
 
       session.user.customerTokenId = token.customerTokenId;
 
@@ -49,6 +51,7 @@ const authOptions: AuthOptions = {
       credentials: {
         id: { label: "id", type: "id" },
         role: { label: "role", type: "role" },
+        token: { label: "token", type: "token" },
       },
       async authorize(credentials) {
         let roles = credentials?.role.split(',');
@@ -56,6 +59,7 @@ const authOptions: AuthOptions = {
         return {
           id: credentials?.id,
           role: roles,
+          token: credentials?.token,
         };
       }
 
@@ -68,4 +72,4 @@ const { handlers, auth, signIn, signOut, update } = NextAuth(authOptions);
 const getSession = () => getServerSession(authOptions)
 
 // export { handlers, auth, signIn, signOut, update, authOptions, getSession }
-export { handlers, auth, signIn, signOut, update, authOptions }
+export { handlers, auth, signIn, signOut, update, authOptions, getSession }
