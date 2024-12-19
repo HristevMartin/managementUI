@@ -33,7 +33,13 @@ const authOptions: AuthOptions = {
     },
 
     redirect: async ({ url, baseUrl }) => {
-      return url;
+      console.log('show me the baseUrl', baseUrl);
+      console.log('show me the url', url);
+      const redirectUrl = url.startsWith(baseUrl) ? url : `${baseUrl.replace(/\/$/, '')}/${url.replace(/^\//, '')}`;
+    
+      console.log('show me the redirectUrl', redirectUrl);
+
+      return redirectUrl;
     }
   },
   events: {

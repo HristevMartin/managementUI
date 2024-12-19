@@ -1,7 +1,35 @@
-const transformStringMinMaxPayload = (payload) => {
+interface ValidationRules {
+  min: string,
+  max: string,
+  unique: boolean
+}
+
+interface LocalAttributes {
+  key: string,
+  type: string,
+  required: boolean,
+  locale: boolean,
+  validations: ValidationRules
+}
+
+function getLocaleAttributes(localeAttributes: LocalAttributes[]) {
+  let localeAttributesArray: string[] = [];
+
+  for (let obj of localeAttributes) {
+    if (obj.locale) {
+      localeAttributesArray.push(obj.key.toLowerCase());
+    }
+  }
+
+  return localeAttributesArray;
+}
+
+const transformStringMinMaxPayload = (payload: any) => {
   const { entityName, entityType, parentEntityName, customFields } = payload;
 
-  const transformedFields = customFields.map((field) => {
+  console.log('customFields are following', customFields);
+  const transformedFields = customFields.map((field: any) => {
+    console.log('show me the field', field);
     if (field.validations) {
       const { min, max, ...otherValidations } = field.validations;
       if (field.type === "String") {
@@ -27,23 +55,27 @@ const transformStringMinMaxPayload = (payload) => {
     return field;
   });
 
+  let localeAttributes = getLocaleAttributes(customFields);
+
   return {
     entityName,
     entityType,
     parentEntityName,
     customFields: transformedFields,
+    localizationsFields: localeAttributes
   };
 };
 
-export function transformPayload(res) {
+export function transformPayload(res: any): any {
   res = transformStringMinMaxPayload(res);
-  console.log("show me the res", res);
+  console.log('show me the res', res);
 
   let transformed = {
     entityName: res.entityName,
     entityType: res.entityType,
     parentEntityName: res.parentEntityName,
     fields: [],
+    localizationsFields: res.localizationsFields
   };
 
   res.customFields.forEach((field) => {
@@ -71,7 +103,6 @@ export function transformPayload(res) {
     transformed.fields.push(fieldStr);
   });
 
-  console.log("transformed?!?!?!", transformed);
   return transformed;
 }
 
@@ -143,47 +174,4 @@ export function parseMetaCategoryDataTypes(data, productType) {
     }
   }
   return res;
-}
-
-
-export function transformPayloadSubmitProduct(oldPayload) {
-  const mapIdsToArray = (ids) =>
-    ids ? ids.split(",").map((id) => ({ id: id.trim() })) : [];
-
-  const result = {
-    name: oldPayload.productName,
-    price: parseFloat(oldPayload.price),
-    title: oldPayload.customFields.title,
-    contentImageUrl: oldPayload.customFields.contentImageUrl,
-    summary: oldPayload.customFields.summary,
-    packageDetails: oldPayload.customFields.packageDetails,
-    highlightsImages: oldPayload.customFields.highlightsImages,
-    highlightsDetails: oldPayload.customFields.highlightsDetails,
-    month: oldPayload.customFields.month,
-    minNights: oldPayload.customFields.minNights,
-    numberOfNights: oldPayload.customFields.numberOfNights,
-    location: oldPayload.customFields.location,
-  };
-
-  if (oldPayload.customFields.Hotel && oldPayload.customFields.Hotel.trim()) {
-    result.hotels = mapIdsToArray(oldPayload.customFields.Hotel);
-  }
-
-  if (
-    oldPayload.customFields.TicketSelection &&
-    oldPayload.customFields.TicketSelection.trim()
-  ) {
-    result.ticketSelections = mapIdsToArray(
-      oldPayload.customFields.TicketSelection
-    );
-  }
-
-  if (
-    oldPayload.customFields.Ancillary &&
-    oldPayload.customFields.Ancillary.trim()
-  ) {
-    result.ancillaries = mapIdsToArray(oldPayload.customFields.Ancillary);
-  }
-
-  return result;
 }

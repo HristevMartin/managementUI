@@ -1,14 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "@/context/AuthContext";
 import hasRequiredRole from "@/utils/checkRole";
 import "./sidenav.css";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { useSidebar } from "@/context/SidebarContext";
-import { signOut, useSession } from 'next-auth/react';
+import { usePathname } from "next/navigation";
+import { signOut, useSession } from "next-auth/react";
+import LocaleSwitcher from "../LocaleSwitcher";
+import Cookies from "js-cookie";
+import { getCurrentLocale } from "@/services/getCurrentLocale";
 
 const HeaderManagement = () => {
   const [links, setLinks] = useState([]);
@@ -18,23 +22,43 @@ const HeaderManagement = () => {
     Admin: false,
     Agent: false,
   });
+
   const { isSidebarOpen, toggleSidebar } = useSidebar();
+  const pathname = usePathname();
+  const locale = pathname?.split('/')[1];
 
   const { data: session } = useSession();
 
-  let userId = session?.user?.id
-  let userRoles = session?.user?.role
+  let userId = session?.user?.id;
+  let userRoles = session?.user?.role;
+
+  let lang = getCurrentLocale();
 
   const handleLogout = () => {
-    signOut({ redirect: true, callbackUrl: '/backoffice/login' });
+    signOut({ redirect: true, callbackUrl: `/${locale}/backoffice/login` });
+  };
+
+  const sidebarRef = useRef(null);
+  const handleClickOutside = (event) => {
+    if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+      toggleSidebar();
+    }
   };
 
   useEffect(() => {
     let allowedLinks = [];
     if (userId) {
-      allowedLinks.push({ name: "Home", url: "/backoffice/management", subLinks: [] });
+      allowedLinks.push({
+        name: "Home",
+        url: `/${lang}/backoffice/management`,
+        subLinks: [],
+      });
       if (hasRequiredRole(userRoles, "ADMIN")) {
-        allowedLinks.push({ name: "ADMIN", url: "/backoffice/admin", subLinks: [] });
+        allowedLinks.push({
+          name: "ADMIN",
+          url: `/${lang}/backoffice/admin`,
+          subLinks: [],
+        });
       }
       if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
@@ -46,21 +70,25 @@ const HeaderManagement = () => {
               subLinks: [
                 {
                   name: "Product Type",
-                  url: "/backoffice/owner/addInitialProductCategory",
+                  url: `/${lang}/backoffice/owner/addInitialProductCategory`,
                 },
               ],
             },
             {
               name: "Manage Data",
               subLinks: [
-                { name: "Add Product", url: "/backoffice/owner/add-product" },
-                { name: "Search Product", url: "/backoffice/owner/search-product" },
+                { name: "Add Product", url: `/${lang}/backoffice/owner/add-product` },
+                {
+                  name: "Search Product",
+                  url: `/${lang}/backoffice/owner/search-product`,
+                },
               ],
             },
             {
               name: "Search Configuration",
               subLinks: [
-                { name: 'Search Configuration', url: '/backoffice/owner/searchConfiguration' },
+                { name: 'Search Configuration', url: `/${lang}/backoffice/owner/searchConfiguration` },
+                { name: 'External Search Configuration', url: `/${lang}/backoffice/owner/externalSearchConfiguration` },
               ],
             },
           ],
@@ -68,15 +96,32 @@ const HeaderManagement = () => {
       }
       if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
+          name: "Localization",
+          url: "#",
+          subLinks: [
+            { name: "Currencies", url: `/${lang}/backoffice/currencies` },
+            { name: "Language Settings", url: `/${lang}/backoffice/language` },
+          ],
+        });
+      }
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+        allowedLinks.push({
           name: "Rule Interface",
-          url: "/backoffice/rule-interface",
+          url: `/${lang}/backoffice/rule-interface`,
           sublinks: [],
-        },
-        )
+        });
       }
     } else {
-      allowedLinks.push({ name: "Login", url: "/backoffice/login", subLinks: null });
-      allowedLinks.push({ name: "Register", url: "/backoffice/register", subLinks: null });
+      allowedLinks.push({
+        name: "Login",
+        url: `/${lang}/backoffice/login`,
+        subLinks: null,
+      });
+      allowedLinks.push({
+        name: "Register",
+        url: `/${lang}/backoffice/register`,
+        subLinks: null,
+      });
     }
     setLinks(allowedLinks);
   }, [session]);
@@ -87,6 +132,18 @@ const HeaderManagement = () => {
       [sectionName]: !prev[sectionName],
     }));
   };
+
+  useEffect(() => {
+    if (isSidebarOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isSidebarOpen]);
 
   return (
     <>
@@ -102,16 +159,19 @@ const HeaderManagement = () => {
       </button>
 
       <div
+        ref={sidebarRef}
         className={`sidebar ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"
           }`}
       >
-        <div className="flex h-full flex-col bg-gray-800 text-white">
+        <div className="flex h-full flex-col text-white">
+
           <div
             className="border-b border-gray-700 p-5 "
             style={{ backgroundColor: "#273a8a" }}
           >
             <h3 className="welcome-div mobile-nav">Welcome</h3>
           </div>
+
           <nav
             className="mobile-nav flex-grow p-5"
             style={{ backgroundColor: "#34313f" }}
@@ -131,7 +191,7 @@ const HeaderManagement = () => {
                     {expandedSections[link.name] && (
                       <div className="pl-4">
                         {link.subLinks.map((subLink) => (
-                          <div style={{ width: '210px' }} key={subLink.name}>
+                          <div style={{ width: "210px" }} key={subLink.name}>
                             {subLink.subLinks && subLink.subLinks.length > 0 ? (
                               <>
                                 <button
@@ -184,6 +244,10 @@ const HeaderManagement = () => {
               </div>
             ))}
           </nav>
+
+          <div className="locale-switcher-wrapper">
+            <LocaleSwitcher />
+          </div>
 
           {userId ? (
             <div className="mt-auto p-5" style={{ backgroundColor: "#273a8a" }}>

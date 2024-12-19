@@ -1,0 +1,25 @@
+.search-results{
+    width: 39%;
+}
+
+/* define media query */
+
+@media (max-width: 1420px) {
+    .search-results{
+        width: 48%;
+    }
+}
+
+
+@media (max-width: 1000px) {
+    .search-results{
+        width: 80%;
+    }
+}
+
+
+@media (max-width: 400px) {
+    .search-results{
+        width: 70%;
+    }
+}
