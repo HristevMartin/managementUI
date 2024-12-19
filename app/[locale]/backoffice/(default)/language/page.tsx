@@ -3,34 +3,15 @@
 
 import React, { useEffect, useState } from "react";
 import { useAuthJHipster } from "@/context/JHipsterContext"; // Adjust the path as needed
-
+import { fetchWithToken } from "@/services/fetchCurrencies";
 interface Language {
   code: string;
   name: string;
 }
 
 const apiUrl = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
-
-const fetchWithToken = async (url: string, options: RequestInit, token: string) => {
-  try {
-    const response = await fetch(url, {
-      ...options,
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-        ...options.headers,
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`Error: ${response.statusText}`);
-    }
-
-    return response.json();
-  } catch (error) {
-    console.error(error);
-    throw new Error("An error occurred. Please try again later.");
-  }
+const handleError = (message: string) => {
+  alert(message); // Replace with a toast notification for better UX
 };
 
 const LanguageSettingsPage: React.FC = () => {
@@ -49,7 +30,7 @@ const LanguageSettingsPage: React.FC = () => {
     }
 
     try {
-      const data = await fetchWithToken(`${apiUrl}/api/languages`, { method: "GET" }, jHipsterAuthToken);
+      const data = await fetchWithToken(`${apiUrl}/api/languages`, { method: "GET" }, jHipsterAuthToken,handleError);
       setLanguages(data.map((lang: Language) => ({ code: lang.code, name: lang.name })));
     } catch (error) {
       setErrorMessage("Failed to fetch languages.");
@@ -66,7 +47,7 @@ const LanguageSettingsPage: React.FC = () => {
     setErrorMessage("");
 
     try {
-      const data = await fetchWithToken(`${apiUrl}/api/language/refresh`, { method: "GET" }, jHipsterAuthToken);
+      const data = await fetchWithToken(`${apiUrl}/api/language/refresh`, { method: "GET" }, jHipsterAuthToken,handleError);
       setData(data);
       setSelectedLanguage(data.defaultShopperLanguage);
     } catch (error) {
@@ -90,7 +71,7 @@ const LanguageSettingsPage: React.FC = () => {
     };
 
     try {
-      await fetchWithToken(`${apiUrl}/api/language/update`, { method: "PUT", body: JSON.stringify(payload) }, jHipsterAuthToken);
+      await fetchWithToken(`${apiUrl}/api/language/update`, { method: "PUT", body: JSON.stringify(payload) }, jHipsterAuthToken,handleError);
       setIsEditing(false);
       refreshLanguageSettings();
     } catch (error) {
