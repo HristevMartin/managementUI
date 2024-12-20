@@ -106,6 +106,16 @@ const HeaderManagement = () => {
       }
       if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
+          name: "User Management",
+          url: "#",
+          subLinks: [
+            { name: "Create User", url: `/${lang}/backoffice/user-management/create-user` },
+            { name: "Search User", url: `/${lang}/backoffice/user-management/search-user` },
+          ],
+        });
+      }
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+        allowedLinks.push({
           name: "Rule Interface",
           url: `/${lang}/backoffice/rule-interface`,
           sublinks: [],
