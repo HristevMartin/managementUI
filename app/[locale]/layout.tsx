@@ -8,6 +8,7 @@ import NextAuthProvider from "@/context/provider";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { ReactNode } from "react";
+import { ModalProvider } from "@/context/useModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -34,15 +35,17 @@ export default async function RootLayout({
   return (
     <NextIntlClientProvider messages={messages}>
       <html lang={lang}>
-        <NextAuthProvider>
-          <JHipsterProvider>
-            <SidebarProvider>
-              <AuthContextProvider>
-                <body className={inter.className}>{children}</body>
-              </AuthContextProvider>
-            </SidebarProvider>
-          </JHipsterProvider>
-        </NextAuthProvider>
+        <ModalProvider>
+          <NextAuthProvider>
+            <JHipsterProvider>
+              <SidebarProvider>
+                <AuthContextProvider>
+                  <body className={inter.className}>{children}</body>
+                </AuthContextProvider>
+              </SidebarProvider>
+            </JHipsterProvider>
+          </NextAuthProvider>
+        </ModalProvider>
       </html>
     </NextIntlClientProvider>
   );

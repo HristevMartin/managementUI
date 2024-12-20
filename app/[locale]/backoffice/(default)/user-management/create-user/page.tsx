@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import {
   Box,
@@ -16,6 +17,10 @@ import {
 import { role } from "./components/role_add";
 import { Userrole } from "./components/user_role";
 import { useSession } from "next-auth/react";
+import { useModal } from "@/context/useModal";
+import { extractErrorMessage } from "@/services/extractErrorMessage";
+
+
 const CreateUser = () => {
   const [formValues, setFormValues] = useState({
     firstName: "",
@@ -30,10 +35,63 @@ const CreateUser = () => {
   const [userRoles, setUserRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const { data: session, status } = useSession();
-  console.log("session data", session);
   const token = session?.user?.token;
-  console.log("tokken", token);
-  
+
+  const { showModal } = useModal();
+
+  useEffect(() => {
+
+    const fetchUserRoles = async () => {
+      if (!token) {
+        console.error("No token found");
+        return;
+      }
+      setLoading(true);
+      try {
+        const response = await Userrole(token);
+        setUserRoles(response);
+      } catch (error) {
+        console.error("Error fetching roles:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) {
+      fetchUserRoles();
+    }
+  }, [session]);
+
+
+  useEffect(() => {
+    if (!token) {
+      console.error("No token found, cannot call role function.");
+      return;
+    }
+
+    if (submitted && token) {
+      const payload = {
+        ...formValues,
+      };
+
+      const submitData = async () => {
+        try {
+          const response = await role(payload, token);
+          showModal('success', 'User created successfully');
+          setSubmitted(false);
+        } catch (error: any) {
+          const userFriendlyError = extractErrorMessage(error.message);
+          showModal("fail", userFriendlyError);
+          setSubmitted(false);
+        }
+      };
+
+      submitData();
+    }
+
+  }, [submitted, formValues]);
+
+
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = event.target;
     setFormValues((prev) => ({ ...prev, [name]: value }));
@@ -41,6 +99,8 @@ const CreateUser = () => {
       setError("");
     }
   };
+
+
   const handleRoleChange = (event: React.ChangeEvent<{ value: unknown }>) => {
     const selectedRoles = event.target.value as string[];
     setFormValues((prev) => ({
@@ -48,6 +108,8 @@ const CreateUser = () => {
       role: selectedRoles,
     }));
   };
+
+
   const handleSubmit = () => {
     if (formValues.password !== formValues.confirmPassword) {
       setError("Passwords do not match");
@@ -56,69 +118,11 @@ const CreateUser = () => {
     const payload = {
       ...formValues,
     };
-    console.log("Form Submitted", payload);
+    console.log('setting submitted to true');
     setSubmitted(true);
   };
-  useEffect(() => {
-   
-    const token = session?.user?.token;
-    console.log("Session data:", session);
-    console.log("Token:", token);
-    const fetchUserRoles = async () => {
-      if (!token) {
-        console.error("No token found");
-        return;
-      }
-      setLoading(true);
-      try {
-        
-        const response = await Userrole(token);  
-        console.log("Fetched roles:", response);
-        setUserRoles(response);
-      } catch (error) {
-        console.error("Error fetching roles:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    if (token) {
-      fetchUserRoles();
-    }
-  }, [session]);
-  useEffect(() => {
-    const jwttoken = session?.user?.token;
-    console.log("Token from session:", jwttoken); // Debugging token
-  
-    // If there's no token, log and stop the function execution
-    if (!jwttoken) {
-      console.error("No token found, cannot call role function.");
-      return;
-    }
-  
-    console.log("Session data has:", session);
-    console.log("Token has:", jwttoken);
-  
-    if (submitted && jwttoken) {
-      const payload = {
-        ...formValues,
-      };
-  
-      role(payload, jwttoken)
-        .then((response) => {
-          console.log("Role function response:", response);
-        })
-        .catch((error) => {
-          console.error("Error calling role function:", error);
-        })
-        .finally(() => {
-          setSubmitted(false);
-        });
-    }
-  }, [submitted, formValues, session]);
-  
-  
-  
+
+
   return (
     <Box
       display="flex"
@@ -128,6 +132,7 @@ const CreateUser = () => {
       maxWidth="600px"
       mx="auto"
       component="form"
+      style={{ border: "1px solid #ccc", borderRadius: 8, marginTop: 20 }}
     >
       <Typography variant="h4" mb={3} align="center">
         Create User
@@ -192,14 +197,13 @@ const CreateUser = () => {
             onChange={handleRoleChange}
             input={<OutlinedInput label="Roles" />}
             renderValue={(selected) => {
-              // Map the selected role values to their corresponding labels
               const selectedLabels = selected.map((role: string) => role);
               return selectedLabels.join(", ");
             }}
             MenuProps={{
               PaperProps: {
                 style: {
-                  maxHeight: 130,
+                  maxHeight: 240,
                   width: "15%",
                   borderRadius: 8,
                 },
@@ -208,19 +212,24 @@ const CreateUser = () => {
           >
             {loading ? (
               <MenuItem disabled>Loading roles...</MenuItem>
-            ) : (
+            ) :
+
               userRoles.map((role) => (
-                <MenuItem key={role} value={role}>
+                <MenuItem
+                  key={role}
+                  value={role}
+                >
                   <Checkbox checked={formValues.role.indexOf(role) > -1} />
                   <ListItemText primary={role} />
                 </MenuItem>
+
               ))
-            )}
+            }
           </Select>
         </FormControl>
       </Box>
       {/* Submit Button */}
-      <Box mt={3} width="100%">
+      <Box mt={3} width="33%">
         <Button
           variant="contained"
           color="primary"

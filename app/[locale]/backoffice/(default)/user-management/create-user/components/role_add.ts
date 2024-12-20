@@ -1,9 +1,9 @@
 "use server";
-export const role = async (payload, jwttoken) => {
-  console.log("payload role:", payload); 
-  console.log("token:", jwttoken); 
+
+export const role = async (payload: any, jwttoken: string) => {
   const apiUrl = `${process.env.NEXT_PUBLIC_TRAVEL_SECURITY}/api/v1/users`;
-  console.log("role url:", apiUrl);
+  console.log("users url is following:", apiUrl);
+
   try {
     const response = await fetch(apiUrl, {
       method: "POST",
@@ -13,16 +13,20 @@ export const role = async (payload, jwttoken) => {
       },
       body: JSON.stringify(payload),
     });
+
     if (!response.ok) {
       const errorMessage = await response.text();
-      console.error("Error response:", errorMessage); 
+      console.error("Error response:", errorMessage);
       throw new Error(`Failed to fetch data: ${response.status} - ${errorMessage}`);
     }
-    const responseData = await response.json(); 
-    console.log("Raw response data of role:", responseData); 
-    return responseData; 
+
+    const responseData = await response.json();
+    console.log("Raw response data of role:", responseData);
+    return responseData;
+
   } catch (error) {
-    console.error("Error fetching data:", error); 
-    throw new Error(`Error fetching role data: ${error.message}`); 
+    console.error("Error fetching data:", error);
+    throw new Error(`Error fetching role data: ${error.message}`);
   }
+
 };

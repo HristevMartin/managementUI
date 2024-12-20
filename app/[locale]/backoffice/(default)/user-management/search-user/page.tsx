@@ -1,11 +1,14 @@
 "use client";
+
 import React, { useState } from "react";
-import { FaEdit } from "react-icons/fa"; 
+import { FaEdit } from "react-icons/fa";
 import { searchrole } from "./components/search";
 import { useRouter } from "next/navigation";
 import './page.css';
 import { useSession } from "next-auth/react";
-const SearchUser = () => {
+
+
+const SearchUser = ({ params }: any) => {
   const [searchQuery, setSearchQuery] = useState({
     firstName: '',
     lastName: '',
@@ -13,16 +16,17 @@ const SearchUser = () => {
   });
   const [results, setResults] = useState([]);
   const router = useRouter();
-   const { data: session, status } = useSession();
-  
-    console.log("session data in search", session);
-    const token = session?.user?.token;
-  
-    console.log("tokeeen", token);
-  const handleSearchChange = (e) => {
+  const { data: session, status } = useSession();
+
+  const locale = params.locale;
+
+  const token = session?.user?.token;
+
+  const handleSearchChange = (e: any) => {
     const { name, value } = e.target;
     setSearchQuery((prev) => ({ ...prev, [name]: value }));
   };
+
   const handleSearch = async () => {
     try {
       const payload = {
@@ -30,19 +34,21 @@ const SearchUser = () => {
         lastName: searchQuery.lastName,
         email: searchQuery.email
       };
-      const data = await searchrole(payload,token);
+      const data = await searchrole(payload, token);
       setResults(data);
     } catch (error) {
       console.error("Search failed:", error);
     }
   };
-  const handleEditUser = (userId) => {
-    router.push(`/backoffice/edit-user/?id=${userId}`); 
+
+  const handleEditUser = (userId: string) => {
+    router.push(`/${locale}/backoffice/user-management/edit-user/?id=${userId}`);
   };
+
   return (
     <div className="search-container">
       <h2 className="text-center font-bold leading-tight">Search for a User</h2>
-      {/* Search Input Fields */}
+
       <div className="search-inputs">
         <input
           type="text"
@@ -67,6 +73,7 @@ const SearchUser = () => {
         />
         <button onClick={handleSearch} className="search-btn">Search</button>
       </div>
+
       {/* Display search results */}
       <div className="results-table">
         {results.length > 0 ? (

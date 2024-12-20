@@ -7,6 +7,7 @@ import { updateuser } from "./components/update-user";
 import { Userrole } from "./components/user-role";
 import "./page.css";
 import { useSession } from "next-auth/react";
+import { useModal } from "@/context/useModal";
 const EditUser = () => {
   const searchParams = useSearchParams();
   const id = searchParams.get("id");
@@ -17,11 +18,11 @@ const EditUser = () => {
   const [newPassword, setNewPassword] = useState("");
   const [roles, setRoles] = useState([]); 
    const { data: session, status } = useSession();
-  
+   const { showModal } = useModal();
+
     console.log("session data in edit", session);
     const token = session?.user?.token;
   
-    console.log("tokken edit", token);
   useEffect(() => {
     const fetchRoles = async () => {
       try {
@@ -31,7 +32,6 @@ const EditUser = () => {
           value: role,  
         }));
         setRoles(formattedRoles);  
-        console.log("Fetched roles:", formattedRoles); 
       } catch (err) {
         setError("Error fetching roles: " + err.message);
       }
@@ -70,7 +70,7 @@ const EditUser = () => {
           };
           console.log("Payload to save:", updatedUserData);
           await updateuser(id, updatedUserData,token);
-          alert("User updated successfully!");
+          showModal("success", "User updated successfully!");
         } catch (err) {
           setError("Error updating user: " + err.message);
         } finally {
@@ -202,6 +202,7 @@ const EditUser = () => {
           <div className="form-group">
             <label htmlFor="newPassword">New Password</label>
             <input
+              style={{ marginLeft: '10px', border: '1px solid gray', borderRadius: '5px', padding: '2px' }}
               type="password"
               id="newPassword"
               name="newPassword"

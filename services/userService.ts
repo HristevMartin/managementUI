@@ -10,10 +10,10 @@ interface LoginData {
   password: string;
 }
 
-let apiUrlip = process.env.NEXT_PUBLIC_LOCAL_BASE_URL;
+let apiUrlip = process.env.NEXT_PUBLIC_TRAVEL_SECURITY;
 
 export const registerUser = async (data: RegisterData): Promise<any> => {
-  const apiUrl = `${apiUrlip}/register`;
+  const apiUrl = `${apiUrlip}/auth/register`;
   console.log('the apiURL', apiUrl);
 
   try {
@@ -49,7 +49,7 @@ export const registerUser = async (data: RegisterData): Promise<any> => {
 };
 
 export const loginUser = async (data: LoginData): Promise<any> => {
-  const apiUrl = `${apiUrlip}/login`;
+  const apiUrl = `${apiUrlip}/auth/login`;
 
   try {
     const response = await fetch(apiUrl, {
