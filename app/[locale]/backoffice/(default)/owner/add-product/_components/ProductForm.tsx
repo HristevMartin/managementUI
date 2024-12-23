@@ -75,7 +75,6 @@ const ProductForm = () => {
               };
             })
           );
-          showModal("success", "Data fetched successfully!");
         }
       } catch (error) {
         console.error("Failed to fetch category details:", error);
@@ -131,7 +130,8 @@ const ProductForm = () => {
     if (jHipsterAuthToken) {
       fetchLanguages();
     }
-  }, [jHipsterAuthToken, showModal]);
+  }, [jHipsterAuthToken]);
+
 
   const handleProductTypeChange = (e: any) => {
     const selectedType = e.target.value;

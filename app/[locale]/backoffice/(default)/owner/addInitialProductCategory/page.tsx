@@ -287,10 +287,11 @@ const AddProductCategoryPage = ({ params }: any) => {
         });
     
         if (!response.ok) {
-          throw new Error(`Failed to save data. Status: ${response.status}`);
+          throw new Error(`Failed to save data. Please try again later..`);
         }
-    
-        if (response.status === 201) {
+        
+        console.log('show me the the response status', response.status);
+        if (response.status === 201 || response.status === 200) {
           showModal("success", "Data saved successfully.");
         } else {
           showModal("error", `Unexpected status: ${response.status}`);
