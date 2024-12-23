@@ -27,7 +27,9 @@ const ProductForm = () => {
   const [productType, setProductType] = useState<string>("");
   const [price, setPrice] = useState("");
   const [productTypes, setProductTypes] = useState<any>([]);
-  const [customFields, setCustomFields] = useState<any[]>([{ name: "", value: "" }]);
+  const [customFields, setCustomFields] = useState<any[]>([
+    { name: "", value: "" },
+  ]);
   const [openDialog, setOpenDialog] = useState(false);
   const [categoryId, setCategoryId] = useState<any>("");
   const [categoryDetails, setCategoryDetails] = useState<any>([]);
@@ -42,7 +44,6 @@ const ProductForm = () => {
 
   const { jHipsterAuthToken } = useAuthJHipster();
   const { showModal } = useModal();
-
 
   const capitalizeFirstLetter = (string: string) => {
     if (!string) return "";
@@ -70,14 +71,15 @@ const ProductForm = () => {
               return {
                 name: field.name,
                 value: "",
-                isLocalized: localizedFields.includes(field.name)
-              }
+                isLocalized: localizedFields.includes(field.name),
+              };
             })
           );
-
+          showModal("success", "Data fetched successfully!");
         }
       } catch (error) {
         console.error("Failed to fetch category details:", error);
+        showModal("error", `Failed to fetch category details`);
       } finally {
         setIsLoading(false);
       }
@@ -86,69 +88,90 @@ const ProductForm = () => {
   }, [jHipsterAuthToken]);
 
   useEffect(() => {
-    const allLanguages = languages.map(obj => ({ 'code': obj.code, 'label': obj.name }));
+    const allLanguages = languages.map((obj) => ({
+      code: obj.code,
+      label: obj.name,
+    }));
     setSupportedLanguages(allLanguages);
 
     let languageObj = allLanguages.reduce((acc: any, lang: any) => {
       acc[lang.code] = "";
       return acc;
-    }, {})
+    }, {});
 
     setProductNameLocales(languageObj);
   }, [languages]);
 
-
   useEffect(() => {
     const fetchLanguages = async () => {
-      const response = await fetch(`${SPRING_URL}/api/languages`, {
-        headers: {
-          Authorization: `Bearer ${jHipsterAuthToken}`,
-        },
-      })
-      if (!response.ok) {
-        throw new Error("Network response was not ok");
-      }
+      try {
+        const response = await fetch(`${SPRING_URL}/api/languages`, {
+          headers: {
+            Authorization: `Bearer ${jHipsterAuthToken}`,
+          },
+        });
 
-      const languages = await response.json();
-      setLanguages(languages);
-    }
+        if (!response.ok) {
+          showModal(
+            response.status.toString(),
+            `Error: ${response.statusText}`
+          );
+          throw new Error(`Network response was not ok: ${response.status}`);
+        }
+
+        const languages = await response.json();
+        setLanguages(languages);
+      } catch (error) {
+        console.error(error);
+
+        showModal("500", "An error occurred while fetching languages.");
+      }
+    };
+
     if (jHipsterAuthToken) {
       fetchLanguages();
     }
-  }, [jHipsterAuthToken])
-
+  }, [jHipsterAuthToken, showModal]);
 
   const handleProductTypeChange = (e: any) => {
     const selectedType = e.target.value;
     setProductType(selectedType);
-
+  
     const selectedCategory = categoryDetails.find(
       (category: any) => category?.categoryName === selectedType
     );
-
+  
     if (selectedCategory) {
-      const fieldsWithLocalization = selectedCategory?.customFields.map((field: any) => {
-        if (selectedCategory?.localizedFields.includes(field.name)) {
-          return {
-            ...field,
-            value: "",
-            isLocalized: true
-          };
+      const fieldsWithLocalization = selectedCategory?.customFields.map(
+        (field: any) => {
+          if (selectedCategory?.localizedFields.includes(field.name)) {
+            return {
+              ...field,
+              value: "",
+              isLocalized: true,
+            };
+          }
+          return { ...field, value: "" };
         }
-        return { ...field, value: "" };
-      });
-
-      console.log('fieldsWithLocalization!!??!?', fieldsWithLocalization);
+      );
+  
+      console.log("fieldsWithLocalization!!??!?", fieldsWithLocalization);
       setCustomFields(fieldsWithLocalization);
       setCategoryId(selectedCategory?.categoryId);
-
+  
+      
+      showModal("success", "Custom fields loaded successfully.");
     } else {
       console.error("No category found for the selected type:", selectedType);
+  
+      
+      showModal("error", `No category found for the selected type: ${selectedType}`);
+  
       setCustomFields([]);
       setCategoryId("");
     }
   };
-
+  
 
   const aggregatedCustomFields = customFields.reduce((acc: any, field: any) => {
     acc[field.name] = field.value;
@@ -156,21 +179,19 @@ const ProductForm = () => {
     return acc;
   }, {});
 
-
   function populateRelationshipFields(customFieldsPayload: any) {
     customFields.forEach((field: any) => {
-      if (field.type == 'relationship') {
+      if (field.type == "relationship") {
         customFieldsPayload[field.name] = {
-          id: field.value
-        }
+          id: field.value,
+        };
       } else {
         customFieldsPayload[field.name] = field.value;
       }
-    })
-
+    });
   }
 
-  console.log('productType', productType);
+  console.log("productType", productType);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
@@ -179,7 +200,7 @@ const ProductForm = () => {
 
     populateRelationshipFields(customFieldsPayload);
 
-    let imagesString = imagesBase64.join(',')
+    let imagesString = imagesBase64.join(",");
 
     customFieldsPayload.name = productName;
     customFieldsPayload.price = price;
@@ -213,15 +234,14 @@ const ProductForm = () => {
         throw new Error("Network response was not ok");
       }
 
-      const saveLocales = customFields.some((x: any) => x?.isLocalized)
+      const saveLocales = customFields.some((x: any) => x?.isLocalized);
 
       if (response.status === 201) {
         if (saveLocales) {
           if (response.status === 201) {
-
             // take this logic to a separate utils file
             let data = await response.json();
-            console.log('show me the data', data);
+            console.log("show me the data", data);
 
             let productId = data.id;
             let newPayload = {
@@ -230,29 +250,32 @@ const ProductForm = () => {
               localizationsFields: {
                 name: productNameLocales,
                 ...localizedValues,
-              }
-            }
-
-            const localeSaved = await fetch(`${SPRING_URL}/api/localisation/upsert`, {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${jHipsterAuthToken}`,
               },
-              body: JSON.stringify(newPayload)
-            })
+            };
+
+            const localeSaved = await fetch(
+              `${SPRING_URL}/api/localisation/upsert`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${jHipsterAuthToken}`,
+                },
+                body: JSON.stringify(newPayload),
+              }
+            );
 
             if (!localeSaved.ok) {
               throw new Error("Network response was not ok");
             }
 
-            showModal('success', 'Product added successfully');
+            showModal("success", "Product added successfully");
           }
         } else {
-          showModal('success', 'Product added successfully');
+          showModal("success", "Product added successfully");
         }
       } else {
-        showModal('fail', 'Please try again');
+        showModal("fail", "Please try again");
       }
     } catch (error) {
       console.error("There was a problem with the fetch operation:", error);
@@ -260,7 +283,7 @@ const ProductForm = () => {
   };
 
   const handleCustomFieldChange = (index: number, newValue: string) => {
-    console.log('newValue', newValue);
+    console.log("newValue", newValue);
 
     const updatedFields = customFields.map((field, idx) => {
       if (idx === index) {
@@ -275,46 +298,53 @@ const ProductForm = () => {
     setCustomFields(updatedFields);
   };
 
-
   const handleSubmitFile = async () => {
     if (file) {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("categoryId", categoryId);
-
+  
       try {
         const response = await fetch(`${apiUrl}/product-bulk-upload`, {
           method: "POST",
           body: formData,
         });
-
+  
         if (!response.ok) {
+          
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-
+  
         if (response.status === 201) {
-          alert("File uploaded successfully");
+          
+          showModal("success", "File uploaded successfully!");
+        } else {
+          
+          showModal("error", `Unexpected status: ${response.status}`);
         }
       } catch (error) {
         console.error("Upload error:", error);
+        
+        showModal("error", `File upload failed: ${error}`);
       }
     } else {
       console.log("No file selected");
+      
+      showModal("error", "No file selected. Please choose a file to upload.");
     }
   };
-
+  
 
   const handleFileChange = (e: any) => {
     setFile(e.target.files[0]);
     setShowSubmitButton(true);
   };
 
-
   const customStyles = {
     control: (base: any) => ({
       ...base,
-      minHeight: '46px',
-      height: 'auto',
+      minHeight: "46px",
+      height: "auto",
     }),
     valueContainer: (base: any) => ({
       ...base,
@@ -360,7 +390,9 @@ const ProductForm = () => {
     menu: (base: any) => ({ ...base, zIndex: 9999 }),
   };
 
-  const isProductNameLocalized = customFields.some(field => field?.name === "name" && field?.isLocalized);
+  const isProductNameLocalized = customFields.some(
+    (field) => field?.name === "name" && field?.isLocalized
+  );
 
   const handleImageFileChange = (e: any, index: number) => {
     const file = e.target.files[0];
@@ -371,16 +403,14 @@ const ProductForm = () => {
         let newImagesBase64 = [...imagesBase64];
         newImagesBase64[index] = base64String;
 
-        setImagesBase64(newImagesBase64.filter(x => x !== undefined));
+        setImagesBase64(newImagesBase64.filter((x) => x !== undefined));
       };
       reader.readAsDataURL(file);
     }
   };
 
   return (
-    <div className="w-3/5 max-w-screen flex flex-col items-center"
-    >
-
+    <div className="w-3/5 max-w-screen flex flex-col items-center">
       <div className="text-2xl font-bold mt-3 w-4/5 flex justify-center flex mt-[20px] mb-[20px]">
         {productType ? `Add ${productType}` : "Add Product"}
       </div>
@@ -402,7 +432,7 @@ const ProductForm = () => {
             onChange={handleProductTypeChange}
             className="peer block w-full appearance-none border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 hover:border-primary focus-visible:border-primary focus-visible:outline-none focus-visible:ring-4 disabled:bg-gray-100 disabled:hover:border-gray-200"
           >
-            <option value="" disabled >
+            <option value="" disabled>
               Select Product Type
             </option>
             {productTypes.map((type: any, index: number) => (
@@ -431,13 +461,10 @@ const ProductForm = () => {
         <h2 className="mb-6 text-xl font-bold">Basic Information</h2>
 
         <div className="mb-6 grid grid-cols-2  gap-6">
-
           <div className="relative flex flex-col">
-            <label htmlFor="productName">
-              Product Name *
-            </label>
+            <label htmlFor="productName">Product Name *</label>
             {isProductNameLocalized ? (
-              supportedLanguages.map(lang => (
+              supportedLanguages.map((lang) => (
                 <input
                   key={lang.code}
                   id={`productName-${lang.code}`}
@@ -447,8 +474,11 @@ const ProductForm = () => {
                   value={productNameLocales[lang.code]}
                   onChange={(e) => {
                     const newValue = e.target.value;
-                    setProductNameLocales({ ...productNameLocales, [lang.code]: newValue });
-                    if (lang.code === 'en') {
+                    setProductNameLocales({
+                      ...productNameLocales,
+                      [lang.code]: newValue,
+                    });
+                    if (lang.code === "en") {
                       setProductName(newValue);
                     }
                   }}
@@ -471,9 +501,7 @@ const ProductForm = () => {
           </div>
 
           <div className="relative flex flex-col">
-            <label htmlFor="price">
-              Price *
-            </label>
+            <label htmlFor="price">Price *</label>
             <input
               id="price"
               type="number"
@@ -488,7 +516,6 @@ const ProductForm = () => {
             Fill out the custom fields below to add the product.
           </h1>
 
-
           {isLoading ? (
             <div className="flex justify-center items-center">
               <div className="spinner"></div>
@@ -496,10 +523,7 @@ const ProductForm = () => {
           ) : (
             (() => {
               return customFields.map((field: any, index: number) => {
-                if (
-                  field.name === "name" ||
-                  field.name === "price"
-                ) {
+                if (field.name === "name" || field.name === "price") {
                   return null;
                 }
 
@@ -515,27 +539,31 @@ const ProductForm = () => {
                         onChange={(e) => handleImageFileChange(e, index)}
                         className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
                       />
-                      {
-                        imagesBase64.map((image: string, index: number) => (
-                          <>
-                            <img
-                              key={index}
-                              src={image}
-                              alt={`Preview ${customFields[index].name}`}
-                              style={{ width: '50%', marginTop: '10px', height: '100px' }}
-                            />
-                          </>
-                        ))
-                      }
+                      {imagesBase64.map((image: string, index: number) => (
+                        <>
+                          <img
+                            key={index}
+                            src={image}
+                            alt={`Preview ${customFields[index].name}`}
+                            style={{
+                              width: "50%",
+                              marginTop: "10px",
+                              height: "100px",
+                            }}
+                          />
+                        </>
+                      ))}
                     </div>
                   );
                 }
 
                 if (field?.options) {
-                  const transformedOptions = field?.options.map((option: any) => ({
-                    value: option.id,
-                    label: option.name,
-                  }));
+                  const transformedOptions = field?.options.map(
+                    (option: any) => ({
+                      value: option.id,
+                      label: option.name,
+                    })
+                  );
 
                   return (
                     <div key={index} className="flex flex-col mb-4">
@@ -581,7 +609,10 @@ const ProductForm = () => {
                         field.type === "TextBlob" ? "col-span-2" : "relative"
                       }
                     >
-                      <label style={{ marginBottom: '2px', display: 'inline-block' }} htmlFor={`customValue-${index}`}>
+                      <label
+                        style={{ marginBottom: "2px", display: "inline-block" }}
+                        htmlFor={`customValue-${index}`}
+                      >
                         {capitalizeFirstLetter(field?.name)}
                       </label>
 
@@ -607,46 +638,53 @@ const ProductForm = () => {
                         />
                       ) : (
                         <>
-                          {
-                            field?.isLocalized ? (
-
-                              supportedLanguages.map(lang => (
-                                <input
-                                  key={lang.code}
-                                  id={`customValue-${index}-${lang.code}`}
-                                  type="text"
-                                  value={localizedValues[field.name] && localizedValues[field.name][lang.code]}
-                                  onChange={(e) => {
-                                    console.log('what is the field in here', field);
-                                    const newValue = e.target.value;
-                                    console.log(`Updating !! ${lang.code} for ${field.name} to ${newValue}`);
-                                    setLocalizedValues(prev => ({
-                                      ...prev,
-                                      [field.name]: {
-                                        ...prev[field.name],
-                                        [lang.code]: newValue
-                                      }
-                                    }));
-
-                                    // default to english
-                                    if (lang.code === 'en') {
-                                      handleCustomFieldChange(index, newValue);
-                                    }
-                                  }}
-                                  placeholder={lang.label}
-                                  className="mb-2 peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
-                                />
-                              ))
-                            ) : (
+                          {field?.isLocalized ? (
+                            supportedLanguages.map((lang) => (
                               <input
-                                id={`customValue-${index}`}
+                                key={lang.code}
+                                id={`customValue-${index}-${lang.code}`}
                                 type="text"
-                                value={field.value || ""}
-                                onChange={(e) => handleCustomFieldChange(index, e.target.value)}
-                                className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
+                                value={
+                                  localizedValues[field.name] &&
+                                  localizedValues[field.name][lang.code]
+                                }
+                                onChange={(e) => {
+                                  console.log(
+                                    "what is the field in here",
+                                    field
+                                  );
+                                  const newValue = e.target.value;
+                                  console.log(
+                                    `Updating !! ${lang.code} for ${field.name} to ${newValue}`
+                                  );
+                                  setLocalizedValues((prev) => ({
+                                    ...prev,
+                                    [field.name]: {
+                                      ...prev[field.name],
+                                      [lang.code]: newValue,
+                                    },
+                                  }));
+
+                                  // default to english
+                                  if (lang.code === "en") {
+                                    handleCustomFieldChange(index, newValue);
+                                  }
+                                }}
+                                placeholder={lang.label}
+                                className="mb-2 peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
                               />
-                            )
-                          }
+                            ))
+                          ) : (
+                            <input
+                              id={`customValue-${index}`}
+                              type="text"
+                              value={field.value || ""}
+                              onChange={(e) =>
+                                handleCustomFieldChange(index, e.target.value)
+                              }
+                              className="peer block w-full border border-gray-200 px-4 py-2.5 text-base placeholder:text-gray-500 focus:outline-none focus:ring-4 focus:ring-blue-500"
+                            />
+                          )}
                         </>
                       )}
                     </div>
@@ -686,14 +724,12 @@ const ProductForm = () => {
             </button>
           )}
         </div>
-
       </form>
 
       <AlertDialogSlide
         open={openDialog}
         handleClose={() => setOpenDialog(false)}
       />
-
     </div>
   );
 };
