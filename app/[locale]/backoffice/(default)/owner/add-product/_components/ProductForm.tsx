@@ -196,6 +196,29 @@ const ProductForm = () => {
   const handleSubmit = async (e: any) => {
     e.preventDefault();
 
+    if (isNaN(price) || price <= 0) {
+      showModal("fail", "Please provide a valid price.");
+      return;
+    }
+
+    if (!imagesBase64 || imagesBase64.length === 0) {
+      showModal("fail", "Please upload at least one image.");
+      return;
+    }
+
+    const isValidBase64 = (str: string) => {
+      const base64Pattern = /^data:image\/(png|jpg|jpeg|gif|bmp|webp);base64,/;
+      return base64Pattern.test(str);
+    };
+
+    const invalidImages = imagesBase64.filter((img: string) => !isValidBase64(img));
+
+    if (invalidImages.length > 0) {
+      showModal("fail", "One or more uploaded images are not valid.");
+      return;
+    }
+  
+
     let customFieldsPayload = { ...aggregatedCustomFields };
 
     populateRelationshipFields(customFieldsPayload);
