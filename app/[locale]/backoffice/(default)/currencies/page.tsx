@@ -9,7 +9,7 @@ interface Currency {
   currencyCode: string;
   currencySymbol: string;
   exchangeRate: string; // Change to string for easier handling
-  updatedAt: string | { $date: string } | Array<number>; // Handle backend formats
+ // updatedAt: string | { $date: string } | Array<number>; // Handle backend formats
 }
 
 const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
@@ -34,11 +34,14 @@ export default function CurrenciesPage() {
   const fetchCurrencies = async () => {
     setLoading(true);
     try {
-      const data = await fetchWithToken(`${apiUrlSpring}/api/currencies`, {
+      const data = await fetchWithToken(`${apiUrlSpring}/api/sync/currencies`, {
         method: "GET",
       }, jHipsterAuthToken, handleError);
+      console.log("kkk",data);
+
       const mappedData = mapCurrencyData(data);
       setCurrencies(mappedData);
+      console.log("kkk",mappedData);
     } catch (error) {
       console.error("Error fetching currencies:", error);
     } finally {
@@ -49,7 +52,7 @@ export default function CurrenciesPage() {
   const handleRefreshCurrencies = async () => {
     setLoading(true);
     try {
-      await fetchWithToken(`${apiUrlSpring}/api/currencies/refresh`, {
+      await fetchWithToken(`${apiUrlSpring}/api/sync/currencies/refresh`, {
         method: "POST",
       }, jHipsterAuthToken, handleError);
       await fetchCurrencies();
@@ -64,9 +67,10 @@ export default function CurrenciesPage() {
   const mapCurrencyData = (data: any[]): Currency[] => {
     return data.map((item) => ({
       id: item.id.toString(),
-      currencyCode: item.currency_code,
+      bigId: item.bigId,
+      currencyCode: item.currencyCode,
       currencySymbol: item.token || "",
-      exchangeRate: item.currency_exchange_rate.toString(), // Ensure this is a string
+      exchangeRate: item.currencyExchangeRate.toString(), // Ensure this is a string
       updatedAt: item.updated_at,
     }));
   };
@@ -82,14 +86,17 @@ export default function CurrenciesPage() {
     setEditCurrency(null);
   };
 
-  const handleSave = async () => {
+
+
+    const handleSave = async (bigItemId)=>{
+
     if (editCurrency && parseFloat(editCurrency.exchangeRate) > 0) {
       try {
         const requestBody = {
           currency_exchange_rate: editCurrency.exchangeRate,
         };
         await fetchWithToken(
-          `${apiUrlSpring}/api/currencies/${editCurrency.id}`,
+          `${apiUrlSpring}/api/sync/currencies/${bigItemId}`,
           {
             method: "PUT",
             body: JSON.stringify(requestBody),
@@ -165,7 +172,7 @@ export default function CurrenciesPage() {
                 <th className="border border-gray-300 px-4 py-2">Code</th>
                 <th className="border border-gray-300 px-4 py-2">Symbol</th>
                 <th className="border border-gray-300 px-4 py-2">Exchange Rate</th>
-                <th className="border border-gray-300 px-4 py-2">Updated At</th>
+                {/* <th className="border border-gray-300 px-4 py-2">Updated At</th> */}
                 <th className="border border-gray-300 px-4 py-2">Actions</th>
               </tr>
             </thead>
@@ -191,12 +198,12 @@ export default function CurrenciesPage() {
                       currency.exchangeRate
                     )}
                   </td>
-                  <td>{formatDate(currency.updatedAt)}</td>
+   
                   <td>
                     {isEditing && editCurrency?.id === currency.id ? (
                       <>
                         <button
-                          onClick={handleSave}
+                          onClick={() => handleSave(currency.bigId)}
                           className="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600 mx-1"
                         >
                           Save
