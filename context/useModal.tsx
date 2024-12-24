@@ -8,12 +8,13 @@ const ModalContext = createContext({
 
 export const useModal = () => useContext(ModalContext);
 
-export const ModalProvider = ({ children }) => {
+export const ModalProvider = ({ children }: any) => {
     const [isVisible, setIsVisible] = useState(false);
     const [modalContent, setModalContent] = useState("");
     const [modalStatus, setModalStatus] = useState('success');
+    const [isClient, setIsClient] = useState(false);
 
-    const showModal = (status, message) => {
+    const showModal = (status: string, message: string) => {
         setModalContent(message);
         setModalStatus(status);
         setIsVisible(true);
@@ -22,6 +23,10 @@ export const ModalProvider = ({ children }) => {
             setIsVisible(false);
         }, 3000);
     };
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
 
     console.log('show me its visible', isVisible)
 
@@ -40,7 +45,11 @@ export const ModalProvider = ({ children }) => {
     return (
         <ModalContext.Provider value={{ showModal }}>
             {children}
-            <div style={modalStyle}>{modalContent}</div>
+            {isClient && isVisible && (
+                <div style={modalStyle}>
+                    {modalContent}
+                </div>
+            )}
         </ModalContext.Provider>
     );
 };
