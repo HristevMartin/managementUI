@@ -65,10 +65,13 @@ const LanguageSettingsPage: React.FC = () => {
 
     const payload = {
       id: data.id,
+      name:selectedLanguage,
+      code:selectedLanguage,
       defaultShopperLanguage: selectedLanguage,
       shopperLanguageSelectionMethod: data.shopperLanguageSelectionMethod,
       storeCountry: data.storeCountry,
     };
+    console.log("kkk",payload)
 
     try {
       await fetchWithToken(`${apiUrl}/api/language/update`, { method: "PUT", body: JSON.stringify(payload) }, jHipsterAuthToken,handleError);
