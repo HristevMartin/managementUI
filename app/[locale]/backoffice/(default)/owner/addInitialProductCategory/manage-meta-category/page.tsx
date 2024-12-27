@@ -88,11 +88,8 @@ const ManageMetaCategory = () => {
 
   async function apiDeleteCategories(categoriesToDelete) {
     console.log("categoriesToDelete:", categoriesToDelete);
-    const payloads = categoriesToDelete.map((category) => ({
-      entityName: category.entityName,
-      categoryId: category.categoryId,
-    }));
-
+    const payloads = categoriesToDelete.map((category) =>category.entityName);
+  console.log("kkk",payloads);
     try {
       const response = await fetch(`${apiUrlSpring}/api/jdl/delete-entity`, {
         method: "DELETE",
