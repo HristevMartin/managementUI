@@ -12,6 +12,8 @@ import {
   mapProductTypesToCustomFields,
 } from "@/services/productFormService";
 import { useAuthJHipster } from "@/context/JHipsterContext";
+import './page.css'
+import { set } from "react-datepicker/dist/date_utils";
 
 const Package = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -39,6 +41,8 @@ const Package = () => {
   const [inboundOutbound, setInboundOutbound] = useState("");
   // const [finaloutbondproducts, setFinalOutbondproducts] = useState({});
   const [finalinbondproducts, setFinalInbondproducts] = useState({});
+  const [selectedOutboundCard, setSelectedOutboundCard] = useState(false);
+  const [selectedInboundCard, setSelectedInboundCard] = useState(false);
   const [formData, setFormData] = useState({
     packageName: "",
     description: "",
@@ -51,9 +55,10 @@ const Package = () => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });
+  const [outboundSelectedFlight, _] = useState(true);
+  const [inboundSelectedFlight, setInboundSelectedFlight] = useState(false);
 
   const { jHipsterAuthToken } = useAuthJHipster();
-
 
   useEffect(() => {
     const fetchCategoryData = async () => {
@@ -177,6 +182,7 @@ const Package = () => {
     }
   }, [formData]);
 
+
   let modifyFlightPayload = (searchPayload) => {
     console.log("searchPayload", searchPayload);
 
@@ -281,20 +287,20 @@ const Package = () => {
       category: "Hotel",
       type: "Internal",
       details: {
-        hotelId: selectedProduct.id || "",
-        roomId: selectedRoom.id || "",
+        hotelId: selectedProduct?.id || "",
+        roomId: selectedRoom?.id || "",
       },
     });
 
-    console.log("hotelId", selectedProduct.id);
-    console.log("RoomId", selectedRoom.id);
+    console.log("hotelId", selectedProduct?.id);
+    console.log("RoomId", selectedRoom?.id);
 
     // Directly adding "Addons" category data
     categoryProducts.push({
       category: "Addons",
       type: "Internal",
       details: {
-        id: selectedAncillary.id || "",
+        id: selectedAncillary?.id || "",
       },
     });
 
@@ -313,6 +319,12 @@ const Package = () => {
     // Store the updated form data
     setSubmittedData(updatedFormData);
   };
+
+  useEffect(() => {
+    if (selectedCategory === "Schedule" && view === "EXTERNAL") {
+      handleInboundOutboundChange('outbound');
+    }
+  }, [selectedCategory, view]); 
 
   // Handle view change (external or internal)
   const handleChangeView = (e: any) => {
@@ -381,7 +393,16 @@ const Package = () => {
 
 
   const handleInboundOutboundChange = async (event: any) => {
-    const selectedValue = event.target.value;
+    let selectedValue = '';
+
+    if (typeof event === 'string') {
+      selectedValue = event;
+    } else {
+      selectedValue = event.target.value;
+    }
+
+    // const selectedValue = event.target.value;
+    console.log('show me the selectedValue', selectedValue);
     setInboundOutbound(selectedValue);
     console.log("inbound-outbound data", selectedValue);
 
@@ -407,6 +428,7 @@ const Package = () => {
       }
     } else if (selectedValue === "inbound") {
       // If the selected value is 'Inbound', apply the below logic
+      console.log('it goes here', selectedValue);
       try {
         console.log("here ee inbound");
 
@@ -481,8 +503,20 @@ const Package = () => {
     return <p>Error: {error}</p>;
   }
 
+  function selectedCardOutbound(flightId: string, fareType: string) {
+    const filteredOutboundFlights = outboundFlights.flights.filter((flight: any) => {
+      if (flight?.flight_id === flightId && flight?.fare_type === fareType) {
+        return flight;
+      }
+    })
+
+    setOutboundFlights({ flights: filteredOutboundFlights });
+    setSelectedOutboundCard(true);
+    handleInboundOutboundChange('inbound');
+  }
+
   return (
-    <div className="flex justify-center w-[100vw] mt-10">
+    <div className="flex justify-center w-[98vw] mt-10">
       <div style={{ width: '40%' }} className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
         <h1 className="text-3xl font-bold mb-6 text-center">Package</h1>
 
@@ -583,106 +617,93 @@ const Package = () => {
             />
           </div>
 
-          {/* Active (Disabled) */}
-          {/* <div>
-            <label className="block text-lg font-medium mb-2">Active:</label>
-            <input
-              type="checkbox"
-              name="active"
-              checked={formData.active}
-              onChange={() =>
-                setFormData({ ...formData, active: !formData.active })
-              }
-              disabled
-              className="h-5 w-5"
-            />
-          </div> */}
-          <div>
-
-          </div>
-
           <div>
             {/* Dropdown for selecting type */}
             <label className="block text-lg font-medium mb-2">Type:</label>
-            <select value={view} onChange={handleChangeView}>
+            <select style={{ width: '100%', padding: '10px 14px', borderRadius: '6px' }}
+              value={view}
+              onChange={handleChangeView}
+              className="border border-grey-500"
+            >
               <option value="" disabled selected>
                 Select Type
               </option>
               {uniqueEntitySearchTypes.map((type) => (
-                <option key={type} value={type}>
+                <option className="font-bold" key={type} value={type}>
                   {type}
                 </option>
               ))}
             </select>
 
             {/* Dropdown for selecting category based on filtered entitynames */}
-
-            <div>
-              <label className="block text-lg font-medium mb-2 mt-4">
-                Select Category:
-              </label>
-              <select
-
-                className="border border-black-500 w-full p-3 rounded-md"
-                value={selectedCategory}
-                onChange={handleCategoryChange}
-                multiple
-              >
-                {filteredCategoryData.length > 0 ? (
-                  filteredCategoryData.map((category: any) => (
-                    <option style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '5px' }} key={category?.id} value={category?.name}>
-                      {category?.name}
-                    </option>
-                  ))
-                ) : (
-                  <option disabled>No categories available</option>
-                )}
-              </select>
-
-              {loading && <p>Loading...</p>}
-              {error && <p className="text-red-500">Error: {error}</p>}
-            </div>
           </div>
+
+          {
+            filteredCategoryData.length > 0 && (
+              <div>
+                <label className="block text-lg font-medium mb-2 mt-4">
+                  Select Category:
+                </label>
+
+                <select
+                  className="border border-black-500 w-full rounded-md"
+                  value={selectedCategory}
+                  onChange={handleCategoryChange}
+                  multiple
+                >
+                  {filteredCategoryData.length > 0 ? (
+                    filteredCategoryData.map((category: any) => (
+                      <option style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '8px', borderRadius: '6px', padding: '6px 8px' }} key={category?.id} value={category?.name}>
+                        {category?.name}
+                      </option>
+                    ))
+                  ) : (
+                    <option disabled>No categories available</option>
+                  )}
+                </select>
+
+                {loading && <p>Loading...</p>}
+                {error && <p className="text-red-500">Error: {error}</p>}
+              </div>
+            )
+          }
 
           {
             selectedCategory ? (
               <div>
-                <div className="max-w-3xl p-2">
+
+                <div style={{ padding: '10px', marginTop: '24px' }}>
+
+                </div>
+
+                <div className="max-w-3xl">
                   {/* Inbound/Outbound Dropdown */}
                   {selectedCategory === "Schedule" && view === "EXTERNAL" && (
-                    <div className="mt-6">
-                      <label
-                        htmlFor="inboundOutbound"
-                        className="block text-lg font-semibold"
-                      >
-                        Select Flight Type
-                      </label>
+                    <div>
                       <select
                         id="inboundOutbound"
-                        onChange={handleInboundOutboundChange}
-                        value={inboundOutbound} // Ensure the value is tied to the state
+                        onClick={(e) => handleInboundOutboundChange('outbound')}
+                        value={inboundOutbound && !selectedOutboundCard ? "Outbound" : "Outbound"}
+                        // value={"outbound"}
                         className="w-full p-3 mt-2 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
                       >
-                        <option value="" disabled>
-                          Please Select Inbound/Outbound
-                        </option>
-                        <option value="inbound">Inbound</option>
-                        <option value="outbound">Outbound</option>
+                        <option className="font-bold" value="outbound">Outbound</option>
                       </select>
                     </div>
                   )}
 
                   {/* Display Outbound Flights if selectedValue is "outbound" */}
-                  {inboundOutbound === "outbound" &&
+                  {outboundSelectedFlight &&
                     outboundFlights.flights &&
-                    outboundFlights.flights.length > 0 && (
+                    outboundFlights.flights.length > 0 &&
+                    (
                       <div className="mt-6">
-                        <h3 className="text-xl font-semibold">Outbound Flights</h3>
+                        <h3 className="text-xl font-semibold mb-4">Outbound Flights</h3>
                         <ul className="space-y-6">
                           {outboundFlights.flights.map((flight, index) => (
                             <li
                               key={index}
-                              className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg"
+                              className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg  border border-grey-500"
                             >
                               <div className="space-y-3">
                                 <div className="text-lg font-medium text-gray-900">
@@ -703,56 +724,107 @@ const Package = () => {
                                 <div className="text-sm text-gray-700">
                                   <strong>Fare Type:</strong> {flight.fare_type}
                                 </div>
-                                <div className="text-xl font-bold text-green-500">
+                                <div className="text-l font-bold text-black-500">
                                   <strong>Price:</strong> ${flight.price}
                                 </div>
+                                <button type="button" style={{ border: '1px solid black', borderRadius: '6px', padding: '6px 12px', fontWeight: 'bold' }}
+                                  onClick={() => selectedCardOutbound(flight?.flight_id, flight?.fare_type)}
+                                >
+                                  Select
+                                </button>
                               </div>
                             </li>
                           ))}
                         </ul>
                       </div>
-                    )}
+                    )
+                  }
 
+                  {inboundOutbound === "outbound" && (
+                    <div className="max-w-4xl mx-auto p-2 bg-white shadow-lg rounded-lg">
+                      {outboundFlights.flights.length > 0 && (
+                        <div className="font-bold text-md text-gray-800">
+                          <p>
+                            <div>
+                              <p className="mr-2">Outbound Price: </p>
+                              <p>$ {outboundFlights.flights[0].price}</p>
+                            </div>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {
+                    selectedOutboundCard && (
+                      <div>
+                        <div className="max-w-3xl">
+                          {/* Inbound/Outbound Dropdown */}
+                          {selectedCategory === "Schedule" && view === "EXTERNAL" && (
+                            <div>
+                              <select
+                                id="inboundOutbound"
+                                onClick={(e) => {
+                                  console.log('clicked Here');
+                                  handleInboundOutboundChange(e)
+                                }}
+                                value={inboundOutbound}
+                                className="w-full p-3 mt-2 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
+                              >
+                                <option className="font-bold" value="" disabled>
+                                  Please Select Inbound/Outbound
+                                </option>
+                                <option className="font-bold" value="inbound">Inbound</option>
+                              </select>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    )
+                  }
 
                   {/* Display Inbound Flights if selectedValue is "Inbound" */}
                   {inboundOutbound === "inbound" &&
                     inboundFlights.flights &&
                     inboundFlights.flights.length > 0 && (
-                      <div className="mt-6">
-                        <h3 className="text-xl font-semibold">Inbound Flights</h3>
-                        <ul className="space-y-6">
-                          {inboundFlights.flights.map((flight, index) => (
-                            <li
-                              key={index}
-                              className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg"
-                            >
-                              <div className="space-y-3">
-                                <div className="text-lg font-medium text-gray-900">
-                                  <strong>Carrier:</strong> {flight.carrier}
+                      <>
+
+                        <div className="mt-6">
+                          <h3 className="text-xl font-semibold mb-4">Inbound Flights</h3>
+                          <ul className="space-y-6">
+                            {inboundFlights.flights.map((flight, index) => (
+                              <li
+                                key={index}
+                                className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg"
+                              >
+                                <div className="space-y-3">
+                                  <div className="text-lg font-medium text-gray-900">
+                                    <strong>Carrier:</strong> {flight.carrier}
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Origin:</strong> {flight.origin}
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Destination:</strong> {flight.destination}
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Departure:</strong> {flight.departure_time}
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Arrival:</strong> {flight.arrival_time}
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Fare Type:</strong> {flight.fare_type}
+                                  </div>
+                                  <div className="text-xl font-bold text-green-500">
+                                    <strong>Price:</strong> ${flight.price}
+                                  </div>
                                 </div>
-                                <div className="text-sm text-gray-700">
-                                  <strong>Origin:</strong> {flight.origin}
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                  <strong>Destination:</strong> {flight.destination}
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                  <strong>Departure:</strong> {flight.departure_time}
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                  <strong>Arrival:</strong> {flight.arrival_time}
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                  <strong>Fare Type:</strong> {flight.fare_type}
-                                </div>
-                                <div className="text-xl font-bold text-green-500">
-                                  <strong>Price:</strong> ${flight.price}
-                                </div>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </>
                     )}
                   {/* setAncillary */}
 
@@ -804,7 +876,7 @@ const Package = () => {
                     <select
                       onChange={handleSelectChange}
                       defaultValue=""
-                      className="w-full p-3 mt-4 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
+                      className="w-full p-3 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
                     >
                       <option value="" disabled>
                         Please Select Hotel
@@ -900,19 +972,7 @@ const Package = () => {
                     </div>
                   )}
 
-                  {inboundOutbound === "outbound" && (
-                    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-                      {outboundFlights.flights.length > 0 && (
-                        <div className="flight-price">
-                          {console.log('outboundFlights.flights[0]', outboundFlights.flights[0])}
-                          <p>
-                            OutboundInitialPrice 1 Price: $
-                            {outboundFlights.flights[0].price}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
+
 
                   {selectedRoom && (
                     <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">

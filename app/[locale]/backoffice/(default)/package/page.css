@@ -1,0 +1,22 @@
+/* button {
+    border: 1px solid black;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-weight: bold;
+} */
+
+/* @keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+} */
+/* 
+button:hover {
+    animation: bounce 0.5s; */
+/* } */

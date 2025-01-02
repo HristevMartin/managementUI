@@ -142,7 +142,7 @@ export async function getSearchData(payload) {
   let flightData = await fetchFlightData(formattedPayload);
 
   if (Array.isArray(flightData) && flightData.length > 0) {
-    flightData = flightData.slice(0, 10);
+    flightData = flightData.slice(0, 5);
   } else {
     console.error("Invalid or empty array received:", flightData);
     flightData = [];
