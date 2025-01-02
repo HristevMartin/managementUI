@@ -12,7 +12,7 @@ const convertToPlural = (word) => {
   return lowercaseWord + "s";
 };
 
-export const pluraldata = async (selectedtype) => {
+export const pluraldata = async (selectedtype: any, apiToken: string) => {
   console.log("pluraldata selectedtype", selectedtype);
 
   const pluralType = convertToPlural(selectedtype);
@@ -27,7 +27,7 @@ export const pluraldata = async (selectedtype) => {
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
-        Authorization: `Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTczNTcxMzU4MSwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzM1NjI3MTgxfQ.O8z0u3ZvgEZYG9-jmtoAOMRGL9RUZkM4iWa8G7p1Y-EFgBejTBYlrT_ZTI3hHkfxl5bcareF_n-qLyGlJ4-Npg`,
+        Authorization: `Bearer ${apiToken}`,
         "Content-Type": "application/json",
       },
     });

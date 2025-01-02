@@ -2,7 +2,7 @@
 
 let jHipsterApiUrl = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
 
-export const searchconfig = async () => {
+export const searchconfig = async (apiToken: string) => {
 
   const apiUrl = `${jHipsterApiUrl}/api/jdl/get-all-entity-search-configurations`;
 
@@ -12,7 +12,7 @@ export const searchconfig = async () => {
     const response = await fetch(apiUrl, {
       method: "GET",
       headers: {
-        Authorization: `Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsImV4cCI6MTczNTcxMzU4MSwiYXV0aCI6IlJPTEVfQURNSU4gUk9MRV9VU0VSIiwiaWF0IjoxNzM1NjI3MTgxfQ.O8z0u3ZvgEZYG9-jmtoAOMRGL9RUZkM4iWa8G7p1Y-EFgBejTBYlrT_ZTI3hHkfxl5bcareF_n-qLyGlJ4-Npg`,
+        Authorization: `Bearer ${apiToken}`,
         "Content-Type": "application/json",
       },
     });

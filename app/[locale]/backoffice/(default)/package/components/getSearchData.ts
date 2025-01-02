@@ -118,6 +118,7 @@ async function fetchFlightData(payload) {
     const responsePayload = { flights: data };
     console.log("modifiedResponse", responsePayload.flights.content[0].results);
     let modifiedResponsePayload = responsePayload.flights.content[0].results;
+    console.log('modifiedResponsePayload', modifiedResponsePayload);
     return modifiedResponsePayload;
   }
 
