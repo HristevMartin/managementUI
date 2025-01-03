@@ -19,10 +19,8 @@ const Package = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedAncillary, setSelectedAncillary] = useState(null);
   const [ancillary, setAncillary] = useState([]);
-  // const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
-  // const [categories, setCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [submittedData, setSubmittedData] = useState(null);
@@ -39,10 +37,11 @@ const Package = () => {
   const [selectedRoom, setSelectedRoom] = useState(null);
   let [searchCriteria, setSearchCriteria] = useState({});
   const [inboundOutbound, setInboundOutbound] = useState("");
-  // const [finaloutbondproducts, setFinalOutbondproducts] = useState({});
   const [finalinbondproducts, setFinalInbondproducts] = useState({});
   const [selectedOutboundCard, setSelectedOutboundCard] = useState(false);
-  const [selectedInboundCard, setSelectedInboundCard] = useState(false);
+  const [loadingOutbound, setLoadingOutbound] = useState(false);
+  const [loadingInbound, setLoadingInbound] = useState(false);
+  const [inboundFlightSelected, setInboundFlightSelected] = useState(false);
   const [formData, setFormData] = useState({
     packageName: "",
     description: "",
@@ -106,7 +105,7 @@ const Package = () => {
     if (!selectedCategory) return;
 
     const fetchPluralData = async () => {
-      setLoading(true);
+      // setLoading(true);
 
       if (!jHipsterAuthToken) return;
 
@@ -123,7 +122,7 @@ const Package = () => {
         setError(err.message);
         console.error("Error fetching category data:", err);
       } finally {
-        setLoading(false);
+        // setLoading(false);
       }
     };
 
@@ -201,26 +200,25 @@ const Package = () => {
 
 
   const handleCategoryChange = (event: any) => {
-    const selectedCategory = event.target.value; 4
-
-    console.log('show me the selectedCategory', selectedCategory);
+    const selectedCategory = event.target.value;
     setSelectedCategory(selectedCategory);
 
-    // const { options } = event.target;
-    // console.log('show me the event.target', event.target);
-    // const selectedValues = Array.from(options)
-    //   .filter((option) => option.selected)
-    //   .map((option) => option.value);
-
     const selectedValues = [selectedCategory];
-
     setSelectedCategories(selectedValues);
+
+    if (selectedCategory === "Schedule" && view === "EXTERNAL") {
+      // handleInboundOutboundChange('outbound');
+      setInboundFlights({ flights: [] });
+      setSelectedOutboundCard(false);
+      setInboundFlightSelected(false);
+    }
   };
 
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     console.log('show me the name', name);
+    console.log('show me the value', value);
 
 
     const updatedFormData = {
@@ -241,35 +239,12 @@ const Package = () => {
     console.log("Updated formData:", updatedFormData);
   };
 
-  // const handleSubmit = (e) => {
-  //   e.preventDefault();
-  //   console.log("Form submitted with data:", formData);
-  //   console.log("Type:", view);
-  //   console.log("Category Selection:", selectedCategory);
-  //   if (selectedCategory == "Hotel") {
-  //     console.log("hotelId", selectedCategory.id);
-  //     console.log("RoomId", selectedHotelRooms.id);
-  //   }
-  //   const updatedFormData = {
-  //     ...formData,
-  //     initialPrice: totalPrice.toFixed(2) // Add totalPrice as initialPrice
-  //   };
 
-  //   console.log("Form data with initialPrice:", updatedFormData);
-
-  //   // Store the updated form data
-  //   setSubmittedData(updatedFormData);
-  // };
-
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: any) => {
     e.preventDefault();
-
-    console.log("Form submitted with data:", formData);
-    console.log("Categories selected:", selectedCategories);
 
     const categoryProducts = [];
 
-    // Directly adding "Flight" category data
     categoryProducts.push({
       category: "Flight",
       type: "External",
@@ -282,7 +257,6 @@ const Package = () => {
       },
     });
 
-    // Directly adding "Hotel" category data
     categoryProducts.push({
       category: "Hotel",
       type: "Internal",
@@ -295,7 +269,6 @@ const Package = () => {
     console.log("hotelId", selectedProduct?.id);
     console.log("RoomId", selectedRoom?.id);
 
-    // Directly adding "Addons" category data
     categoryProducts.push({
       category: "Addons",
       type: "Internal",
@@ -304,11 +277,14 @@ const Package = () => {
       },
     });
 
+    console.log('show me the categoryProducts', categoryProducts);
+
     // Add totalPrice to the form data
     const updatedFormData = {
       ...formData,
-      initialPrice: totalPrice.toFixed(2),
       categoryProducts,
+      active: "true",
+      price: totalPrice.toFixed(2),
     };
 
     console.log(
@@ -316,15 +292,89 @@ const Package = () => {
       updatedFormData
     );
 
+    // let temp = {
+    //   "packageName": "package name",
+    //   "description": "Package Description",
+    //   "city": "Paris",
+    //   "startDate": "2024-06-15",
+    //   "endDate": "2024-06-20",
+    //   "categoryProducts": [
+    //     {
+    //       "category": "Flight",
+    //       "type": "External",
+    //       "details": {
+    //         "city": "Paris",
+    //         "start_date": "2024-06-15", // Assuming valid date required
+    //         "end_date": "2024-06-20"    // Assuming valid date required
+    //       }
+    //     },
+    //     {
+    //       "category": "Hotel",
+    //       "type": "Internal",
+    //       "details": {
+    //         "hotelId": "mongo_db_id_of_hotel",
+    //         "roomId": "mongo_db_id_of_room"
+    //       }
+    //     },
+    //     {
+    //       "category": "Addons",
+    //       "type": "Internal",
+    //       "details": {
+    //         "id": "mongo_db_id_of_addon" 
+    //       }
+    //     }
+    //   ],
+    //   "price": 1200,
+    //   "currency": "USD",  // Changed to valid currency code
+    //   "active": true,     // Assuming active status required and set to true
+    //   "createdAt": "2025-01-01T00:00:00Z", // Example ISO 8601 date string
+    //   "updatedAt": "2025-01-01T00:00:00Z"  // Example ISO 8601 date string
+    // }
+    
+
     // Store the updated form data
-    setSubmittedData(updatedFormData);
+    // setSubmittedData(updatedFormData);
+    const resp = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING_SEARCH}/packages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedFormData),
+    });
+
+    if (!resp.ok) {
+      alert('Please try again lates');
+      console.error('Error:', resp.statusText);
+      return;
+    }
+
+    alert('Package created successfully');
+    // clear the form data
+    setFormData({
+      packageName: "",
+      description: "",
+      origin: "LHR",
+      destination: "CDG",
+      startDate: "",
+      endDate: "",
+      currency: "",
+      active: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    });
+
+    setSelectedCategory(null);
+    
   };
 
+
   useEffect(() => {
+    console.log('in here but not goooo', selectedCategory, view);
     if (selectedCategory === "Schedule" && view === "EXTERNAL") {
       handleInboundOutboundChange('outbound');
     }
-  }, [selectedCategory, view]); 
+  }, [selectedCategory, view]);
+
 
   // Handle view change (external or internal)
   const handleChangeView = (e: any) => {
@@ -347,6 +397,11 @@ const Package = () => {
     console.log("Filtered Categories:", filteredCategories);
 
     setFilteredCategoryData(filteredCategories);
+
+    if (!selectedOutboundCard) {
+      setOutboundFlights({ flights: [] });
+      setInboundFlights({ flights: [] });
+    }
   };
 
 
@@ -363,9 +418,6 @@ const Package = () => {
 
 
   const handleSelectChange = (e) => {
-    console.log('show me the e.target.value', e.target.value);
-    console.log('show me the productType', productType);
-
     const selectedOption = productType.find(
       (item) => item.id === e.target.value
     );
@@ -373,8 +425,6 @@ const Package = () => {
 
     setSelectedProduct(selectedOption);
     setSelectedHotelId(id);
-    console.log("Selected Option!!!:", selectedOption);
-    console.log("hotel id!!!:", id);
   };
 
   // Handle room selection
@@ -384,7 +434,7 @@ const Package = () => {
       (room) => room.id === selectedRoomId
     );
     setSelectedRoom(roomDetails);
-    console.log("Selected Room Details:", roomDetails);
+    setSelectedHotelRooms([]);
   };
 
   const uniqueEntitySearchTypes = [
@@ -417,9 +467,9 @@ const Package = () => {
           console.log("modifiedPayload outbound", modifiedPayload);
 
           let outboundResponse = await getSearchData(modifiedPayload);
-          console.log("cccc", outboundResponse);
           setOutboundFlights(outboundResponse);
         };
+
 
         // Call fetchOutboundFlights with the searchCriteria
         await fetchOutboundFlights(searchCriteria);
@@ -429,9 +479,8 @@ const Package = () => {
     } else if (selectedValue === "inbound") {
       // If the selected value is 'Inbound', apply the below logic
       console.log('it goes here', selectedValue);
+      setLoadingInbound(true);
       try {
-        console.log("here ee inbound");
-
         // Define the fetchInboundFlights function here
         const fetchInboundFlights = async (searchCriteria) => {
           let modifiedPayload = modifyFlightPayload(searchCriteria);
@@ -446,16 +495,16 @@ const Package = () => {
           setFinalInbondproducts(inboundResponseData);
           console.log("inboundResponseData", inboundResponseData);
           setInboundFlights(inboundResponseData);
-        };
 
-        // Call fetchInboundFlights with the searchCriteria
+        };
         await fetchInboundFlights(searchCriteria);
+        setLoadingInbound(false);
       } catch (error) {
+        setLoadingInbound(false);
         console.error("Error fetching inbound flights:", error);
       }
     }
   };
-
 
   // Function to calculate the total price
   const calculateTotalPrice = () => {
@@ -463,20 +512,24 @@ const Package = () => {
 
     // Add inbound flight price if available
     if (
-      selectedCategory === "Schedule" &&
-      inboundOutbound === "inbound" &&
-      inboundFlights.flights.length > 0
+      inboundFlights.flights.length > 0 &&
+      inboundFlightSelected === true
     ) {
-      totalPrice += inboundFlights.flights[0].price || 0;
+      console.log('i was here wee')
+      console.log('show me the inboundFlights in calculateTotalPrice', inboundFlights);
+      let newInboundPrice = Number(inboundFlights.flights[0].price) || 0
+      console.log('show me the newInboundPrice', newInboundPrice);
+      console.log('show me the totalPrice', totalPrice);
+      totalPrice += newInboundPrice;
+      console.log('in the inbound show me the totalPrice', totalPrice);
     }
 
     // Add outbound flight price if available
     if (
-      selectedCategory === "Schedule" &&
-      inboundOutbound === "outbound" &&
       outboundFlights.flights.length > 0
     ) {
-      totalPrice += outboundFlights.flights[0].price || 0;
+      console.log('i was here222 outboundFlights.flights[0].price', outboundFlights.flights[0].price)
+      totalPrice += Number(outboundFlights.flights[0].price) || 0;
     }
 
     // Add room price if available
@@ -496,29 +549,42 @@ const Package = () => {
   const totalPrice = calculateTotalPrice();
 
   if (loading) {
-    return <p>Loading...</p>;
+    return <p style={{ fontSize: '24px', fontFamily: 'sans-serif' }} className="font-bold mt-10">Loading...</p>;
   }
 
   if (error) {
     return <p>Error: {error}</p>;
   }
 
-  function selectedCardOutbound(flightId: string, fareType: string) {
-    const filteredOutboundFlights = outboundFlights.flights.filter((flight: any) => {
-      if (flight?.flight_id === flightId && flight?.fare_type === fareType) {
-        return flight;
-      }
-    })
-
-    setOutboundFlights({ flights: filteredOutboundFlights });
-    setSelectedOutboundCard(true);
-    handleInboundOutboundChange('inbound');
+  function selectedCardOutbound(flightId: string, fareType: string, isOutbound: boolean) {
+    console.log('here ee')
+    if (isOutbound) {
+      setLoadingOutbound(true);
+      const filteredOutboundFlights = outboundFlights.flights.filter((flight: any) => {
+        if (flight?.flight_id === flightId && flight?.fare_type === fareType) {
+          return flight;
+        }
+      })
+      console.log('show me the filteredOutboundFlights', filteredOutboundFlights);
+      setOutboundFlights({ flights: filteredOutboundFlights });
+      setSelectedOutboundCard(true);
+      handleInboundOutboundChange('inbound');
+      setLoadingOutbound(false);
+    } else {
+      const filteredInboundFlights = inboundFlights.flights.filter((flight: any) => {
+        if (flight?.flight_id === flightId && flight?.fare_type === fareType) {
+          return flight;
+        }
+      })
+      setInboundFlights({ flights: filteredInboundFlights });
+      setInboundFlightSelected(true);
+    }
   }
 
   return (
     <div className="flex justify-center w-[98vw] mt-10">
-      <div style={{ width: '40%' }} className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-        <h1 className="text-3xl font-bold mb-6 text-center">Package</h1>
+      <div style={{ width: '40%' }} className="mb-10 max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg border border-gray-300 rounded-md">
+        <h1 className="text-3xl font-bold mb-6 text-center">Create Package</h1>
 
         <form
           onSubmit={handleSubmit}
@@ -646,14 +712,14 @@ const Package = () => {
                 </label>
 
                 <select
-                  className="border border-black-500 w-full rounded-md"
+                  className="package-select border border-black-500 w-full rounded-md"
                   value={selectedCategory}
                   onChange={handleCategoryChange}
                   multiple
                 >
                   {filteredCategoryData.length > 0 ? (
                     filteredCategoryData.map((category: any) => (
-                      <option style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '8px', borderRadius: '6px', padding: '6px 8px' }} key={category?.id} value={category?.name}>
+                      <option style={{ fontSize: '16px', fontWeight: 'bold', marginTop: '8px', borderRadius: '6px', padding: '6px 8px', cursor: 'pointer' }} key={category?.id} value={category?.name}>
                         {category?.name}
                       </option>
                     ))
@@ -662,140 +728,48 @@ const Package = () => {
                   )}
                 </select>
 
-                {loading && <p>Loading...</p>}
+                {/* {loading && <p>Loading...</p>} */}
                 {error && <p className="text-red-500">Error: {error}</p>}
               </div>
             )
           }
+          <div>
 
+          </div>
           {
             selectedCategory ? (
-              <div>
+              <>
+                <div>
+                  <h6 className="text-lg font-semibold">Choose Category Products: </h6>
 
-                <div style={{ padding: '10px', marginTop: '24px' }}>
-
-                </div>
-
-                <div className="max-w-3xl">
-                  {/* Inbound/Outbound Dropdown */}
-                  {selectedCategory === "Schedule" && view === "EXTERNAL" && (
-                    <div>
-                      <select
-                        id="inboundOutbound"
-                        onClick={(e) => handleInboundOutboundChange('outbound')}
-                        value={inboundOutbound && !selectedOutboundCard ? "Outbound" : "Outbound"}
-                        // value={"outbound"}
-                        className="w-full p-3 mt-2 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
-                      >
-                        <option className="font-bold" value="outbound">Outbound</option>
-                      </select>
-                    </div>
-                  )}
-
-                  {/* Display Outbound Flights if selectedValue is "outbound" */}
-                  {outboundSelectedFlight &&
-                    outboundFlights.flights &&
-                    outboundFlights.flights.length > 0 &&
-                    (
-                      <div className="mt-6">
-                        <h3 className="text-xl font-semibold mb-4">Outbound Flights</h3>
-                        <ul className="space-y-6">
-                          {outboundFlights.flights.map((flight, index) => (
-                            <li
-                              key={index}
-                              className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg  border border-grey-500"
-                            >
-                              <div className="space-y-3">
-                                <div className="text-lg font-medium text-gray-900">
-                                  <strong>Carrier:</strong> {flight.carrier}
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                  <strong>Origin:</strong> {flight.origin}
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                  <strong>Destination:</strong> {flight.destination}
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                  <strong>Departure:</strong> {flight.departure_time}
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                  <strong>Arrival:</strong> {flight.arrival_time}
-                                </div>
-                                <div className="text-sm text-gray-700">
-                                  <strong>Fare Type:</strong> {flight.fare_type}
-                                </div>
-                                <div className="text-l font-bold text-black-500">
-                                  <strong>Price:</strong> ${flight.price}
-                                </div>
-                                <button type="button" style={{ border: '1px solid black', borderRadius: '6px', padding: '6px 12px', fontWeight: 'bold' }}
-                                  onClick={() => selectedCardOutbound(flight?.flight_id, flight?.fare_type)}
-                                >
-                                  Select
-                                </button>
-                              </div>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )
-                  }
-
-                  {inboundOutbound === "outbound" && (
-                    <div className="max-w-4xl mx-auto p-2 bg-white shadow-lg rounded-lg">
-                      {outboundFlights.flights.length > 0 && (
-                        <div className="font-bold text-md text-gray-800">
-                          <p>
-                            <div>
-                              <p className="mr-2">Outbound Price: </p>
-                              <p>$ {outboundFlights.flights[0].price}</p>
-                            </div>
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {
-                    selectedOutboundCard && (
+                  <div className="max-w-3xl">
+                    {/* Inbound/Outbound Dropdown */}
+                    {selectedCategory === "Schedule" && view === "EXTERNAL" && (
                       <div>
-                        <div className="max-w-3xl">
-                          {/* Inbound/Outbound Dropdown */}
-                          {selectedCategory === "Schedule" && view === "EXTERNAL" && (
-                            <div>
-                              <select
-                                id="inboundOutbound"
-                                onClick={(e) => {
-                                  console.log('clicked Here');
-                                  handleInboundOutboundChange(e)
-                                }}
-                                value={inboundOutbound}
-                                className="w-full p-3 mt-2 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
-                              >
-                                <option className="font-bold" value="" disabled>
-                                  Please Select Inbound/Outbound
-                                </option>
-                                <option className="font-bold" value="inbound">Inbound</option>
-                              </select>
-                            </div>
-                          )}
-                        </div>
+                        <select
+                          id="inboundOutbound"
+                          onClick={(e) => handleInboundOutboundChange('outbound')}
+                          value={inboundOutbound && !selectedOutboundCard ? "Outbound" : "Outbound"}
+                          disabled={true}
+                          className="w-full p-3 mt-2 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
+                        >
+                          <option className="font-bold" value="outbound">Outbound</option>
+                        </select>
                       </div>
-                    )
-                  }
+                    )}
 
-                  {/* Display Inbound Flights if selectedValue is "Inbound" */}
-                  {inboundOutbound === "inbound" &&
-                    inboundFlights.flights &&
-                    inboundFlights.flights.length > 0 && (
-                      <>
-
-                        <div className="mt-6">
-                          <h3 className="text-xl font-semibold mb-4">Inbound Flights</h3>
+                    {/* Display Outbound Flights if selectedValue is "outbound" */}
+                    {outboundSelectedFlight &&
+                      outboundFlights.flights &&
+                      outboundFlights.flights.length > 0 &&
+                      (
+                        <div>
+                          <h3 className="text-md font-semibold mt-3 mb-4">Outbound Flights</h3>
                           <ul className="space-y-6">
-                            {inboundFlights.flights.map((flight, index) => (
+                            {outboundFlights.flights.map((flight, index) => (
                               <li
                                 key={index}
-                                className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg"
+                                className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg  border border-grey-500"
                               >
                                 <div className="space-y-3">
                                   <div className="text-lg font-medium text-gray-900">
@@ -816,30 +790,215 @@ const Package = () => {
                                   <div className="text-sm text-gray-700">
                                     <strong>Fare Type:</strong> {flight.fare_type}
                                   </div>
-                                  <div className="text-xl font-bold text-green-500">
+                                  <div className="text-l font-bold text-black-500">
                                     <strong>Price:</strong> ${flight.price}
                                   </div>
+                                  <button type="button"
+                                    style={{
+                                      border: '1px solid black', borderRadius: '6px', padding: '6px 12px', fontWeight: 'bold', marginTop: '10px',
+                                      ...(selectedOutboundCard ? { backgroundColor: 'grey' } : '')
+                                    }}
+                                    disabled={selectedOutboundCard ? true : false}
+                                    onClick={() => selectedCardOutbound(flight?.flight_id, flight?.fare_type, true)}
+                                  >
+                                    {
+                                      selectedOutboundCard ? 'Selected' : 'Select'
+                                    }
+                                  </button>
                                 </div>
                               </li>
                             ))}
                           </ul>
                         </div>
-                      </>
+                      )
+                    }
+
+                    {
+                      selectedOutboundCard && (
+                        <div className="mt-3">
+                          <div className="max-w-3xl">
+                            {/* Inbound/Outbound Dropdown */}
+                            {selectedCategory === "Schedule" && view === "EXTERNAL" && (
+                              <div>
+                                <select
+                                  id="inboundOutbound"
+                                  onClick={(e) => {
+                                    console.log('clicked Here');
+                                    handleInboundOutboundChange(e)
+                                  }}
+                                  disabled={true}
+                                  value={inboundOutbound}
+                                  className="w-full p-3 mt-2 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
+                                >
+                                  <option className="font-bold" value="inbound">Inbound</option>
+                                </select>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    }
+
+                    {
+                      loadingInbound && (
+                        <div className="font-bold ml-2 mt-2 text-md">
+                          Loading...
+                        </div>
+                      )
+                    }
+
+                    {inboundOutbound === "inbound" &&
+                      inboundFlights.flights &&
+                      inboundFlights.flights.length > 0 &&
+                      (
+                        <div className="mt-3">
+                          <h3 className="text-md font-semibold mb-4">Inbound Flights</h3>
+                          <ul className="space-y-6">
+                            {inboundFlights.flights.map((flight, index) => (
+                              <li
+                                key={index}
+                                className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg"
+                              >
+                                <div className="space-y-3">
+                                  <div className="text-lg font-medium text-gray-900">
+                                    <strong>Carrier:</strong> {flight?.carrier}
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Origin:</strong> {flight?.origin}
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Destination:</strong> {flight?.destination}
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Departure:</strong> {flight?.departure_time}
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Arrival:</strong> {flight?.arrival_time}
+                                  </div>
+                                  <div className="text-sm text-gray-700">
+                                    <strong>Fare Type:</strong> {flight?.fare_type}
+                                  </div>
+                                  <div className="text-l font-bold text-black-500">
+                                    <strong>Price:</strong> ${flight?.price}
+                                  </div>
+                                </div>
+                                <button type="button" style={{
+                                  border: '1px solid black', borderRadius: '6px', padding: '6px 12px', fontWeight: 'bold', marginTop: '10px',
+                                  ...(inboundFlightSelected ? { backgroundColor: 'grey' } : '')
+                                }}
+                                  onClick={() => selectedCardOutbound(flight?.flight_id, flight?.fare_type, false)}
+                                >
+                                  {
+                                    inboundFlightSelected ? 'Selected' : 'Select'
+                                  }
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )
+                    }
+                    {/* setAncillary */}
+
+                    {/* Hotel Dropdown */}
+                    {selectedCategory === "Hotel" && view === "SEARCH_ENGINE" && (
+                      <select
+                        onChange={handleSelectChange}
+                        defaultValue=""
+                        className="w-full mt-3 p-3 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
+                      >
+                        <option value="" disabled>
+                          Select Hotel
+                        </option>
+                        {productType.map((item) => (
+                          <option key={item.id} value={item.id}>
+                            <div className="flex items-center">
+                              {item?.name}
+                            </div>
+                          </option>
+                        ))}
+                      </select>
                     )}
-                  {/* setAncillary */}
+                    {/* Display Hotel Details */}
+                    {selectedProduct && (
+                      <div className="mt-3 shadow-md p-3 bg-white rounded-md">
+                        <h3 className="text-md font-semibold text-gray-800">
+                          Selected Hotel Details:
+                        </h3>
+                        <h4 className="text-lg font-normal text-gray-700 mt-2">
+                          {selectedProduct.name}
+                        </h4>
+                        <img
+                          src={selectedProduct.images}
+                          alt={selectedProduct.name}
+                          className="h-auto rounded-lg mt-4"
+                        />
+                        <p className="mt-2 text-gray-600">
+                          {selectedProduct.description}
+                        </p>
+                      </div>
+                    )}
+                    {/* Room Dropdown after selecting a hotel */}
+                    {selectedHotelRooms.length > 0 && (
+                      <div className="mt-4">
+                        <h3 className="text-xl font-semibold text-gray-800">
+                          Select Room
+                        </h3>
+                        <select
+                          onChange={handleRoomSelect}
+                          defaultValue=""
+                          className="w-full p-2 mt-2 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
+                        >
+                          <option value="" disabled>
+                            Select a Room
+                          </option>
+                          {selectedHotelRooms.map((room) => (
+                            <option key={room.id} value={room.id}>
+                              {room.name} - ${room.price}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+                    {/* Display Room Details if selected */}
+                    {selectedRoom && (
+                      <div className="mt-3 shadow-md p-3 bg-white rounded-md">
+                        <h3 className="text-md font-semibold text-gray-800">
+                          Selected Room Details:
+                        </h3>
+                        <h4 className="text-lg font-normal text-gray-700 mt-2">
+                          {selectedRoom.name}
+                        </h4>
+                        <img
+                          src={selectedRoom.images}
+                          alt={selectedRoom.name}
+                          style={{
+                            objectFit: "cover",
+                          }}
+                          className="h-auto rounded-lg mt-4"
+                        />
+                        <p className="mt-2 text-gray-600">
+                          <strong>Description:</strong> {selectedRoom.description}
+                        </p>
+                        <p className="mt-2 text-black-600">
+                          <strong>Price:</strong> ${selectedRoom.price}
+                        </p>
+                      </div>
+                    )}
+                  </div>
 
                   {/* Ancillary Dropdown */}
                   {selectedCategory === "Ancillary" && view === "SEARCH_ENGINE" && (
                     <select
                       onChange={handleSelectChangeAncillary}
                       defaultValue=""
-                      className="w-full p-3 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
+                      className="w-full p-3 mt-4 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
                     >
                       <option value="" disabled>
-                        Please Select Ancillary
+                        Select Ancillary
                       </option>
                       {ancillary.map((item) => (
-                        <option key={item.id} value={item.id}>
+                        <option style={{ border: '3px solid red', marginTop: '50px' }} key={item.id} value={item.id}>
                           <div className="flex items-center">
                             <img
                               src={item.images}
@@ -852,11 +1011,12 @@ const Package = () => {
                       ))}
                     </select>
                   )}
+
                   {/* Display Ancillary Details */}
                   {selectedAncillary && (
-                    <div className="mt-6">
+                    <div className="mt-3 shadow-md p-3 bg-white rounded-md">
                       <h3 className="text-xl font-semibold text-gray-800">
-                        Selected Ancillary Details:
+                        Selected Ancillary Product:
                       </h3>
                       <h4 className="text-lg font-normal text-gray-700 mt-2">
                         {selectedAncillary?.name}
@@ -864,139 +1024,26 @@ const Package = () => {
                       <img
                         src={selectedAncillary?.images}
                         alt={selectedAncillary?.name}
-                        className="w-48 h-auto rounded-lg mt-4"
+                        style={{ objectFit: 'cover' }}
+                        className="h-auto rounded-lg mt-4"
                       />
                       <p className="mt-2 text-gray-600">
                         {selectedAncillary?.description}
                       </p>
-                    </div>
-                  )}
-                  {/* Hotel Dropdown */}
-                  {selectedCategory === "Hotel" && view === "SEARCH_ENGINE" && (
-                    <select
-                      onChange={handleSelectChange}
-                      defaultValue=""
-                      className="w-full p-3 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
-                    >
-                      <option value="" disabled>
-                        Please Select Hotel
-                      </option>
-                      {productType.map((item) => (
-                        <option key={item.id} value={item.id}>
-                          <div className="flex items-center">
-                            <img
-                              src={item.images}
-                              alt={item.name}
-                              className="w-5 h-5 mr-3"
-                            />
-                            {item.name}
-                          </div>
-                        </option>
-                      ))}
-                    </select>
-                  )}
-                  {/* Display Hotel Details */}
-                  {selectedProduct && (
-                    <div className="mt-6">
-                      <h3 className="text-xl font-semibold text-gray-800">
-                        Selected Hotel Details:
-                      </h3>
-                      <h4 className="text-lg font-normal text-gray-700 mt-2">
-                        {selectedProduct.name}
-                      </h4>
-                      <img
-                        src={selectedProduct.images}
-                        alt={selectedProduct.name}
-                        className="w-48 h-auto rounded-lg mt-4"
-                      />
-                      <p className="mt-2 text-gray-600">
-                        {selectedProduct.description}
-                      </p>
-                    </div>
-                  )}
-                  {/* Room Dropdown after selecting a hotel */}
-                  {selectedHotelRooms.length > 0 && (
-                    <div className="mt-8">
-                      <h3 className="text-xl font-semibold text-gray-800">
-                        Select Room
-                      </h3>
-                      <select
-                        onChange={handleRoomSelect}
-                        defaultValue=""
-                        className="w-full p-3 mt-4 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
-                      >
-                        <option value="" disabled>
-                          Please select a Room
-                        </option>
-                        {selectedHotelRooms.map((room) => (
-                          <option key={room.id} value={room.id}>
-                            {room.name} - ${room.price}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  )}
-                  {/* Display Room Details if selected */}
-                  {selectedRoom && (
-                    <div className="mt-6">
-                      <h3 className="text-xl font-semibold text-gray-800">
-                        Selected Room Details:
-                      </h3>
-                      <h4 className="text-lg font-normal text-gray-700 mt-2">
-                        {selectedRoom.name}
-                      </h4>
-                      <img
-                        src={selectedRoom.images}
-                        alt={selectedRoom.name}
-                        className="w-48 h-auto rounded-lg mt-4"
-                      />
-                      <p className="mt-2 text-green-600">
-                        <strong>Price:</strong> ${selectedRoom.price}
-                      </p>
-                      <p className="mt-2 text-gray-600">
-                        <strong>Description:</strong> {selectedRoom.description}
-                      </p>
-                    </div>
-                  )}
-
-                  {inboundOutbound === "inbound" && (
-                    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-                      {inboundFlights.flights.length > 0 && (
-                        <div className="flight-price">
-                          <p>
-                            InboundInitialPrice 1 Price: $
-                            {inboundFlights.flights[0].price}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-
-
-                  {selectedRoom && (
-                    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-                      <div className="room-price">
-                        <p>Room Initial Price: ${selectedRoom.price}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedAncillary && (
-                    <div className="max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg">
-                      <div className="room-price">
-                        <p>Ancillary Initial Price: ${selectedAncillary.price}</p>
-                      </div>
+                      <span className="font-bold mt-3">Price:</span> ${selectedAncillary.price}
                     </div>
                   )}
                 </div>
-              </div>
+              </>
             ) :
               <div>
 
               </div>
           }
 
+          <div>
+
+          </div>
 
           {/* Total price */}
           <div className="max-w-4xl text-left p-2 bg-white shadow-sm rounded-sm">
@@ -1008,17 +1055,18 @@ const Package = () => {
           </div>
 
           {/* Submit Button */}
-          <div className="col-span-2">
+          <div className="col-span-2 text-center">
             <button
               type="submit"
-              className="w-full py-2 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
+              style={{ width: '33%' }}
+              className="py-2 bg-blue-500 text-white font-semibold rounded-md hover:bg-blue-600"
             >
               Submit
             </button>
           </div>
         </form>
-      </div>
-    </div>
+      </div >
+    </div >
   );
 };
 
