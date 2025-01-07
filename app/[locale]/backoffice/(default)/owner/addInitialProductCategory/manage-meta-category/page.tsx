@@ -35,6 +35,8 @@ import {
   transformPayload,
 } from "@/utils/managementFormUtils";
 import "./page.css";
+import { useModal } from "@/context/useModal";
+
 
 const ManageMetaCategory = () => {
   const [productTypes, setProductTypes] = useState([]);
@@ -64,6 +66,8 @@ const ManageMetaCategory = () => {
     max: "",
     unique: false,
   });
+
+    const { showModal } = useModal();
 
   const [showAddRelationshipRow, setShowAddRelationshipRow] = useState(false);
 
@@ -103,11 +107,15 @@ const ManageMetaCategory = () => {
         body: JSON.stringify(payloads),
       });
       if (!response.ok) {
-        console.log("Failed to delete categories:", response);
+        showModal("error", `Failed to delete categories. Status: ${response.status}`); 
       }
-      console.log("Delete response:", data);
+      else {
+        showModal("success", "Categories deleted successfully.");
+      }
+      console.log("Delete response:",response);
     } catch (error) {
       console.error("Failed to delete categories:", error);
+      showModal("error", `Failed to delete categories: ${error}`);
     }
   }
 
@@ -189,7 +197,8 @@ const ManageMetaCategory = () => {
             setSelectedRelationship(data[0]);
           }
         } catch (err) {
-          setError("There is not data available");
+          
+          showModal("error", "There is not data available.");
           console.error(err);
         }
         setLoading(false);
@@ -323,6 +332,11 @@ const ManageMetaCategory = () => {
       body: JSON.stringify([payload]),
     });
     console.log("response!?!!:", response);
+    if (response.ok) {
+      showModal("success", "Entity updated successfully!");
+    } else {
+      showModal("error", `Failed to update entity. Status: ${response.status}`);
+    }
   };
 
   const cancelEdit = () => {
@@ -454,10 +468,12 @@ const ManageMetaCategory = () => {
 
     if (!response.ok) {
       console.log("Failed to delete relationship:", response);
+      showModal("error", `Failed to delete relationship. Status: ${response.status}`);
     }
 
     console.log("response", response);
-    alert("Relationship Deleted Successfully");
+    showModal("error", `Relationship Deleted Successfully`);
+   
   };
 
   let entityTypeOptions = ["reference", "product", "variant"];
@@ -531,6 +547,7 @@ const ManageMetaCategory = () => {
       }
 
       console.log("API response data:", data);
+      showModal("success", "Relationship updated successfully!");
 
       // const updatedRelationships = [
       //   ...selectedRelationship,
@@ -540,6 +557,7 @@ const ManageMetaCategory = () => {
       // setSelectedRelationship(updatedRelationships);
     } catch (error) {
       console.error("Error adding relationship:", error);
+      showModal("error", `Error: ${error}`);
     }
 
     setSelectedRelationship(updatedRelationships);
