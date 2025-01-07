@@ -1,6 +1,5 @@
 "use server";
 export const Userrole = async (token) => {
-  console.log("Userrole token:", token);
   const apiUrl = `${process.env.NEXT_PUBLIC_TRAVEL_SECURITY}/api/v1/users/roles`;
   console.log("Userrole URL:", apiUrl);
   try {

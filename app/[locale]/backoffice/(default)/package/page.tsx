@@ -292,45 +292,6 @@ const Package = () => {
       updatedFormData
     );
 
-    // let temp = {
-    //   "packageName": "package name",
-    //   "description": "Package Description",
-    //   "city": "Paris",
-    //   "startDate": "2024-06-15",
-    //   "endDate": "2024-06-20",
-    //   "categoryProducts": [
-    //     {
-    //       "category": "Flight",
-    //       "type": "External",
-    //       "details": {
-    //         "city": "Paris",
-    //         "start_date": "2024-06-15", // Assuming valid date required
-    //         "end_date": "2024-06-20"    // Assuming valid date required
-    //       }
-    //     },
-    //     {
-    //       "category": "Hotel",
-    //       "type": "Internal",
-    //       "details": {
-    //         "hotelId": "mongo_db_id_of_hotel",
-    //         "roomId": "mongo_db_id_of_room"
-    //       }
-    //     },
-    //     {
-    //       "category": "Addons",
-    //       "type": "Internal",
-    //       "details": {
-    //         "id": "mongo_db_id_of_addon" 
-    //       }
-    //     }
-    //   ],
-    //   "price": 1200,
-    //   "currency": "USD",  // Changed to valid currency code
-    //   "active": true,     // Assuming active status required and set to true
-    //   "createdAt": "2025-01-01T00:00:00Z", // Example ISO 8601 date string
-    //   "updatedAt": "2025-01-01T00:00:00Z"  // Example ISO 8601 date string
-    // }
-    
 
     // Store the updated form data
     // setSubmittedData(updatedFormData);
@@ -553,8 +514,9 @@ const Package = () => {
   }
 
   if (error) {
-    return <p>Error: {error}</p>;
+    return <p className="mt-10 text-lg">The Page is currently unavailable</p>;
   }
+
 
   function selectedCardOutbound(flightId: string, fareType: string, isOutbound: boolean) {
     console.log('here ee')

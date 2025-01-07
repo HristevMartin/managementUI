@@ -1,9 +1,9 @@
 'use client';
 
 import clsx from 'clsx';
-import {useParams} from 'next/navigation';
-import {ChangeEvent, ReactNode, useTransition} from 'react';
-import {Locale, usePathname, useRouter} from '@/i18n/routing';
+import { useParams } from 'next/navigation';
+import { ChangeEvent, ReactNode, useTransition } from 'react';
+import { Locale, usePathname, useRouter } from '@/i18n/routing';
 
 type Props = {
   children: ReactNode;
@@ -25,17 +25,15 @@ export default function LocaleSwitcherSelect({
     const nextLocale = event.target.value as Locale;
     startTransition(() => {
       router.replace(
-        // @ts-expect-error -- TypeScript will validate that only known `params`
-        // are used in combination with a given `pathname`. Since the two will
-        // always match for the current route, we can skip runtime checks.
-        {pathname, params},
-        {locale: nextLocale}
+        { pathname, params },
+        { locale: nextLocale }
       );
     });
   }
 
   return (
     <label
+      style={{height: '50px'}}
       className={clsx(
         'relative text-gray-400',
         isPending && 'transition-opacity [&:disabled]:opacity-30'
@@ -43,6 +41,7 @@ export default function LocaleSwitcherSelect({
     >
       <p className="sr-only">{label}</p>
       <select
+        style={{height: '50px'}}
         className="inline-flex appearance-none bg-transparent py-3 pl-2 pr-6"
         defaultValue={defaultValue}
         disabled={isPending}
