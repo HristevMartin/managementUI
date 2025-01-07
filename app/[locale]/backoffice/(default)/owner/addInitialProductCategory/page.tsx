@@ -20,7 +20,7 @@ import { transformPayload } from "@/utils/managementFormUtils";
 import { useAuthJHipster } from "@/context/JHipsterContext";
 import "./page.css";
 import { getPluralForm } from "@/services/productFormService";
-
+import { useModal } from "@/context/useModal";
 
 interface ValidationRules {
   [key: string]: string[];
@@ -94,6 +94,8 @@ const AddProductCategoryPage = ({ params }: any) => {
    
   ])
 
+  const { showModal } = useModal();
+
   const router = useRouter();
   const locale = params.locale;
 
@@ -108,11 +110,13 @@ const AddProductCategoryPage = ({ params }: any) => {
       });
 
       if (!response.ok) {
-        console.error("Error fetching data from API");
+        console.error(`Error fetching data from API. Status: ${response.status}`);
+        showModal("error", `Error fetching data from API. Status: ${response.status}`);
         return;
       }
 
       const data = await response.json();
+      
 
       const detailsRequest = data.map((entity: any) =>
         fetch(`${apiUrlSpring}/api/jdl/get-entity-by-id/${entity.id}`, {
@@ -281,15 +285,28 @@ const AddProductCategoryPage = ({ params }: any) => {
           },
           body: JSON.stringify([transformedPayload]),
         });
-
-        alert("Data saved successfully");
+    
+        if (!response.ok) {
+          throw new Error(`Failed to save data. Please try again later..`);
+        }
+        
+        console.log('show me the the response status', response.status);
+        if (response.status === 201 || response.status === 200) {
+          showModal("success", "Data saved successfully.");
+        } else {
+          showModal("error", `Unexpected status: ${response.status}`);
+        }
+    
         console.log("Request sent, response status:", response.status);
-      } catch (e) {
+    
+      } catch (e: any) {
         console.error("Error sending data:", e);
+        showModal("error", `Error sending data: ${e.message || e}`);
       } finally {
         setData(payload);
       }
     };
+    
     sendDataToApi();
   };
 

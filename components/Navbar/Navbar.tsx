@@ -121,6 +121,13 @@ const HeaderManagement = () => {
           sublinks: [],
         });
       }
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+        allowedLinks.push({
+          name: "Create Package",
+          url: `/${lang}/backoffice/package`,
+          sublinks: [],
+        });
+      }
     } else {
       allowedLinks.push({
         name: "Login",
@@ -255,7 +262,7 @@ const HeaderManagement = () => {
             ))}
           </nav>
 
-          <div className="locale-switcher-wrapper">
+          <div style={{maxWidth: '46%'}} className="locale-switcher-wrapper">
             <LocaleSwitcher />
           </div>
 

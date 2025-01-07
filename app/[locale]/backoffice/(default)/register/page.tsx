@@ -8,7 +8,7 @@ import { validateEmail, validatePassword } from '@/utils/validation';
 import { registerUser } from '@/services/userService';
 import '../login/login.css';
 
-const Register: React.FC = ({params}: any) => {
+const Register: React.FC = ({ params }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
@@ -19,6 +19,7 @@ const Register: React.FC = ({params}: any) => {
   });
 
   const router = useRouter();
+  const lang = params.locale;
 
   const lang = params.locale;
 
