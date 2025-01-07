@@ -77,7 +77,7 @@ const Login: React.FC = ({params}: any) => {
                   Login
                 </button>
                 <a
-                  href="/backoffice/register"
+                  href={`/${lang}/backoffice/register`}
                   className="management-login-signup text-blue-500 no-underline hover:no-underline"
                 >
                   Do not have an Account? Sign up now.
