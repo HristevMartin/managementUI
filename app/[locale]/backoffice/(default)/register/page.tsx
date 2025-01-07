@@ -8,7 +8,7 @@ import { validateEmail, validatePassword } from '@/utils/validation';
 import { registerUser } from '@/services/userService';
 import '../login/login.css';
 
-const Register: React.FC = () => {
+const Register: React.FC = ({params}: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
@@ -19,6 +19,8 @@ const Register: React.FC = () => {
   });
 
   const router = useRouter();
+
+  const lang = params.locale;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -48,7 +50,7 @@ const Register: React.FC = () => {
         console.log('show me the result', result);
         if (result.success) {
           alert('Registration successful');
-          router.push('/backoffice/login');
+          router.push(`/${lang}/backoffice/login`);
         } else {
           console.log('Registration failed:', result.error);
           setErrors((prev) => ({ ...prev, email: result.error }));

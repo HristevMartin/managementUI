@@ -17,6 +17,7 @@ export const registerUser = async (data: RegisterData): Promise<any> => {
   console.log('the apiURL', apiUrl);
 
   try {
+    console.log('111')
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
