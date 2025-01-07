@@ -419,6 +419,9 @@ const AddProductCategoryPage = () => {
         };
       }).filter(attribute => attribute !== null);
     const entityData = selectedAttributes.find(e => e.attribute === searchType);
+    // Ensure responsePayload is correctly set
+    const responsePayload = entityData?.responsePayload ? entityData.responsePayload : {};
+
     // Check if the searchType is 'searchengine'
     if (searchType === 'searchEngine') {
       return {
@@ -440,7 +443,7 @@ const AddProductCategoryPage = () => {
         ...entityData,
         headers: entityData.headers.filter(header => header.key && header.value),
         responseParser: entityData.responseParser.filter(parser => parser.key && parser.value),
-        responsePayload: entityData.responsePayload && Object.keys(entityData.responsePayload).length > 0 ? entityData.responsePayload : {}
+        responsePayload: responsePayload
       },
       externalAttributesMetaData: externalAttributesMetaData
     };
@@ -490,6 +493,7 @@ const AddProductCategoryPage = () => {
     }
 
     const payload = createPayload();
+    console.log("Payload being sent:", payload);
     try {
       if (isDataPresent) {
         // If data exists, update it
