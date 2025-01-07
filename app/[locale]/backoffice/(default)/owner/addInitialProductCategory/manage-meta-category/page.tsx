@@ -37,7 +37,6 @@ import {
 import "./page.css";
 import { useModal } from "@/context/useModal";
 
-
 const ManageMetaCategory = () => {
   const [productTypes, setProductTypes] = useState([]);
   const [selectedProductType, setSelectedProductType] = useState(null);
@@ -80,6 +79,8 @@ const ManageMetaCategory = () => {
     relationshipFrom: "",
     relationshipTo: relationshipOptions[0],
   });
+    const { showModal } = useModal();
+  
 
   useEffect(() => {
     if (productTypes.length > 0) {
@@ -92,11 +93,8 @@ const ManageMetaCategory = () => {
 
   async function apiDeleteCategories(categoriesToDelete) {
     console.log("categoriesToDelete:", categoriesToDelete);
-    const payloads = categoriesToDelete.map((category) => ({
-      entityName: category.entityName,
-      categoryId: category.categoryId,
-    }));
-
+    const payloads = categoriesToDelete.map((category) =>category.entityName);
+  console.log("kkk",payloads);
     try {
       const response = await fetch(`${apiUrlSpring}/api/jdl/delete-entity`, {
         method: "DELETE",
@@ -275,6 +273,10 @@ const ManageMetaCategory = () => {
   };
 
   const saveEdit = async () => {
+    const errors = validateField(fieldEdits);
+    if (errors.length > 0) {
+      return;
+    }
     const updatedFields = selectedFields.map((field, idx) => {
       return idx === editFieldIndex ? { ...fieldEdits } : field;
     });
@@ -353,6 +355,11 @@ const ManageMetaCategory = () => {
   if (error) return <p>{error}</p>;
 
   const handleSaveNewField = () => {
+    const errors = validateField(newField);
+    if (errors.length > 0) {
+      return;
+    }
+
     let updatedFields = [...selectedFields, newField];
     setSelectedFields(updatedFields);
     setShowAddField(false);
@@ -436,6 +443,34 @@ const ManageMetaCategory = () => {
     }
   }
 
+const validateField = (field) => {
+  const { validations } = field;
+
+
+  const errors = [];
+
+  // Check for min value
+  if (validations.min <= 0) {
+    errors.push('Min value must be greater than zero.');
+  }
+  
+  // Check for max value
+  if (validations.max <= 0) {
+    errors.push('Max value must be greater than zero.');
+  }
+  
+  // Check if max is greater than min
+  if (validations.min >= validations.max) {
+    errors.push('Max value must be greater than Min value.');
+  }
+
+  // If there are errors, show them in the modal
+  if (errors.length > 0) {
+    showModal('fail', errors.join('\n')); // Display all errors in the modal
+  }
+
+  return errors; // Return errors for further handling if needed
+};
   const handleDeleteRelationship = async (index) => {
     let relationshipToRemove = selectedRelationship[index];
     let currentProductType = selectedProductType.entityName;
@@ -788,6 +823,7 @@ const ManageMetaCategory = () => {
                 <TableCell>
                   <TextField
                     select
+                    value={newField.type}
                     onChange={(e) =>
                       setNewField({ ...newField, type: e.target.value })
                     }
@@ -797,6 +833,7 @@ const ManageMetaCategory = () => {
                       native: true,
                     }}
                   >
+                    <option value="" disabled>Select Data Type</option>
                     {typeOptions.map((option) => (
                       <option key={option} value={option}>
                         {option}
