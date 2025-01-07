@@ -277,6 +277,7 @@ const AddProductCategoryPage = ({ params }: any) => {
 
     const sendDataToApi = async () => {
       try {
+        console.log('here is the payload', transformedPayload);
         const response = await fetch(`${apiUrlSpring}/api/jdl/create-entity`, {
           method: "POST",
           headers: {

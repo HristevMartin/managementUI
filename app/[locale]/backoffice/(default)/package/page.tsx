@@ -292,7 +292,6 @@ const Package = () => {
       updatedFormData
     );
 
-
     // Store the updated form data
     // setSubmittedData(updatedFormData);
     const resp = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING_SEARCH}/packages`, {

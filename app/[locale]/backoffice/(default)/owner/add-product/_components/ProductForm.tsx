@@ -158,13 +158,8 @@ const ProductForm = () => {
       console.log("fieldsWithLocalization!!??!?", fieldsWithLocalization);
       setCustomFields(fieldsWithLocalization);
       setCategoryId(selectedCategory?.categoryId);
-  
-      
-      showModal("success", "Custom fields loaded successfully.");
     } else {
       console.error("No category found for the selected type:", selectedType);
-  
-      
       showModal("error", `No category found for the selected type: ${selectedType}`);
   
       setCustomFields([]);
@@ -201,22 +196,22 @@ const ProductForm = () => {
       return;
     }
 
-    if (!imagesBase64 || imagesBase64.length === 0) {
-      showModal("fail", "Please upload at least one image.");
-      return;
-    }
+    // if (!imagesBase64 || imagesBase64.length === 0) {
+    //   showModal("fail", "Please upload at least one image.");
+    //   return;
+    // }
 
-    const isValidBase64 = (str: string) => {
-      const base64Pattern = /^data:image\/(png|jpg|jpeg|gif|bmp|webp);base64,/;
-      return base64Pattern.test(str);
-    };
+    // const isValidBase64 = (str: string) => {
+    //   const base64Pattern = /^data:image\/(png|jpg|jpeg|gif|bmp|webp);base64,/;
+    //   return base64Pattern.test(str);
+    // };
 
-    const invalidImages = imagesBase64.filter((img: string) => !isValidBase64(img));
+    // const invalidImages = imagesBase64.filter((img: string) => !isValidBase64(img));
 
-    if (invalidImages.length > 0) {
-      showModal("fail", "One or more uploaded images are not valid.");
-      return;
-    }
+    // if (invalidImages.length > 0) {
+    //   showModal("fail", "One or more uploaded images are not valid.");
+    //   return;
+    // }
   
 
     let customFieldsPayload = { ...aggregatedCustomFields };
@@ -239,6 +234,7 @@ const ProductForm = () => {
     let correctedEndpointPathName = getPluralForm(productType);
 
     let submitPayload = formData.customFields;
+    console.log("submitPayload", submitPayload);
 
     try {
       const response = await fetch(
@@ -253,9 +249,12 @@ const ProductForm = () => {
         }
       );
 
+
+
       if (!response.ok) {
         throw new Error("Network response was not ok");
       }
+
 
       const saveLocales = customFields.some((x: any) => x?.isLocalized);
 

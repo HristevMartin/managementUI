@@ -66,8 +66,7 @@ const ManageMetaCategory = () => {
     unique: false,
   });
 
-    const { showModal } = useModal();
-
+  const { showModal } = useModal();
   const [showAddRelationshipRow, setShowAddRelationshipRow] = useState(false);
 
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
@@ -79,8 +78,7 @@ const ManageMetaCategory = () => {
     relationshipFrom: "",
     relationshipTo: relationshipOptions[0],
   });
-    const { showModal } = useModal();
-  
+
 
   useEffect(() => {
     if (productTypes.length > 0) {
@@ -93,8 +91,8 @@ const ManageMetaCategory = () => {
 
   async function apiDeleteCategories(categoriesToDelete) {
     console.log("categoriesToDelete:", categoriesToDelete);
-    const payloads = categoriesToDelete.map((category) =>category.entityName);
-  console.log("kkk",payloads);
+    const payloads = categoriesToDelete.map((category) => category.entityName);
+    console.log("kkk", payloads);
     try {
       const response = await fetch(`${apiUrlSpring}/api/jdl/delete-entity`, {
         method: "DELETE",
@@ -105,12 +103,12 @@ const ManageMetaCategory = () => {
         body: JSON.stringify(payloads),
       });
       if (!response.ok) {
-        showModal("error", `Failed to delete categories. Status: ${response.status}`); 
+        showModal("error", `Failed to delete categories. Status: ${response.status}`);
       }
       else {
         showModal("success", "Categories deleted successfully.");
       }
-      console.log("Delete response:",response);
+      console.log("Delete response:", response);
     } catch (error) {
       console.error("Failed to delete categories:", error);
       showModal("error", `Failed to delete categories: ${error}`);
@@ -195,7 +193,7 @@ const ManageMetaCategory = () => {
             setSelectedRelationship(data[0]);
           }
         } catch (err) {
-          
+
           showModal("error", "There is not data available.");
           console.error(err);
         }
@@ -295,17 +293,16 @@ const ManageMetaCategory = () => {
     const payload = {
       entityName: selectedProductType?.entityName,
       fields: updatedFields.map((field) => {
-        let fieldSpec = `${field.key} ${field.type}${
-          field.required ? " required" : ""
-        }`;
+        let fieldSpec = `${field.key} ${field.type}${field.required ? " required" : ""
+          }`;
 
         const { min, max, unique } = field.validations;
 
         // check the of what needs to be the structure of the fieldSpec
         if (field.validations) {
+          fieldSpec += `${min ? ` minlength(${min})` : ""}`;
+          fieldSpec += `${max ? ` maxlength(${max})` : ""}`;
           fieldSpec += unique ? " unique" : "";
-          //   fieldSpec += `${min ? ` min(${min})` : ""}`;
-          //   fieldSpec += `${max ? ` max(${max})` : ""}`;
         }
 
         return fieldSpec;
@@ -322,6 +319,7 @@ const ManageMetaCategory = () => {
     payload.enableSearch = false;
     payload.searchFields = [];
     payload.externalFlag = false;
+    payload.localizationsFields = [];
 
     console.log("Final Transformed Payload:", JSON.stringify(payload, null, 2));
 
@@ -337,7 +335,8 @@ const ManageMetaCategory = () => {
     if (response.ok) {
       showModal("success", "Entity updated successfully!");
     } else {
-      showModal("error", `Failed to update entity. Status: ${response.status}`);
+      // showModal("error", `Failed to update entity. Status: ${response.status}`);
+      showModal("error", `Failed to update entity. Please try agian later! `);
     }
   };
 
@@ -443,34 +442,31 @@ const ManageMetaCategory = () => {
     }
   }
 
-const validateField = (field) => {
-  const { validations } = field;
+  const validateField = (field) => {
+    const { validations } = field;
+    const errors = [];
+
+    if (Number(validations.min) <= 0) {
+      errors.push('Min value must be greater than zero.');
+    }
+
+    if (Number(validations.max) <= 0) {
+      errors.push('Max value must be greater than zero.');
+    }
+
+    console.log('show me the min and max', validations.min, validations.max);
+    if (Number(validations.min) >= Number(validations.max)) {
+      errors.push('Max value must be greater than Min value.');
+    }
+
+    if (errors.length > 0) {
+      showModal('fail', errors.join('\n'));
+    }
+
+    return errors;
+  };
 
 
-  const errors = [];
-
-  // Check for min value
-  if (validations.min <= 0) {
-    errors.push('Min value must be greater than zero.');
-  }
-  
-  // Check for max value
-  if (validations.max <= 0) {
-    errors.push('Max value must be greater than zero.');
-  }
-  
-  // Check if max is greater than min
-  if (validations.min >= validations.max) {
-    errors.push('Max value must be greater than Min value.');
-  }
-
-  // If there are errors, show them in the modal
-  if (errors.length > 0) {
-    showModal('fail', errors.join('\n')); // Display all errors in the modal
-  }
-
-  return errors; // Return errors for further handling if needed
-};
   const handleDeleteRelationship = async (index) => {
     let relationshipToRemove = selectedRelationship[index];
     let currentProductType = selectedProductType.entityName;
@@ -508,7 +504,7 @@ const validateField = (field) => {
 
     console.log("response", response);
     showModal("error", `Relationship Deleted Successfully`);
-   
+
   };
 
   let entityTypeOptions = ["reference", "product", "variant"];
