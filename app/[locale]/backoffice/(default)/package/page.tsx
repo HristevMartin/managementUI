@@ -1,19 +1,15 @@
-// PACKAGE FOR SINGLE FLOW
-
 "use client";
+
 import { useEffect, useState } from "react";
 import { categorydata } from "./components/category";
 import { searchconfig } from "./components/search-config";
 import { pluraldata } from "./components/data";
 import { roomdata } from "./components/rooms";
 import { getSearchData } from "./components/getSearchData";
-import {
-  getPluralForm,
-  mapProductTypesToCustomFields,
-} from "@/services/productFormService";
 import { useAuthJHipster } from "@/context/JHipsterContext";
 import './page.css'
 import { set } from "react-datepicker/dist/date_utils";
+import { useModal } from "@/context/useModal";
 
 const Package = () => {
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -23,7 +19,7 @@ const Package = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [submittedData, setSubmittedData] = useState(null);
+  const [submittedData, setSubmittedData] = useState(false);
   const [view, setView] = useState(null);
   const [categoryData, setCategoryData] = useState([]);
   const [searchConfigData, setSearchConfigData] = useState([]);
@@ -54,10 +50,23 @@ const Package = () => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   });
+  const [airports, setAirports] = useState([]);
   const [outboundSelectedFlight, _] = useState(true);
-  const [inboundSelectedFlight, setInboundSelectedFlight] = useState(false);
-
   const { jHipsterAuthToken } = useAuthJHipster();
+  const [totalPrice, setTotalPrice] = useState(0);
+
+  const { showModal } = useModal();
+
+
+  useEffect(() => {
+    if (submittedData) {
+      console.log('being called here')
+      setTotalPrice(0);
+    } else {
+      setTotalPrice(calculateTotalPrice());
+    }
+
+  }, [outboundFlights, inboundFlights, selectedRoom, selectedAncillary, submittedData]);
 
   useEffect(() => {
     const fetchCategoryData = async () => {
@@ -76,6 +85,42 @@ const Package = () => {
     };
 
     fetchCategoryData();
+  }, [jHipsterAuthToken]);
+
+
+  useEffect(() => {
+    const fetchAirports = async () => {
+      const requestResponse = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/airports`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jHipsterAuthToken}`,
+          }
+        }
+      );
+      if (!requestResponse.ok) {
+        console.error("Error fetching airports:", requestResponse.statusText);
+        return;
+      }
+
+      const airportsData = await requestResponse.json();
+
+      setAirports(airportsData);
+
+      if (airportsData.length > 0) {
+        setFormData({
+          ...formData,
+          origin: airportsData?.[0].iataCode,
+          destination: airportsData?.[1].iataCode ? airportsData?.[1].iataCode : airportsData?.[0].iataCode,
+        })
+      }
+    }
+
+    if (jHipsterAuthToken) {
+      fetchAirports();
+    }
+
   }, [jHipsterAuthToken]);
 
 
@@ -112,6 +157,7 @@ const Package = () => {
       try {
         const response = await pluraldata(selectedCategory, jHipsterAuthToken);
         if (selectedCategory === "Hotel") {
+          console.log('show me the selectedCategory', selectedCategory, response);
           setProductType(response);
         } else if (selectedCategory === "Ancillary") {
           setAncillary(response);
@@ -132,7 +178,7 @@ const Package = () => {
 
   useEffect(() => {
     if (selectedCategory === "Hotel") {
-
+      console.log('in here being called..')
       if (!jHipsterAuthToken) return;
 
       const fetchRoomData = async () => {
@@ -149,6 +195,7 @@ const Package = () => {
 
           // Log the rooms that match the selected hotel ID
           console.log("Rooms for selected hotel:", roomsForSelectedHotel);
+          console.log('this one triggered')
 
           // Store the rooms in a new state, if needed
           setSelectedHotelRooms(roomsForSelectedHotel);
@@ -220,7 +267,6 @@ const Package = () => {
     console.log('show me the name', name);
     console.log('show me the value', value);
 
-
     const updatedFormData = {
       ...formData,
       [name]: value,
@@ -266,9 +312,6 @@ const Package = () => {
       },
     });
 
-    console.log("hotelId", selectedProduct?.id);
-    console.log("RoomId", selectedRoom?.id);
-
     categoryProducts.push({
       category: "Addons",
       type: "Internal",
@@ -277,7 +320,6 @@ const Package = () => {
       },
     });
 
-    console.log('show me the categoryProducts', categoryProducts);
 
     // Add totalPrice to the form data
     const updatedFormData = {
@@ -303,12 +345,12 @@ const Package = () => {
     });
 
     if (!resp.ok) {
-      alert('Please try again lates');
+      showModal("error", 'Please try again lates');
       console.error('Error:', resp.statusText);
       return;
     }
 
-    alert('Package created successfully');
+    showModal("success", "Package created successfully");
     // clear the form data
     setFormData({
       packageName: "",
@@ -324,7 +366,7 @@ const Package = () => {
     });
 
     setSelectedCategory(null);
-    
+    setSubmittedData(true);
   };
 
 
@@ -339,7 +381,7 @@ const Package = () => {
   // Handle view change (external or internal)
   const handleChangeView = (e: any) => {
     const selectedView = e.target.value;
-    console.log("Selected Type:", selectedView);
+
     setView(selectedView);
 
     console.log('show me the searchConfigData', searchConfigData);
@@ -475,13 +517,8 @@ const Package = () => {
       inboundFlights.flights.length > 0 &&
       inboundFlightSelected === true
     ) {
-      console.log('i was here wee')
-      console.log('show me the inboundFlights in calculateTotalPrice', inboundFlights);
       let newInboundPrice = Number(inboundFlights.flights[0].price) || 0
-      console.log('show me the newInboundPrice', newInboundPrice);
-      console.log('show me the totalPrice', totalPrice);
       totalPrice += newInboundPrice;
-      console.log('in the inbound show me the totalPrice', totalPrice);
     }
 
     // Add outbound flight price if available
@@ -506,7 +543,7 @@ const Package = () => {
     return Number(totalPrice);
   };
 
-  const totalPrice = calculateTotalPrice();
+
 
   if (loading) {
     return <p style={{ fontSize: '24px', fontFamily: 'sans-serif' }} className="font-bold mt-10">Loading...</p>;
@@ -578,31 +615,52 @@ const Package = () => {
             />
           </div>
 
-
-          {/* Origin */}
           <div>
-            <label className="block text-lg font-medium mb-2">Origin:</label>
-            <input
-              type="text"
+            <label
+              htmlFor="origin"
+              className="block text-lg font-medium mb-2">Origin:</label>
+            <select
+              id="origin"
               name="origin"
+              className="w-full p-2 border border-gray-300 rounded-md"
               value={formData.origin}
               onChange={handleInputChange}
-              required
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
+            >
+              {
+                airports.map((airport) => (
+                  <option key={airport?.id} value={airport?.iataCode}>
+                    {
+                      airport?.name
+                    }
+                  </option>
+                ))
+              }
+            </select>
           </div>
 
           {/* Destination */}
           <div>
-            <label className="block text-lg font-medium mb-2">Destination:</label>
-            <input
-              type="text"
-              name="destination"
+            <label htmlFor="origin" className="block text-lg font-medium mb-2">Destination:</label>
+            <select
+              id="origin"
+              className="w-full p-2 border border-gray-300 rounded-md"
               value={formData.destination}
               onChange={handleInputChange}
-              required
-              className="w-full p-2 border border-gray-300 rounded-md"
-            />
+              name="destination"
+            >
+              {
+                airports.map((airport) => (
+                  <option
+                    value={airport?.iataCode}
+                    key={airport?.id}
+                  >
+                    {
+                      airport?.name
+                    }
+                  </option>
+                ))
+              }
+            </select>
           </div>
 
           {/* Start Date */}
@@ -779,22 +837,20 @@ const Package = () => {
                         <div className="mt-3">
                           <div className="max-w-3xl">
                             {/* Inbound/Outbound Dropdown */}
-                            {selectedCategory === "Schedule" && view === "EXTERNAL" && (
-                              <div>
-                                <select
-                                  id="inboundOutbound"
-                                  onClick={(e) => {
-                                    console.log('clicked Here');
-                                    handleInboundOutboundChange(e)
-                                  }}
-                                  disabled={true}
-                                  value={inboundOutbound}
-                                  className="w-full p-3 mt-2 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
-                                >
-                                  <option className="font-bold" value="inbound">Inbound</option>
-                                </select>
-                              </div>
-                            )}
+                            <div>
+                              <select
+                                id="inboundOutbound"
+                                onClick={(e) => {
+                                  console.log('clicked Here');
+                                  handleInboundOutboundChange(e)
+                                }}
+                                disabled={true}
+                                value={inboundOutbound}
+                                className="w-full p-3 mt-2 text-lg border border-gray-300 rounded-md bg-gray-50 focus:ring-2 focus:ring-blue-400"
+                              >
+                                <option className="font-bold" value="inbound">Inbound</option>
+                              </select>
+                            </div>
                           </div>
                         </div>
                       )

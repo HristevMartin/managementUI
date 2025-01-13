@@ -21,8 +21,6 @@ const Register: React.FC = ({ params }: any) => {
   const router = useRouter();
   const lang = params.locale;
 
-  const lang = params.locale;
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     let emailError = '';
