@@ -20,7 +20,7 @@ const Package = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [submittedData, setSubmittedData] = useState(false);
-  const [view, setView] = useState(null);
+  const [view, setView] = useState("");
   const [categoryData, setCategoryData] = useState([]);
   const [searchConfigData, setSearchConfigData] = useState([]);
   const [filteredCategoryData, setFilteredCategoryData] = useState([]);
@@ -51,7 +51,7 @@ const Package = () => {
     updatedAt: new Date().toISOString(),
   });
   const [airports, setAirports] = useState([]);
-  const [outboundSelectedFlight, _] = useState(true);
+  const [outboundSelectedFlight, setOutboundSelectedFlights] = useState(true);
   const { jHipsterAuthToken } = useAuthJHipster();
   const [totalPrice, setTotalPrice] = useState(0);
 
@@ -254,18 +254,22 @@ const Package = () => {
     setSelectedCategories(selectedValues);
 
     if (selectedCategory === "Schedule" && view === "EXTERNAL") {
-      // handleInboundOutboundChange('outbound');
       setInboundFlights({ flights: [] });
+      setOutboundFlights({ flights: [] });
+      handleInboundOutboundChange('outbound');
       setSelectedOutboundCard(false);
       setInboundFlightSelected(false);
+
+      if (formData.startDate == "" || formData.endDate == "") {
+        showModal("error", "Please select a start and end date");
+        return;
+      }
     }
   };
 
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    console.log('show me the name', name);
-    console.log('show me the value', value);
 
     const updatedFormData = {
       ...formData,
@@ -334,6 +338,7 @@ const Package = () => {
       updatedFormData
     );
 
+    console.log('show me the updatedFormData', updatedFormData);
     // Store the updated form data
     // setSubmittedData(updatedFormData);
     const resp = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING_SEARCH}/packages`, {
@@ -367,6 +372,8 @@ const Package = () => {
 
     setSelectedCategory(null);
     setSubmittedData(true);
+    setView("");
+    setFilteredCategoryData([]);
   };
 
 
@@ -384,13 +391,9 @@ const Package = () => {
 
     setView(selectedView);
 
-    console.log('show me the searchConfigData', searchConfigData);
-
     const filteredEntities = searchConfigData
       .filter((item) => item.entitysearchtype === selectedView)
       .map((item) => item.entityname);
-
-    console.log("Filtered Entities:", filteredEntities);
 
     const filteredCategories = categoryData.filter((category) =>
       filteredEntities.includes(category.name)
@@ -720,7 +723,6 @@ const Package = () => {
               ))}
             </select>
 
-            {/* Dropdown for selecting category based on filtered entitynames */}
           </div>
 
           {
