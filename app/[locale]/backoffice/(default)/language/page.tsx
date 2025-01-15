@@ -1,4 +1,3 @@
-// Adjust the path as needed
 "use client";
 
 import React, { useEffect, useState } from "react";
@@ -30,8 +29,8 @@ const LanguageSettingsPage: React.FC = () => {
     }
 
     try {
-      const data = await fetchWithToken(`${apiUrl}/api/languages`, { method: "GET" }, jHipsterAuthToken,handleError);
-      setLanguages(data.map((lang: Language) => ({ code: lang.code, name: lang.name })));
+      const response = await fetchWithToken(`${apiUrl}/api/language/supported`, { method: "GET" }, jHipsterAuthToken, handleError);
+      setLanguages(response.map((lang: Language) => ({ code: lang.code, name: lang.name })));
     } catch (error) {
       setErrorMessage("Failed to fetch languages.");
     }
@@ -47,7 +46,7 @@ const LanguageSettingsPage: React.FC = () => {
     setErrorMessage("");
 
     try {
-      const data = await fetchWithToken(`${apiUrl}/api/language/refresh`, { method: "GET" }, jHipsterAuthToken,handleError);
+      const data = await fetchWithToken(`${apiUrl}/api/language/refresh`, { method: "GET" }, jHipsterAuthToken, handleError);
       setData(data);
       setSelectedLanguage(data.defaultShopperLanguage);
     } catch (error) {
@@ -65,13 +64,16 @@ const LanguageSettingsPage: React.FC = () => {
 
     const payload = {
       id: data.id,
+      name:selectedLanguage,
+      code:selectedLanguage,
       defaultShopperLanguage: selectedLanguage,
       shopperLanguageSelectionMethod: data.shopperLanguageSelectionMethod,
       storeCountry: data.storeCountry,
     };
+    console.log("kkk",payload)
 
     try {
-      await fetchWithToken(`${apiUrl}/api/language/update`, { method: "PUT", body: JSON.stringify(payload) }, jHipsterAuthToken,handleError);
+      await fetchWithToken(`${apiUrl}/api/language/update`, { method: "PUT", body: JSON.stringify(payload) }, jHipsterAuthToken, handleError);
       setIsEditing(false);
       refreshLanguageSettings();
     } catch (error) {
@@ -97,7 +99,6 @@ const LanguageSettingsPage: React.FC = () => {
           <thead>
             <tr>
               <th className="border border-gray-300 px-4 py-2 bg-gray-100">Default Shopper Language</th>
-              <th className="border border-gray-300 px-4 py-2 bg-gray-100">Shopper Language Selection Method</th>
               <th className="border border-gray-300 px-4 py-2 bg-gray-100">Store Country</th>
               <th className="border border-gray-300 px-4 py-2 bg-gray-100">Actions</th>
             </tr>
@@ -107,7 +108,11 @@ const LanguageSettingsPage: React.FC = () => {
               {isEditing ? (
                 <>
                   <td className="border border-gray-300 px-4 py-2">
-                    <select value={selectedLanguage} onChange={(e) => setSelectedLanguage(e.target.value)} className="px-2 py-1 border border-gray-300 rounded">
+                    <select
+                      value={selectedLanguage}
+                      onChange={(e) => setSelectedLanguage(e.target.value)}
+                      className="px-2 py-1 border border-gray-300 rounded"
+                    >
                       {languages.map((lang) => (
                         <option key={lang.code} value={lang.code}>
                           {lang.name}
@@ -115,20 +120,35 @@ const LanguageSettingsPage: React.FC = () => {
                       ))}
                     </select>
                   </td>
-                  <td className="border border-gray-300 px-4 py-2">{data.shopperLanguageSelectionMethod}</td>
                   <td className="border border-gray-300 px-4 py-2">{data.storeCountry}</td>
                   <td className="border border-gray-300 px-4 py-2">
-                    <button onClick={saveLanguage} className="px-2 py-1 bg-green-500 text-white rounded mr-2">Save</button>
-                    <button onClick={() => setIsEditing(false)} className="px-2 py-1 bg-gray-500 text-white rounded">Cancel</button>
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={saveLanguage}
+                        className="px-2 py-1 bg-green-500 text-white rounded mr-2"
+                      >
+                        Save
+                      </button>
+                      <button
+                        onClick={() => setIsEditing(false)}
+                        className="px-2 py-1 bg-red-500 text-white rounded"
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </td>
                 </>
               ) : (
                 <>
                   <td className="border border-gray-300 px-4 py-2">{data.defaultShopperLanguage}</td>
-                  <td className="border border-gray-300 px-4 py-2">{data.shopperLanguageSelectionMethod}</td>
                   <td className="border border-gray-300 px-4 py-2">{data.storeCountry}</td>
                   <td className="border border-gray-300 px-4 py-2">
-                    <button onClick={() => setIsEditing(true)} className="px-2 py-1 bg-blue-500 text-white rounded">Edit</button>
+                    <button
+                      onClick={() => setIsEditing(true)}
+                      className="px-2 py-1 bg-blue-500 text-white rounded"
+                    >
+                      Edit
+                    </button>
                   </td>
                 </>
               )}

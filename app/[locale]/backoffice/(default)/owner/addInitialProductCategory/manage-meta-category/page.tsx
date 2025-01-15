@@ -35,6 +35,7 @@ import {
   transformPayload,
 } from "@/utils/managementFormUtils";
 import "./page.css";
+import { useModal } from "@/context/useModal";
 
 const ManageMetaCategory = () => {
   const [productTypes, setProductTypes] = useState([]);
@@ -65,6 +66,7 @@ const ManageMetaCategory = () => {
     unique: false,
   });
 
+  const { showModal } = useModal();
   const [showAddRelationshipRow, setShowAddRelationshipRow] = useState(false);
 
   const apiUrlSpring = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
@@ -77,6 +79,7 @@ const ManageMetaCategory = () => {
     relationshipTo: relationshipOptions[0],
   });
 
+
   useEffect(() => {
     if (productTypes.length > 0) {
       setNewRelationship((prevState) => ({
@@ -88,11 +91,8 @@ const ManageMetaCategory = () => {
 
   async function apiDeleteCategories(categoriesToDelete) {
     console.log("categoriesToDelete:", categoriesToDelete);
-    const payloads = categoriesToDelete.map((category) => ({
-      entityName: category.entityName,
-      categoryId: category.categoryId,
-    }));
-
+    const payloads = categoriesToDelete.map((category) => category.entityName);
+    console.log("kkk", payloads);
     try {
       const response = await fetch(`${apiUrlSpring}/api/jdl/delete-entity`, {
         method: "DELETE",
@@ -103,11 +103,15 @@ const ManageMetaCategory = () => {
         body: JSON.stringify(payloads),
       });
       if (!response.ok) {
-        console.log("Failed to delete categories:", response);
+        showModal("error", `Failed to delete categories. Status: ${response.status}`);
       }
-      console.log("Delete response:", data);
+      else {
+        showModal("success", "Categories deleted successfully.");
+      }
+      console.log("Delete response:", response);
     } catch (error) {
       console.error("Failed to delete categories:", error);
+      showModal("error", `Failed to delete categories: ${error}`);
     }
   }
 
@@ -189,7 +193,8 @@ const ManageMetaCategory = () => {
             setSelectedRelationship(data[0]);
           }
         } catch (err) {
-          setError("There is not data available");
+
+          showModal("error", "There is not data available.");
           console.error(err);
         }
         setLoading(false);
@@ -266,6 +271,10 @@ const ManageMetaCategory = () => {
   };
 
   const saveEdit = async () => {
+    const errors = validateField(fieldEdits);
+    if (errors.length > 0) {
+      return;
+    }
     const updatedFields = selectedFields.map((field, idx) => {
       return idx === editFieldIndex ? { ...fieldEdits } : field;
     });
@@ -284,17 +293,16 @@ const ManageMetaCategory = () => {
     const payload = {
       entityName: selectedProductType?.entityName,
       fields: updatedFields.map((field) => {
-        let fieldSpec = `${field.key} ${field.type}${
-          field.required ? " required" : ""
-        }`;
+        let fieldSpec = `${field.key} ${field.type}${field.required ? " required" : ""
+          }`;
 
         const { min, max, unique } = field.validations;
 
         // check the of what needs to be the structure of the fieldSpec
         if (field.validations) {
+          fieldSpec += `${min ? ` minlength(${min})` : ""}`;
+          fieldSpec += `${max ? ` maxlength(${max})` : ""}`;
           fieldSpec += unique ? " unique" : "";
-          //   fieldSpec += `${min ? ` min(${min})` : ""}`;
-          //   fieldSpec += `${max ? ` max(${max})` : ""}`;
         }
 
         return fieldSpec;
@@ -311,6 +319,7 @@ const ManageMetaCategory = () => {
     payload.enableSearch = false;
     payload.searchFields = [];
     payload.externalFlag = false;
+    payload.localizationsFields = [];
 
     console.log("Final Transformed Payload:", JSON.stringify(payload, null, 2));
 
@@ -323,6 +332,12 @@ const ManageMetaCategory = () => {
       body: JSON.stringify([payload]),
     });
     console.log("response!?!!:", response);
+    if (response.ok) {
+      showModal("success", "Entity updated successfully!");
+    } else {
+      // showModal("error", `Failed to update entity. Status: ${response.status}`);
+      showModal("error", `Failed to update entity. Please try agian later! `);
+    }
   };
 
   const cancelEdit = () => {
@@ -339,6 +354,11 @@ const ManageMetaCategory = () => {
   if (error) return <p>{error}</p>;
 
   const handleSaveNewField = () => {
+    const errors = validateField(newField);
+    if (errors.length > 0) {
+      return;
+    }
+
     let updatedFields = [...selectedFields, newField];
     setSelectedFields(updatedFields);
     setShowAddField(false);
@@ -422,6 +442,31 @@ const ManageMetaCategory = () => {
     }
   }
 
+  const validateField = (field) => {
+    const { validations } = field;
+    const errors = [];
+
+    if (Number(validations.min) <= 0) {
+      errors.push('Min value must be greater than zero.');
+    }
+
+    if (Number(validations.max) <= 0) {
+      errors.push('Max value must be greater than zero.');
+    }
+
+    console.log('show me the min and max', validations.min, validations.max);
+    if (Number(validations.min) >= Number(validations.max)) {
+      errors.push('Max value must be greater than Min value.');
+    }
+
+    if (errors.length > 0) {
+      showModal('fail', errors.join('\n'));
+    }
+
+    return errors;
+  };
+
+
   const handleDeleteRelationship = async (index) => {
     let relationshipToRemove = selectedRelationship[index];
     let currentProductType = selectedProductType.entityName;
@@ -454,10 +499,12 @@ const ManageMetaCategory = () => {
 
     if (!response.ok) {
       console.log("Failed to delete relationship:", response);
+      showModal("error", `Failed to delete relationship. Status: ${response.status}`);
     }
 
     console.log("response", response);
-    alert("Relationship Deleted Successfully");
+    showModal("error", `Relationship Deleted Successfully`);
+
   };
 
   let entityTypeOptions = ["reference", "product", "variant"];
@@ -531,6 +578,7 @@ const ManageMetaCategory = () => {
       }
 
       console.log("API response data:", data);
+      showModal("success", "Relationship updated successfully!");
 
       // const updatedRelationships = [
       //   ...selectedRelationship,
@@ -540,6 +588,7 @@ const ManageMetaCategory = () => {
       // setSelectedRelationship(updatedRelationships);
     } catch (error) {
       console.error("Error adding relationship:", error);
+      showModal("error", `Error: ${error}`);
     }
 
     setSelectedRelationship(updatedRelationships);
@@ -770,6 +819,7 @@ const ManageMetaCategory = () => {
                 <TableCell>
                   <TextField
                     select
+                    value={newField.type}
                     onChange={(e) =>
                       setNewField({ ...newField, type: e.target.value })
                     }
@@ -779,6 +829,7 @@ const ManageMetaCategory = () => {
                       native: true,
                     }}
                   >
+                    <option value="" disabled>Select Data Type</option>
                     {typeOptions.map((option) => (
                       <option key={option} value={option}>
                         {option}

@@ -15,10 +15,10 @@ import {
 import { data } from "./components/data";
 import { dataByid } from "./components/data-by-id";
 import { edit } from "./components/edit";
-import Editor from "@/app/backoffice/editor/page";
 import { pagination } from "./components/pagination";
 import { useSearchParams } from "next/navigation";
 import { useAuthJHipster } from "@/context/JHipsterContext";
+import Editor from "@/components/editor/page";
 
 
 export function getPluralForm(singular = '') {
@@ -519,9 +519,9 @@ const EditForm = () => {
     return trimmedString.toLowerCase() + "s";
   };
 
-  const saveDynamicDataToLocalStorage = (data) => {
-    localStorage.setItem("dynamicData", JSON.stringify(data));
-  };
+  // const saveDynamicDataToLocalStorage = (data) => {
+  //   localStorage.setItem("dynamicData", JSON.stringify(data));
+  // };
 
   const transformedDynamicData = Object.keys(dynamicData).reduce((acc, key) => {
     const formattedKey = capitalizeAndTrimS(key);
@@ -623,18 +623,21 @@ const EditForm = () => {
                     })}
 
                     {/* Render chips for dynamicData */}
-                    {transformedDynamicData && Object.keys(transformedDynamicData).length > 0 && Object.keys(transformedDynamicData[formattedRelationship])?.map(
-                      (item) => (
-                        <Chip
-                          key={item.id}
-                          label={item.name}
-                          onDelete={() =>
-                            handleDeleteOptionDynamic(item.id, relationship)
-                          } // Ensure correct relationship is passed
-                          sx={{ margin: 0.5 }}
-                        />
-                      )
-                    )}
+                    {transformedDynamicData &&
+                      formattedRelationship &&
+                      transformedDynamicData[formattedRelationship]
+                      && Object.keys(transformedDynamicData).length > 0 && Object.keys(transformedDynamicData[formattedRelationship]).map(
+                        (item) => (
+                          <Chip
+                            key={item.id}
+                            label={item.name}
+                            onDelete={() =>
+                              handleDeleteOptionDynamic(item.id, relationship)
+                            }
+                            sx={{ margin: 0.5 }}
+                          />
+                        )
+                      )}
                   </Box>
 
                   <label className="mb-4">{relationship}</label>

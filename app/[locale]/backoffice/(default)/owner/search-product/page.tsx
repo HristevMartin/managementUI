@@ -7,7 +7,7 @@ import "font-awesome/css/font-awesome.min.css";
 import { useRouter } from "next/navigation";
 import './page.css';
 
-const Searchproduct = () => {
+const Searchproduct = ({ params }: any) => {
   const [productType, setProductType] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [categoryDetails, setCategoryDetails] = useState([]);
@@ -27,22 +27,24 @@ const Searchproduct = () => {
 
   const router = useRouter();
 
-  const handleEdit = (index) => {
+  const lang = params.locale;
+
+  const handleEdit = (index: any) => {
     const id = searchResults[index].id;
     const selectedType = productType;
     console.log('the id', id)
     console.log('the selectedType', selectedType)
     router.push(
-      `/backoffice/owner/edit-product?id=${id}&selectedType=${selectedType}`
+      `/${lang}/backoffice/owner/edit-product?id=${id}&selectedType=${selectedType}`
     );
   };
 
-  const handleView = (index) => {
+  const handleView = (index: any) => {
     const id = searchResults[index].id;
     router.push(`/view-product?id=${id}`);
   };
 
-  const toggleDropdown = (index) => {
+  const toggleDropdown = (index: any) => {
     setDropdownOpenIndex(dropdownOpenIndex === index ? null : index);
   };
 
@@ -316,7 +318,7 @@ const Searchproduct = () => {
 
           <div className="space-y-4">
             {selectedCustomFields.map((field, index) => (
-              <div key={index} style={{width: '100%', padding: '10px 5px'}} className="bg-gray-50 rounded shadow-md w-full">
+              <div key={index} style={{ width: '100%', padding: '10px 5px' }} className="bg-gray-50 rounded shadow-md w-full">
 
                 <div
                   style={{ gridTemplateColumns: '0.5fr 1fr 1fr 0.5fr', width: '100%' }}
@@ -390,7 +392,7 @@ const Searchproduct = () => {
           </button>
         </form>
 
-        <div style={{margin: '0 auto', marginTop: '10px'}} className="bg-gray-100 p-6 search-results">
+        <div style={{ margin: '0 auto', marginTop: '10px' }} className="bg-gray-100 p-6 search-results">
           <div className="mb-6">
             <h3 className="text-xl font-semibold mb-4 text-gray-800 text-center">
               Search Results
