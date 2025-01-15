@@ -259,6 +259,7 @@ const Package = () => {
       handleInboundOutboundChange('outbound');
       setSelectedOutboundCard(false);
       setInboundFlightSelected(false);
+      console.log('test')
 
       if (formData.startDate == "" || formData.endDate == "") {
         showModal("error", "Please select a start and end date");
