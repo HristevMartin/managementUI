@@ -824,7 +824,7 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
     const inputValue = e.target.value;
     // const cleanInputValue = formatResponsePayload(inputValue);
 
-    console.log('Input value:', inputValue);
+    console.log('Input value:2', inputValue);
 
     // Directly update the state with the input string
     setApiDetails(prev => prev.map(item =>
