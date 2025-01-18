@@ -418,9 +418,16 @@ const AddProductCategoryPage = () => {
           responseParser: attribute.responseParser.filter(parser => parser.key && parser.value) || {}
         };
       }).filter(attribute => attribute !== null);
+
     const entityData = selectedAttributes.find(e => e.attribute === searchType);
     // Ensure responsePayload is correctly set
-    const responsePayload = entityData?.responsePayload ? entityData.responsePayload : {};
+    let responsePayload = entityData?.responsePayload ? entityData.responsePayload : {};
+
+    // remove the backslashes from the responsePayload
+    responsePayload = responsePayload.replace(/\\+"/g, '"').replace(/([^\\])\\([^\\])/g, '$1$2');
+    console.log('show me the responsePayload', responsePayload)
+
+    // const responsePayload = entityData?.responsePayload ? btoa(entityData?.responsePayload || '') : {};
 
     // Check if the searchType is 'searchengine'
     if (searchType === 'searchEngine') {
@@ -435,7 +442,7 @@ const AddProductCategoryPage = () => {
     }
 
     // If it's not 'searchengine', return the payload for external search
-    return {
+    let finalObj = {
       entityName: category,
       entitySearchType: searchType,
       Searchable: searchableAttributes,
@@ -446,7 +453,10 @@ const AddProductCategoryPage = () => {
         responsePayload: responsePayload
       },
       externalAttributesMetaData: externalAttributesMetaData
-    };
+    }
+
+    return finalObj;
+
   };
 
   const handleDelete = async () => {
@@ -494,7 +504,11 @@ const AddProductCategoryPage = () => {
 
     const payload = createPayload();
     console.log("Payload being sent:", payload);
+    // if (payload && payload.externalEntityMetaData && payload.externalEntityMetaData.responsePayload) {
+    //   payload.externalEntityMetaData.responsePayload = JSON.stringify(payload.externalEntityMetaData.responsePayload);
+    // }
     try {
+      console.log('show me the payload', payload)
       if (isDataPresent) {
         // If data exists, update it
         const response = await axios.put(
@@ -508,7 +522,7 @@ const AddProductCategoryPage = () => {
           }
         );
         setNotificationMessage('Update successful!');
-        console.log('Update successful', response);
+        // console.log('Update successful', response);
       } else {
         // If no data, create a new entry
         const response = await axios.post(
@@ -603,8 +617,14 @@ const AddProductCategoryPage = () => {
       setIsDataPresent(false);
     }
   };
+
   const addHeader = () => {
-    setSelectedAttributes(p => p.map(e => ({ ...e, headers: [...e.headers, { key: '', value: '' }] })));
+    // setSelectedAttributes(p => p.map(e => ({ ...e, headers: [...e.headers, { key: '', value: '' }] })));
+    setSelectedAttributes(p => p.map(e => ({
+      ...e,
+      headers: Array.isArray(e.headers) ? [...e.headers, { key: '', value: '' }] : [{ key: '', value: '' }]
+    })));
+
     setApiDetails((prev) => ({
       ...prev,
       headers: [...prev.headers, { key: '', value: '' }],
@@ -612,12 +632,20 @@ const AddProductCategoryPage = () => {
   };
 
   const addResponseParser = () => {
-    setSelectedAttributes(p => p.map(e => ({ ...e, responseParser: [...e.responseParser, { key: '', value: '' }] })));
+    // setSelectedAttributes(p => p.map(e => ({ ...e, responseParser: [...e.responseParser, { key: '', value: '' }] })));
+    setSelectedAttributes(p => p.map(e => ({
+      ...e,
+      responseParser: Array.isArray(e.responseParser) ? [...e.responseParser, { key: '', value: '' }] : [{ key: '', value: '' }]
+    })));
+
+
     setApiDetails((prev) => ({
       ...prev,
       responseParser: [...prev.responseParser, { key: '', value: '' }],
     }));
   };
+
+
   return (
     <main>
       <section className="search-config">
@@ -738,6 +766,35 @@ const AddProductCategoryPage = () => {
   );
 };
 
+function formatResponsePayload(inputValue) {
+  // Initially assume the input is a straightforward JSON string
+  let formattedValue = inputValue;
+
+  // Check and handle template parts
+  const templateRegex = /<#[^>]+>/g; // Adjust regex to accurately capture your template syntax
+  let match;
+  let lastIndex = 0;
+  let result = '';
+
+  while ((match = templateRegex.exec(inputValue)) !== null) {
+    // Add the part before the template, handling JSON escaping
+    const jsonPart = inputValue.substring(lastIndex, match.index);
+    result += jsonPart.replace(/\\(["\\])/g, '$1'); // Unescape JSON-specific characters
+
+    // Add the template part unchanged
+    result += match[0];
+    lastIndex = templateRegex.lastIndex;
+  }
+
+  // Handle the last part of the string after the final template, if any
+  if (lastIndex < inputValue.length) {
+    const jsonPart = inputValue.substring(lastIndex);
+    result += jsonPart.replace(/\\(["\\])/g, '$1');
+  }
+
+  return result;
+}
+
 const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange, removeHeader, apiDetails, addHeader, addResponseParser, handleResponseParserChange, removeResponseParser }) => {
   const [error, setError] = useState('');
 
@@ -748,20 +805,31 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
   };
 
   const handleJsonChange = (e, key, attribute) => {
-    try {
-      console.log('e.target.value', e.target.value);
-      const parsedJson = JSON.parse(e.target.value);
-      setApiDetails(prev =>
-        prev.map(item =>
-          item.attribute === attribute
-            ? { ...item, [key]: [parsedJson] }
-            : item
-        )
-      )
-      setError('');
-    } catch (error) {
-      setError('Invalid JSON format');
-    }
+    // try {
+    //   console.log('e.target.value', e.target.value);
+    //   const parsedJson = JSON.parse(e.target.value);
+    //   setApiDetails(prev =>
+    //     prev.map(item =>
+    //       item.attribute === attribute
+    //         ? { ...item, [key]: [parsedJson] }
+    //         : item
+    //     )
+    //   )
+    //   setError('');
+    // } catch (error) {
+    //   setError('Invalid JSON format');
+    // }
+
+
+    const inputValue = e.target.value;
+    const cleanInputValue = formatResponsePayload(inputValue);
+
+    console.log('Input value:', inputValue);
+
+    // Directly update the state with the input string
+    setApiDetails(prev => prev.map(item =>
+      item.attribute === attribute ? { ...item, [key]: cleanInputValue } : item
+    ));
   };
 
   existingData = apiDetails;
@@ -872,6 +940,7 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
         <textarea id={`${attribute}-response-payload`}
           placeholder="Enter response payload details"
           defaultValue={existingData.responsePayload ? JSON.stringify(existingData.responsePayload[0]) : ''}
+          // defaultValue={existingData.responsePayload || ''}
           onChange={(e) => handleJsonChange(e, 'responsePayload', attribute)}>
         </textarea>
         <br />
