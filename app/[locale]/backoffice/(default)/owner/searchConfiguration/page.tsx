@@ -6,6 +6,7 @@ import { Button, IconButton, TextField } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useAuthJHipster } from "@/context/JHipsterContext"; // Import the context
 import { useTranslations } from 'next-intl';
+import { useModal } from '@/context/useModal';
 
 const AddProductCategoryPage = () => {
   const { jHipsterAuthToken } = useAuthJHipster(); // Get the token from context
@@ -33,10 +34,13 @@ const AddProductCategoryPage = () => {
   const [errorMessage, setErrorMessage] = useState(''); // State for error messages
   const [warningMessage, setWarningMessage] = useState('');
   const [notificationMessage, setNotificationMessage] = useState('');
+
   // Function to clear error messages
   const clearError = () => setErrorMessage('');
   const [recommendation, setRecommendation] = useState(false);
-  console.log("result", searchableRelationFields)
+  const { showModal } = useModal();
+
+
   const handleHeaderChange = (index, field, value, attribute) => {
     const updatedHeaders = apiDetails.headers.map((header, idx) => {
       if (idx === index) {
@@ -521,7 +525,9 @@ const AddProductCategoryPage = () => {
             }
           }
         );
-        setNotificationMessage('Update successful!');
+        // setNotificationMessage('Update successful!');
+        showModal('success', 'Update successful!');
+        console.log('update here')
         // console.log('Update successful', response);
       } else {
         // If no data, create a new entry
@@ -805,28 +811,10 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
   };
 
   const handleJsonChange = (e, key, attribute) => {
-    // try {
-    //   console.log('e.target.value', e.target.value);
-    //   const parsedJson = JSON.parse(e.target.value);
-    //   setApiDetails(prev =>
-    //     prev.map(item =>
-    //       item.attribute === attribute
-    //         ? { ...item, [key]: [parsedJson] }
-    //         : item
-    //     )
-    //   )
-    //   setError('');
-    // } catch (error) {
-    //   setError('Invalid JSON format');
-    // }
-
-
     const inputValue = e.target.value;
-    // const cleanInputValue = formatResponsePayload(inputValue);
 
     console.log('Input value:2', inputValue);
 
-    // Directly update the state with the input string
     setApiDetails(prev => prev.map(item =>
       item.attribute === attribute ? { ...item, [key]: inputValue } : item
     ));
