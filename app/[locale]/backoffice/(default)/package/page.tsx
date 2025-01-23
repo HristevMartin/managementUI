@@ -299,30 +299,33 @@ const Package = () => {
     categoryProducts.push({
       category: "Flight",
       type: "External",
-      details: {
-        start_date: formData.startDate || "",
-        end_date: formData.endDate || "",
-        origin: formData.origin || "",
-        destination: formData.destination || "",
-        time: formData.createdAt || "",
-      },
+      details: [
+        {
+          outbound: outboundFlights.flights?.[0],
+        },
+        {
+          inbound: inboundFlights.flights?.[0],
+        }
+      ],
     });
+
+    console.log('in here the categoryProducts', categoryProducts);
 
     categoryProducts.push({
       category: "Hotel",
       type: "Internal",
-      details: {
+      details: [{
         hotelId: selectedProduct?.id || "",
         roomId: selectedRoom?.id || "",
-      },
+      }],
     });
 
     categoryProducts.push({
       category: "Addons",
       type: "Internal",
-      details: {
+      details: [{
         id: selectedAncillary?.id || "",
-      },
+      }],
     });
 
 
@@ -340,8 +343,8 @@ const Package = () => {
     );
 
     console.log('show me the updatedFormData', updatedFormData);
-    // Store the updated form data
-    // setSubmittedData(updatedFormData);
+
+    // uncomment this
     const resp = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING_SEARCH}/packages`, {
       method: 'POST',
       headers: {
@@ -351,7 +354,7 @@ const Package = () => {
     });
 
     if (!resp.ok) {
-      showModal("error", 'Please try again lates');
+      showModal("error", 'Please try again later');
       console.error('Error:', resp.statusText);
       return;
     }
@@ -558,23 +561,27 @@ const Package = () => {
   }
 
 
-  function selectedCardOutbound(flightId: string, fareType: string, isOutbound: boolean) {
-    console.log('here ee')
+  function selectedCardOutbound(flightEvent: any, isOutbound: boolean) {
+    let flightId = flightEvent.flight_id;
+    let fareType = flightEvent.fare_type;
+    let price = flightEvent.price;
+
     if (isOutbound) {
       setLoadingOutbound(true);
       const filteredOutboundFlights = outboundFlights.flights.filter((flight: any) => {
-        if (flight?.flight_id === flightId && flight?.fare_type === fareType) {
+        if (flight?.flight_id === flightId && flight?.fare_type === fareType && flight?.price === price) {
           return flight;
         }
       })
-      console.log('show me the filteredOutboundFlights', filteredOutboundFlights);
+
+      console.log('idnsandashd asfilteredOutboundFlights', filteredOutboundFlights);
       setOutboundFlights({ flights: filteredOutboundFlights });
       setSelectedOutboundCard(true);
       handleInboundOutboundChange('inbound');
       setLoadingOutbound(false);
     } else {
       const filteredInboundFlights = inboundFlights.flights.filter((flight: any) => {
-        if (flight?.flight_id === flightId && flight?.fare_type === fareType) {
+        if (flight?.flight_id === flightId && flight?.fare_type === fareType && flight?.price === price) {
           return flight;
         }
       })
@@ -789,46 +796,49 @@ const Package = () => {
                           <h3 className="text-md font-semibold mt-3 mb-4">Outbound Flights</h3>
                           <ul className="space-y-6">
                             {outboundFlights.flights.map((flight, index) => (
-                              <li
-                                key={index}
-                                className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg  border border-grey-500"
-                              >
-                                <div className="space-y-3">
-                                  <div className="text-lg font-medium text-gray-900">
-                                    <strong>Carrier:</strong> {flight.carrier}
+                              <div>
+                                {console.log('show me the flight information', flight)}
+                                <li
+                                  key={index}
+                                  className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg  border border-grey-500"
+                                >
+                                  <div className="space-y-3">
+                                    <div className="text-lg font-medium text-gray-900">
+                                      <strong>Carrier:</strong> {flight.carrier}
+                                    </div>
+                                    <div className="text-sm text-gray-700">
+                                      <strong>Origin:</strong> {flight.origin}
+                                    </div>
+                                    <div className="text-sm text-gray-700">
+                                      <strong>Destination:</strong> {flight.destination}
+                                    </div>
+                                    <div className="text-sm text-gray-700">
+                                      <strong>Departure:</strong> {flight.departure_time}
+                                    </div>
+                                    <div className="text-sm text-gray-700">
+                                      <strong>Arrival:</strong> {flight.arrival_time}
+                                    </div>
+                                    <div className="text-sm text-gray-700">
+                                      <strong>Fare Type:</strong> {flight.fare_type}
+                                    </div>
+                                    <div className="text-l font-bold text-black-500">
+                                      <strong>Price:</strong> ${flight.price}
+                                    </div>
+                                    <button type="button"
+                                      style={{
+                                        border: '1px solid black', borderRadius: '6px', padding: '6px 12px', fontWeight: 'bold', marginTop: '10px',
+                                        ...(selectedOutboundCard ? { backgroundColor: 'grey' } : '')
+                                      }}
+                                      disabled={selectedOutboundCard ? true : false}
+                                      onClick={() => selectedCardOutbound(flight, true)}
+                                    >
+                                      {
+                                        selectedOutboundCard ? 'Selected' : 'Select'
+                                      }
+                                    </button>
                                   </div>
-                                  <div className="text-sm text-gray-700">
-                                    <strong>Origin:</strong> {flight.origin}
-                                  </div>
-                                  <div className="text-sm text-gray-700">
-                                    <strong>Destination:</strong> {flight.destination}
-                                  </div>
-                                  <div className="text-sm text-gray-700">
-                                    <strong>Departure:</strong> {flight.departure_time}
-                                  </div>
-                                  <div className="text-sm text-gray-700">
-                                    <strong>Arrival:</strong> {flight.arrival_time}
-                                  </div>
-                                  <div className="text-sm text-gray-700">
-                                    <strong>Fare Type:</strong> {flight.fare_type}
-                                  </div>
-                                  <div className="text-l font-bold text-black-500">
-                                    <strong>Price:</strong> ${flight.price}
-                                  </div>
-                                  <button type="button"
-                                    style={{
-                                      border: '1px solid black', borderRadius: '6px', padding: '6px 12px', fontWeight: 'bold', marginTop: '10px',
-                                      ...(selectedOutboundCard ? { backgroundColor: 'grey' } : '')
-                                    }}
-                                    disabled={selectedOutboundCard ? true : false}
-                                    onClick={() => selectedCardOutbound(flight?.flight_id, flight?.fare_type, true)}
-                                  >
-                                    {
-                                      selectedOutboundCard ? 'Selected' : 'Select'
-                                    }
-                                  </button>
-                                </div>
-                              </li>
+                                </li>
+                              </div>
                             ))}
                           </ul>
                         </div>
@@ -906,7 +916,7 @@ const Package = () => {
                                   border: '1px solid black', borderRadius: '6px', padding: '6px 12px', fontWeight: 'bold', marginTop: '10px',
                                   ...(inboundFlightSelected ? { backgroundColor: 'grey' } : '')
                                 }}
-                                  onClick={() => selectedCardOutbound(flight?.flight_id, flight?.fare_type, false)}
+                                  onClick={() => selectedCardOutbound(flight, false)}
                                 >
                                   {
                                     inboundFlightSelected ? 'Selected' : 'Select'
