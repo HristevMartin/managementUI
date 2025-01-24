@@ -3,14 +3,26 @@
 import React, { useState } from 'react';
 import './login.css';
 import { loginUser } from '@/services/userService';
-import { signIn } from 'next-auth/react';
+import { signIn, useSession } from 'next-auth/react';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from "next/navigation";
+import { auth } from '@/auth';
 
-const Login: React.FC = ({params}: any) => {
+const Login: React.FC = ({ params }: any) => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
-  
+
   const lang = params.locale;
+  const router = useRouter();
+
+  const { data: session } = useSession();
+  console.log("session", session);
+  const userId = session?.user?.id;
+
+  if (userId) {
+    router.push(`/${lang}/backoffice/management`);
+  }
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>): Promise<void> => {
     event.preventDefault();
@@ -88,7 +100,7 @@ const Login: React.FC = ({params}: any) => {
           </div>
         </div>
       </div>
- 
+
     </div>
   );
 };
