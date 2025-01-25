@@ -42,6 +42,7 @@ const Package = () => {
     packageName: "",
     tags: "",
     description: "",
+    imageUrl: "",
     origin: "LHR",
     destination: "CDG",
     startDate: "",
@@ -662,7 +663,19 @@ const Package = () => {
             />
           </div>
 
-          <div></div>
+          <div>
+            <label className="block text-lg font-medium mb-2">
+              Package Image Url:
+            </label>
+            <input
+              type="text"
+              name="imageUrl"
+              value={formData.imageUrl}
+              onChange={handleInputChange}
+              required
+              className="w-full p-2 border border-gray-300 rounded-md"
+            />
+          </div>
 
           <div>
             <label
