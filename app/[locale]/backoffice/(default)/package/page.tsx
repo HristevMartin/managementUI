@@ -28,7 +28,7 @@ const Package = () => {
   const [roomData, setroomData] = useState([]);
   const [selectedHotelId, setSelectedHotelId] = useState([]);
   const [selectedHotelRooms, setSelectedHotelRooms] = useState([]);
-  const [outboundFlights, setOutboundFlights] = useState({ flights: [] });
+  let [outboundFlights, setOutboundFlights] = useState({ flights: [] });
   const [inboundFlights, setInboundFlights] = useState({ flights: [] });
   const [selectedRoom, setSelectedRoom] = useState(null);
   let [searchCriteria, setSearchCriteria] = useState({});
@@ -40,6 +40,7 @@ const Package = () => {
   const [inboundFlightSelected, setInboundFlightSelected] = useState(false);
   const [formData, setFormData] = useState({
     packageName: "",
+    tags: "",
     description: "",
     origin: "LHR",
     destination: "CDG",
@@ -277,6 +278,7 @@ const Package = () => {
       [name]: value,
     };
 
+    console.log('show me the updatedFormData', updatedFormData);
     // Update the state
     setFormData(updatedFormData);
 
@@ -363,6 +365,7 @@ const Package = () => {
     // clear the form data
     setFormData({
       packageName: "",
+      tags: "",
       description: "",
       origin: "LHR",
       destination: "CDG",
@@ -481,6 +484,7 @@ const Package = () => {
 
 
         // Call fetchOutboundFlights with the searchCriteria
+
         await fetchOutboundFlights(searchCriteria);
       } catch (error) {
         console.error("Error fetching outbound flights:", error);
@@ -530,7 +534,7 @@ const Package = () => {
 
     // Add outbound flight price if available
     if (
-      outboundFlights.flights.length > 0
+      outboundFlights?.flights.length > 0
     ) {
       console.log('i was here222 outboundFlights.flights[0].price', outboundFlights.flights[0].price)
       totalPrice += Number(outboundFlights.flights[0].price) || 0;
@@ -590,6 +594,17 @@ const Package = () => {
     }
   }
 
+  console.log('outboundFlights', outboundFlights);
+
+  // temp solution for multiple outbound cards being rendered after we select a card
+  if (outboundFlights?.flights?.length > 1 && selectedOutboundCard) {
+    // Set the flights array to a new array containing only the first element
+    outboundFlights.flights = [outboundFlights.flights[0]];
+  }
+
+  console.log('inboundFlights', inboundFlights);
+
+
   return (
     <div className="flex justify-center w-[98vw] mt-10">
       <div style={{ width: '40%' }} className="mb-10 max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg border border-gray-300 rounded-md">
@@ -614,6 +629,27 @@ const Package = () => {
             />
           </div>
 
+          {/*Tags  */}
+          <div>
+            <label className="block text-lg font-medium mb-2">
+              Tags
+            </label>
+            <select
+              name="tags"
+              value={formData.tags}
+              onChange={handleInputChange}
+              required
+              className="w-full p-2 border border-gray-300 rounded-md"
+            >
+              <option value="">Select a tag</option>
+              <option value="lastMinute">Last Minute Offer</option>
+              <option value="vacationBeach">Vacation Beach</option>
+              <option value="romanticHoliday">Couple Holiday</option>
+            </select>
+          </div>
+
+
+
           {/* Description */}
           <div>
             <label className="block text-lg font-medium mb-2">Description:</label>
@@ -625,6 +661,8 @@ const Package = () => {
               className="w-full p-2 border border-gray-300 rounded-md"
             />
           </div>
+
+          <div></div>
 
           <div>
             <label
@@ -797,7 +835,6 @@ const Package = () => {
                           <ul className="space-y-6">
                             {outboundFlights.flights.map((flight, index) => (
                               <div>
-                                {console.log('show me the flight information', flight)}
                                 <li
                                   key={index}
                                   className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg  border border-grey-500"
