@@ -348,7 +348,7 @@ const Package = () => {
     console.log('show me the updatedFormData', updatedFormData);
 
     // uncomment this
-    const resp = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING_SEARCH}/packages`, {
+    const resp = await fetch(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING_SEARCH}/api/packages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
