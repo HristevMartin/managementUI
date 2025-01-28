@@ -40,7 +40,7 @@ export default async function RootLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <html title="sample" lang={lang}>
+      <html lang={lang}>
         {/* <head>
           <title>{metadata?.title}</title>
           <meta name="description" content={metadata.description} />
