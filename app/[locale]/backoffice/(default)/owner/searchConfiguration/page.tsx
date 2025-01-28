@@ -428,8 +428,9 @@ const AddProductCategoryPage = () => {
     let responsePayload = entityData?.responsePayload ? entityData.responsePayload : {};
 
     // remove the backslashes from the responsePayload
-    responsePayload = responsePayload.replace(/\\+"/g, '"').replace(/([^\\])\\([^\\])/g, '$1$2');
-    console.log('show me the responsePayload', responsePayload)
+    if (typeof responsePayload === 'string') {
+      responsePayload = responsePayload.replace(/\\/g, '').replace(/([^\\])\\([^\\])/g, '$1$2');
+    }
 
     // const responsePayload = entityData?.responsePayload ? btoa(entityData?.responsePayload || '') : {};
 
