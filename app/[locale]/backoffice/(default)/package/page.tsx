@@ -10,9 +10,9 @@ import { useAuthJHipster } from "@/context/JHipsterContext";
 import './page.css'
 import { set } from "react-datepicker/dist/date_utils";
 import { useModal } from "@/context/useModal";
+import { mapIataCodeToCity } from "@/services/mapIataCodeToCity";
 
 const Package = () => {
-  const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedAncillary, setSelectedAncillary] = useState(null);
   const [ancillary, setAncillary] = useState([]);
   const [error, setError] = useState(null);
@@ -56,19 +56,25 @@ const Package = () => {
   const [outboundSelectedFlight, setOutboundSelectedFlights] = useState(true);
   const { jHipsterAuthToken } = useAuthJHipster();
   const [totalPrice, setTotalPrice] = useState(0);
+  let [outboundFlightFiltered, setOutboundFlightFiltered] = useState<any>({});
+  const [airportData, setAirportData] = useState<any>({});
+  const [airportDataList, setAirportDataList] = useState<any>([]);
+  const [destinationCity, setDestinationCity] = useState('');
+
+
 
   const { showModal } = useModal();
 
-
   useEffect(() => {
     if (submittedData) {
-      console.log('being called here')
       setTotalPrice(0);
     } else {
       setTotalPrice(calculateTotalPrice());
     }
 
   }, [outboundFlights, inboundFlights, selectedRoom, selectedAncillary, submittedData]);
+
+  console.log('formData is', formData);
 
   useEffect(() => {
     const fetchCategoryData = async () => {
@@ -89,6 +95,8 @@ const Package = () => {
     fetchCategoryData();
   }, [jHipsterAuthToken]);
 
+  console.log('show me the destinationCity', destinationCity);
+  console.group('show me the airportData', airportData);
 
   useEffect(() => {
     const fetchAirports = async () => {
@@ -108,6 +116,11 @@ const Package = () => {
 
       const airportsData = await requestResponse.json();
 
+      let [airportMap, airportList] = mapIataCodeToCity(airportsData);
+      setAirportDataList(airportList);
+      setAirportData(airportMap);
+
+      console.log('airports is here', airportsData);
       setAirports(airportsData);
 
       if (airportsData.length > 0) {
@@ -147,6 +160,17 @@ const Package = () => {
 
   }, [jHipsterAuthToken]);
 
+  function filterHotelsByCity(hotelData: any, city: string) {
+    let filteredHotelData = hotelData.filter((obj: any) => obj?.city?.name === city);
+    console.log('show me the filteredHotelData', filteredHotelData);
+    return filteredHotelData;
+  }
+
+  useEffect(() => {
+    console.log('show me this', airportData[formData.destination]);
+    setDestinationCity(airportData[formData.destination]);
+  }, [formData.destination])
+
 
   useEffect(() => {
     if (!selectedCategory) return;
@@ -157,11 +181,14 @@ const Package = () => {
       if (!jHipsterAuthToken) return;
 
       try {
-        const response = await pluraldata(selectedCategory, jHipsterAuthToken);
+        let response = await pluraldata(selectedCategory, jHipsterAuthToken);
         if (selectedCategory === "Hotel") {
-          console.log('show me the selectedCategory', selectedCategory, response);
+          response = filterHotelsByCity(response, destinationCity);
           setProductType(response);
         } else if (selectedCategory === "Ancillary") {
+          console.log('show me the response for anciliraries', response);
+          response = filterHotelsByCity(response, destinationCity);
+          console.log('12331223 anciliraries', response);
           setAncillary(response);
         }
 
@@ -231,8 +258,8 @@ const Package = () => {
   }, [formData]);
 
 
-  let modifyFlightPayload = (searchPayload) => {
-    console.log("searchPayload", searchPayload);
+  let modifyFlightPayload = (searchPayload: any, direction: string) => {
+    console.log("searchPayload1", searchPayload);
 
     let modifiedCriteria = {
       entityName: "Schedule",
@@ -252,8 +279,6 @@ const Package = () => {
     const selectedCategory = event.target.value;
     setSelectedCategory(selectedCategory);
 
-    const selectedValues = [selectedCategory];
-    setSelectedCategories(selectedValues);
 
     if (selectedCategory === "Schedule" && view === "EXTERNAL") {
       setInboundFlights({ flights: [] });
@@ -367,6 +392,7 @@ const Package = () => {
     setFormData({
       packageName: "",
       tags: "",
+      imageUrl: "",
       description: "",
       origin: "LHR",
       destination: "CDG",
@@ -386,7 +412,6 @@ const Package = () => {
 
 
   useEffect(() => {
-    console.log('in here but not goooo', selectedCategory, view);
     if (selectedCategory === "Schedule" && view === "EXTERNAL") {
       handleInboundOutboundChange('outbound');
     }
@@ -476,15 +501,12 @@ const Package = () => {
 
         // Define the fetchOutboundFlights function here
         const fetchOutboundFlights = async (searchCriteria: any) => {
-          let modifiedPayload = modifyFlightPayload(searchCriteria);
+          let modifiedPayload = modifyFlightPayload(searchCriteria, "outbound");
           console.log("modifiedPayload outbound", modifiedPayload);
-
+          console.log('its calling here')
           let outboundResponse = await getSearchData(modifiedPayload);
           setOutboundFlights(outboundResponse);
         };
-
-
-        // Call fetchOutboundFlights with the searchCriteria
 
         await fetchOutboundFlights(searchCriteria);
       } catch (error) {
@@ -492,22 +514,21 @@ const Package = () => {
       }
     } else if (selectedValue === "inbound") {
       // If the selected value is 'Inbound', apply the below logic
-      console.log('it goes here', selectedValue);
       setLoadingInbound(true);
       try {
         // Define the fetchInboundFlights function here
-        const fetchInboundFlights = async (searchCriteria) => {
-          let modifiedPayload = modifyFlightPayload(searchCriteria);
+        const fetchInboundFlights = async (searchCriteria: any) => {
+          let modifiedPayload = modifyFlightPayload(searchCriteria, "inbound");
           console.log("modifiedPayload intbound", modifiedPayload);
 
           // Swap origin and destination for inbound flights
           let temp = modifiedPayload.queryParameters.origin;
           modifiedPayload.queryParameters.origin = searchCriteria.destination;
           modifiedPayload.queryParameters.destination = temp;
+          modifiedPayload.queryParameters.departureDate = searchCriteria.endDate;
 
           let inboundResponseData = await getSearchData(modifiedPayload);
           setFinalInbondproducts(inboundResponseData);
-          console.log("inboundResponseData", inboundResponseData);
           setInboundFlights(inboundResponseData);
 
         };
@@ -566,24 +587,28 @@ const Package = () => {
   }
 
 
+
   function selectedCardOutbound(flightEvent: any, isOutbound: boolean) {
     let flightId = flightEvent.flight_id;
     let fareType = flightEvent.fare_type;
     let price = flightEvent.price;
 
     if (isOutbound) {
-      setLoadingOutbound(true);
-      const filteredOutboundFlights = outboundFlights.flights.filter((flight: any) => {
+      let filteredOutboundFlights = outboundFlights.flights.filter((flight: any) => {
         if (flight?.flight_id === flightId && flight?.fare_type === fareType && flight?.price === price) {
           return flight;
         }
       })
 
-      console.log('idnsandashd asfilteredOutboundFlights', filteredOutboundFlights);
-      setOutboundFlights({ flights: filteredOutboundFlights });
+      if (filteredOutboundFlights.length > 1) {
+        filteredOutboundFlights = [filteredOutboundFlights[0]];
+      }
+
+
+      setOutboundFlights(prev => ({ ...prev, flights: filteredOutboundFlights }));
+      setOutboundFlightFiltered({ flights: filteredOutboundFlights });
       setSelectedOutboundCard(true);
       handleInboundOutboundChange('inbound');
-      setLoadingOutbound(false);
     } else {
       const filteredInboundFlights = inboundFlights.flights.filter((flight: any) => {
         if (flight?.flight_id === flightId && flight?.fare_type === fareType && flight?.price === price) {
@@ -595,15 +620,19 @@ const Package = () => {
     }
   }
 
-  console.log('outboundFlights', outboundFlights);
+
+
+  let b = 6
 
   // temp solution for multiple outbound cards being rendered after we select a card
-  if (outboundFlights?.flights?.length > 1 && selectedOutboundCard) {
-    // Set the flights array to a new array containing only the first element
-    outboundFlights.flights = [outboundFlights.flights[0]];
-  }
+  // if (outboundFlights?.flights?.length > 1 && selectedOutboundCard) {
+  //   // Set the flights array to a new array containing only the first element
+  //   outboundFlights.flights = [outboundFlights.flights[0]];
+  // }
 
   console.log('inboundFlights', inboundFlights);
+  console.log('outboundFlights', outboundFlights);
+  console.log('outboundFlightFiltered', outboundFlightFiltered);
 
 
   return (
@@ -838,60 +867,123 @@ const Package = () => {
                       </div>
                     )}
 
-                    {/* Display Outbound Flights if selectedValue is "outbound" */}
+                    {/* Display Outbound Flights if selectedValue is "outbound"  This needs to be refactored!!!*/}
                     {outboundSelectedFlight &&
                       outboundFlights.flights &&
                       outboundFlights.flights.length > 0 &&
+                      outboundFlightFiltered.flights &&
+                      outboundFlightFiltered.flights.length > 0 ?
                       (
                         <div>
                           <h3 className="text-md font-semibold mt-3 mb-4">Outbound Flights</h3>
                           <ul className="space-y-6">
-                            {outboundFlights.flights.map((flight, index) => (
-                              <div>
-                                <li
-                                  key={index}
-                                  className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg  border border-grey-500"
-                                >
-                                  <div className="space-y-3">
-                                    <div className="text-lg font-medium text-gray-900">
-                                      <strong>Carrier:</strong> {flight.carrier}
+                            {outboundFlightFiltered.flights.map((flight, index) => (
+                              <>
+                                {console.log('going here now')}
+                                <div>
+                                  <li
+                                    key={index}
+                                    className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg  border border-grey-500"
+                                  >
+                                    <div className="space-y-3">
+                                      <div className="text-lg font-medium text-gray-900">
+                                        <strong>Carrier:</strong> {flight.carrier}
+                                      </div>
+                                      <div className="text-sm text-gray-700">
+                                        <strong>Origin:</strong> {flight.origin}
+                                      </div>
+                                      <div className="text-sm text-gray-700">
+                                        <strong>Destination:</strong> {flight.destination}
+                                      </div>
+                                      <div className="text-sm text-gray-700">
+                                        <strong>Departure:</strong> {flight.departure_time}
+                                      </div>
+                                      <div className="text-sm text-gray-700">
+                                        <strong>Arrival:</strong> {flight.arrival_time}
+                                      </div>
+                                      <div className="text-sm text-gray-700">
+                                        <strong>Fare Type:</strong> {flight.fare_type}
+                                      </div>
+                                      <div className="text-l font-bold text-black-500">
+                                        <strong>Price:</strong> ${flight.price}
+                                      </div>
+                                      <button type="button"
+                                        style={{
+                                          border: '1px solid black', borderRadius: '6px', padding: '6px 12px', fontWeight: 'bold', marginTop: '10px',
+                                          ...(selectedOutboundCard ? { backgroundColor: 'grey' } : '')
+                                        }}
+                                        disabled={selectedOutboundCard ? true : false}
+                                        onClick={() => selectedCardOutbound(flight, true)}
+                                      >
+                                        {
+                                          selectedOutboundCard ? 'Selected' : 'Select'
+                                        }
+                                      </button>
                                     </div>
-                                    <div className="text-sm text-gray-700">
-                                      <strong>Origin:</strong> {flight.origin}
-                                    </div>
-                                    <div className="text-sm text-gray-700">
-                                      <strong>Destination:</strong> {flight.destination}
-                                    </div>
-                                    <div className="text-sm text-gray-700">
-                                      <strong>Departure:</strong> {flight.departure_time}
-                                    </div>
-                                    <div className="text-sm text-gray-700">
-                                      <strong>Arrival:</strong> {flight.arrival_time}
-                                    </div>
-                                    <div className="text-sm text-gray-700">
-                                      <strong>Fare Type:</strong> {flight.fare_type}
-                                    </div>
-                                    <div className="text-l font-bold text-black-500">
-                                      <strong>Price:</strong> ${flight.price}
-                                    </div>
-                                    <button type="button"
-                                      style={{
-                                        border: '1px solid black', borderRadius: '6px', padding: '6px 12px', fontWeight: 'bold', marginTop: '10px',
-                                        ...(selectedOutboundCard ? { backgroundColor: 'grey' } : '')
-                                      }}
-                                      disabled={selectedOutboundCard ? true : false}
-                                      onClick={() => selectedCardOutbound(flight, true)}
-                                    >
-                                      {
-                                        selectedOutboundCard ? 'Selected' : 'Select'
-                                      }
-                                    </button>
-                                  </div>
-                                </li>
-                              </div>
+                                  </li>
+                                </div>
+                              </>
                             ))}
                           </ul>
                         </div>
+                      )
+                      :
+                      (
+                        (
+                          <div>
+                            <h3 className="text-md font-semibold mt-3 mb-4">Outbound Flights</h3>
+                            <ul className="space-y-6">
+                              {outboundFlights.flights.map((flight, index) => (
+                                <>
+                                  {console.log('show me the index', index)}
+                                  {console.log('show me the flight213132312', flight)}
+                                  <div>
+                                    <li
+                                      key={index}
+                                      className="bg-white p-4 rounded-lg shadow-md transition-transform transform hover:scale-105 hover:shadow-lg  border border-grey-500"
+                                    >
+                                      <div className="space-y-3">
+                                        <div className="text-lg font-medium text-gray-900">
+                                          <strong>Carrier:</strong> {flight.carrier}
+                                        </div>
+                                        <div className="text-sm text-gray-700">
+                                          <strong>Origin:</strong> {flight.origin}
+                                        </div>
+                                        <div className="text-sm text-gray-700">
+                                          <strong>Destination:</strong> {flight.destination}
+                                        </div>
+                                        <div className="text-sm text-gray-700">
+                                          <strong>Departure:</strong> {flight.departure_time}
+                                        </div>
+                                        <div className="text-sm text-gray-700">
+                                          <strong>Arrival:</strong> {flight.arrival_time}
+                                        </div>
+                                        <div className="text-sm text-gray-700">
+                                          <strong>Fare Type:</strong> {flight.fare_type}
+                                        </div>
+                                        <div className="text-l font-bold text-black-500">
+                                          <strong>Price:</strong> ${flight.price}
+                                        </div>
+                                        <button type="button"
+                                          style={{
+                                            border: '1px solid black', borderRadius: '6px', padding: '6px 12px', fontWeight: 'bold', marginTop: '10px',
+                                            ...(selectedOutboundCard ? { backgroundColor: 'grey' } : '')
+                                          }}
+                                          disabled={selectedOutboundCard ? true : false}
+                                          onClick={() => selectedCardOutbound(flight, true)}
+                                        >
+                                          {
+                                            selectedOutboundCard ? 'Selected' : 'Select'
+                                          }
+                                        </button>
+                                      </div>
+                                    </li>
+                                  </div>
+                                </>
+                              ))}
+                            </ul>
+                          </div>
+                        )
                       )
                     }
 
