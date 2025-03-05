@@ -171,7 +171,7 @@ const HeaderManagement = () => {
       >
         <FontAwesomeIcon
           icon={isSidebarOpen ? faTimes : faBars}
-          className="icon-size"
+          className="icon-size closeButton text-black"
         />
       </button>
 
@@ -180,18 +180,18 @@ const HeaderManagement = () => {
         className={`sidebar ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"
           }`}
       >
-        <div className="flex h-full flex-col text-white">
+        <div className="flex h-full flex-col text-black">
 
           <div
-            className="border-b border-gray-700 p-5 "
-            style={{ backgroundColor: "#273a8a" }}
+            className="border-b border-gray-700 p-5 text-white "
+            style={{ backgroundColor: "#2c4044" }}
           >
-            <h3 className="welcome-div mobile-nav">Welcome</h3>
+            <h3 className="welcome-div mobile-nav text-white">Welcome</h3>
           </div>
 
           <nav
             className="mobile-nav flex-grow p-5"
-            style={{ backgroundColor: "#34313f" }}
+            style={{ backgroundColor: "#ffffff" }}
           >
             {links.map((link) => (
               <div key={link.name}>
@@ -253,7 +253,7 @@ const HeaderManagement = () => {
                   </>
                 ) : (
                   <Link href={link.url} passHref>
-                    <button className="mobile-button w-full p-2 text-left hover:text-gray-300 focus:outline-none focus:ring-2 focus:ring-white">
+                    <button className="mobile-button w-full p-2 text-left hover:text-[#00838b] focus:outline-none focus:ring-2 focus:ring-white">
                       {link.name}
                     </button>
                   </Link>
@@ -262,7 +262,7 @@ const HeaderManagement = () => {
             ))}
           </nav>
 
-          <div style={{maxWidth: '46%'}} className="locale-switcher-wrapper">
+          <div style={{ maxWidth: '46%' }} className="locale-switcher-wrapper">
             <LocaleSwitcher />
           </div>
 

@@ -52,15 +52,16 @@ const Login: React.FC = ({ params }: any) => {
   return (
     <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100vw' }}>
       <div className='login-form-container'>
-        <div className="login-form-smaller-laptop-screen rounded bg-white p-8 shadow-md">
+        <div className="login-form-smaller-laptop-screen rounded bg-[#F0F2F5] p-8 shadow-lg">
           <div className="form-wrapper">
-            <h1 className="mb-4 text-center text-xl font-bold">Login</h1>
+            <h1 className="mb-4 text-center text-4xl font-bold">Login</h1>
             <form style={{ color: 'black' }} onSubmit={handleLogin} className="space-y-4 text-black">
               <label htmlFor="email" className="block">
                 Email
                 <input
                   type="email"
                   id="email"
+                  placeholder="Please enter your email"
                   required
                   className="mt-1 w-full rounded border p-2"
                   value={email}
@@ -73,6 +74,7 @@ const Login: React.FC = ({ params }: any) => {
                 <input
                   type="password"
                   id="password"
+                  placeholder="Please enter your password"
                   required
                   className="mt-1 w-full rounded border p-2"
                   value={password}
@@ -84,13 +86,13 @@ const Login: React.FC = ({ params }: any) => {
               <div className="flex flex-col items-center">
                 <button
                   type="submit"
-                  className="mb-4 w-full rounded bg-blue-500 p-2 text-white transition-colors duration-200 hover:bg-blue-600"
+                  className="mb-4 w-full rounded bg-[#00B3BE] p-2 text-white transition-colors duration-200 hover:bg-[#00838b]"
                 >
                   Login
                 </button>
                 <a
                   href={`/${lang}/backoffice/register`}
-                  className="management-login-signup text-blue-500 no-underline hover:no-underline"
+                  className="management-login-signup text-[#00B3BE] no-underline hover:no-underline hover:text-[#00838b]"
                 >
                   Do not have an Account? Sign up now.
                 </a>

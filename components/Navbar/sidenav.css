@@ -8,9 +8,9 @@
   height: 100vh;
   left: 0;
   top: 0;
-  background-color: #34313f; 
+  background-color: #ffffff; 
   transform: translateX(-100%);
-  box-shadow: 4px 0 8px rgba(0, 0, 0, 0.5);
+  box-shadow: 4px 0 4px rgba(134, 132, 132, 0.5);
 }
 
 .sidebar-closed {
@@ -41,12 +41,16 @@
 
 .sidebar-open-button {
   left: 180px; 
-  color: #26242e;
+  color: #ffffff;
+}
+
+.sidebar-open-button .closeButton{
+  color:#ffffff;
 }
 
 .sidebar-closed-button {
   left: 0px;
-  color: #34313f;
+  color: red;
   padding-left: 10px;
 }
 

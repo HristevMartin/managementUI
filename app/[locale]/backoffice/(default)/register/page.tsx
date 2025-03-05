@@ -64,60 +64,65 @@ const Register: React.FC = ({ params }: any) => {
 
   return (
     <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100vw' }}>
-      <div className="bg-opacity-none flex h-[620px] flex-col items-center justify-center bg-gray-100 text-black login-form-container">
-        <div className="mt-20 rounded bg-white p-8 shadow-md">
-          <h1 className="mb-4 text-center text-xl font-bold">Register</h1>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <label htmlFor="email" className="block">
-              Email
+      <div className='login-form-container'>
+        <div className="login-form-smaller-laptop-screen rounded bg-[#F0F2F5] p-8 shadow-lg">
+          <div className="form-wrapper">
+            <h1 className="mb-4 text-center text-4xl font-bold">Register</h1>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <label htmlFor="email" className="block">
+                Email
               <input
-                type="email"
-                id="email"
-                required
-                className="mt-1 w-full rounded border p-2"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                autoComplete="off"
-              />
-              {errors.email && <div className="mt-1 text-xs text-red-500">{errors.email}</div>}
-            </label>
-            <label htmlFor="password" className="block">
-              Password
+                  type="email"
+                  id="email"
+                  placeholder="Please enter your email"
+                  required
+                  className="mt-1 w-full rounded border p-2"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="off"
+                />
+                {errors.email && <div className="mt-1 text-xs text-red-500">{errors.email}</div>}
+              </label>
+              <label htmlFor="password" className="block">
+                Password
               <input
-                type="password"
-                id="password"
-                required
-                className="mt-1 w-full rounded border p-2"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-              {errors.password && (
-                <div className="mt-1 text-xs text-red-500">{errors.password}</div>
-              )}
-            </label>
-            <label htmlFor="repeatPassword" className="block">
-              Repeat Password
+                  type="password"
+                  id="password"
+                  placeholder="Password"
+                  required
+                  className="mt-1 w-full rounded border p-2"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+                {errors.password && (
+                  <div className="mt-1 text-xs text-red-500">{errors.password}</div>
+                )}
+              </label>
+              <label htmlFor="repeatPassword" className="block">
+                Repeat Password
               <input
-                type="password"
-                id="repeatPassword"
-                required
-                className="mt-1 w-full rounded border p-2"
-                value={repeatPassword}
-                onChange={(e) => setRepeatPassword(e.target.value)}
-                autoComplete="new-password"
-              />
-              {errors.repeatPassword && (
-                <div className="mt-1 text-xs text-red-500">{errors.repeatPassword}</div>
-              )}
-            </label>
-            <button
-              type="submit"
-              className="w-full rounded bg-blue-500 p-2 text-white hover:bg-blue-600"
-            >
-              Register
+                  type="password"
+                  id="repeatPassword"
+                  placeholder="Confirm Password"
+                  required
+                  className="mt-1 w-full rounded border p-2"
+                  value={repeatPassword}
+                  onChange={(e) => setRepeatPassword(e.target.value)}
+                  autoComplete="new-password"
+                />
+                {errors.repeatPassword && (
+                  <div className="mt-1 text-xs text-red-500">{errors.repeatPassword}</div>
+                )}
+              </label>
+              <button
+                type="submit"
+                className="mb-4 w-full rounded bg-[#00B3BE] p-2 text-white transition-colors duration-200 hover:bg-[#00838b]"
+              >
+                Register
             </button>
-          </form>
+            </form>
+          </div>
         </div>
       </div>
     </div>
