@@ -12,7 +12,7 @@ const Home = async ({ params }: any) => {
   if (userId) {
     redirect(`/${lang}/backoffice/management`)
   } else {
-    redirect(`/${lang}/backoffice/login`)
+    redirect(`/${lang}/backoffice/welcome-login`)
   }
 };
 

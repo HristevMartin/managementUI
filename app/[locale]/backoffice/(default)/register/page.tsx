@@ -1,14 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import './register.css';
 import '../login/login.css';
 import { validateEmail, validatePassword } from '@/utils/validation';
 import { registerUser } from '@/services/userService';
 import '../login/login.css';
 
-const Register: React.FC = ({ params }: any) => {
+const Register: React.FC = ({ lang }: any) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
@@ -19,7 +19,6 @@ const Register: React.FC = ({ params }: any) => {
   });
 
   const router = useRouter();
-  const lang = params.locale;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -63,15 +62,15 @@ const Register: React.FC = ({ params }: any) => {
 
 
   return (
-    <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100vw' }}>
-      <div className='login-form-container'>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+      <div style={{ width: '100%' }} className='login-form-container'>
         <div className="login-form-smaller-laptop-screen rounded bg-[#F0F2F5] p-8 shadow-lg">
           <div className="form-wrapper">
             <h1 className="mb-4 text-center text-4xl font-bold">Register</h1>
             <form onSubmit={handleSubmit} className="space-y-4">
               <label htmlFor="email" className="block">
                 Email
-              <input
+                <input
                   type="email"
                   id="email"
                   placeholder="Please enter your email"
@@ -85,7 +84,7 @@ const Register: React.FC = ({ params }: any) => {
               </label>
               <label htmlFor="password" className="block">
                 Password
-              <input
+                <input
                   type="password"
                   id="password"
                   placeholder="Password"
@@ -101,7 +100,7 @@ const Register: React.FC = ({ params }: any) => {
               </label>
               <label htmlFor="repeatPassword" className="block">
                 Repeat Password
-              <input
+                <input
                   type="password"
                   id="repeatPassword"
                   placeholder="Confirm Password"
@@ -120,7 +119,7 @@ const Register: React.FC = ({ params }: any) => {
                 className="mb-4 w-full rounded bg-[#00B3BE] p-2 text-white transition-colors duration-200 hover:bg-[#00838b]"
               >
                 Register
-            </button>
+              </button>
             </form>
           </div>
         </div>

@@ -35,7 +35,7 @@ const HeaderManagement = () => {
   let lang = getCurrentLocale();
 
   const handleLogout = () => {
-    signOut({ redirect: true, callbackUrl: `/${locale}/backoffice/login` });
+    signOut({ redirect: true, callbackUrl: `/${locale}/backoffice/welcome-login` });
   };
 
   const sidebarRef = useRef(null);

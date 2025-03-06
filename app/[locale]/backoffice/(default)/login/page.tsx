@@ -8,16 +8,13 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter } from "next/navigation";
 import { auth } from '@/auth';
 
-const Login: React.FC = ({ params }: any) => {
+const Login: React.FC = ({ lang }: any) => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
-
-  const lang = params.locale;
   const router = useRouter();
 
   const { data: session } = useSession();
-  console.log("session", session);
   const userId = session?.user?.id;
 
   if (userId) {
@@ -50,8 +47,8 @@ const Login: React.FC = ({ params }: any) => {
   };
 
   return (
-    <div style={{ height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100vw' }}>
-      <div className='login-form-container'>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%'}}>
+      <div style={{ width: '100%'}} className='login-form-container'>
         <div className="login-form-smaller-laptop-screen rounded bg-[#F0F2F5] p-8 shadow-lg">
           <div className="form-wrapper">
             <h1 className="mb-4 text-center text-4xl font-bold">Login</h1>
