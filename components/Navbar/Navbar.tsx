@@ -38,12 +38,13 @@ const HeaderManagement = () => {
     signOut({ redirect: true, callbackUrl: `/${locale}/backoffice/welcome-login` });
   };
 
-  const sidebarRef = useRef(null);
-  const handleClickOutside = (event) => {
-    if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
-      toggleSidebar();
-    }
-  };
+  // const sidebarRef = useRef(null);
+
+  // const handleClickOutside = (event) => {
+  //   if (sidebarRef.current && !sidebarRef.current.contains(event.target)) {
+  //     toggleSidebar();
+  //   }
+  // };
 
   useEffect(() => {
     let allowedLinks = [];
@@ -142,21 +143,21 @@ const HeaderManagement = () => {
     }));
   };
 
-  useEffect(() => {
-    if (isSidebarOpen) {
-      document.addEventListener("mousedown", handleClickOutside);
-    } else {
-      document.removeEventListener("mousedown", handleClickOutside);
-    }
+  // useEffect(() => {
+  //   if (isSidebarOpen) {
+  //     document.addEventListener("mousedown", handleClickOutside);
+  //   } else {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   }
 
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isSidebarOpen]);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, [isSidebarOpen]);
 
   return (
     <>
-      <button
+      {/* <button
         onClick={toggleSidebar}
         className={`toggle-button ${isSidebarOpen ? "sidebar-open-button" : "sidebar-closed-button"
           }`}
@@ -165,10 +166,10 @@ const HeaderManagement = () => {
           icon={isSidebarOpen ? faTimes : faBars}
           className="icon-size closeButton text-black"
         />
-      </button>
+      </button> */}
 
       <div
-        ref={sidebarRef}
+        // ref={sidebarRef}
         className={`sidebar ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"
           }`}
       >
