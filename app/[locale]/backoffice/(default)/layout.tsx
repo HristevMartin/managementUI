@@ -7,6 +7,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import HeaderManagement from "@/components/Navbar/Navbar";
 import { usePathname } from "next/navigation";
+import Header from "./header/page";
 
 
 const inter = Inter({ subsets: ["latin"] });
@@ -37,6 +38,7 @@ export default function RootLayout({
           </div>
         )}
         <main className="px-4 sm:px-10 lg:px-12 2xl:mx-auto 2xl:px-0">
+          <div><Header /></div>
           {children}
         </main>
       </div>

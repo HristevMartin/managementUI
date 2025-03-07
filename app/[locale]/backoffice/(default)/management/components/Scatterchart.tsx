@@ -10,7 +10,7 @@ const data = [
 export default class Scatterchart extends PureComponent {
   render() {
     return (
-      <div>
+      <div className="bg-white bg-white border border-gray-300 shadow-inner p-3">
         <h2 className="mb-4 text-xl font-semibold">Passenger Distribution</h2>
         <ResponsiveContainer width="100%" height={300}>
           <ScatterChart
@@ -22,19 +22,19 @@ export default class Scatterchart extends PureComponent {
             }}
           >
             <CartesianGrid />
-            <XAxis 
-              type="number" 
-              dataKey="x" 
-              name="Category" 
-              ticks={[1, 2, 3]} 
+            <XAxis
+              type="number"
+              dataKey="x"
+              name="Category"
+              ticks={[1, 2, 3]}
               tickFormatter={(tick) => {
-                switch(tick) {
+                switch (tick) {
                   case 1: return 'Adult';
                   case 2: return 'Child';
                   case 3: return 'Infant';
                   default: return '';
                 }
-              }} 
+              }}
             />
             <YAxis type="number" dataKey="y" name="Count" />
             <Tooltip cursor={{ strokeDasharray: '3 3' }} />

@@ -34,9 +34,23 @@ const sample = () => {
 
   return (
     <div className="flex flex-col items-center">
-      <h1 style={{ textAlign: 'center' }} className="text-3xl mb-8">{localeWord}</h1>
+      <h1 style={{ textAlign: 'center' }} className="text-5xl mb-8">{localeWord}</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 w-full max-w-[1400px]">
+      <div className="pb-5 grid grid-cols-3 gap-4 w-full">
+        <div className="bg-white bg-white border border-gray-300 shadow-inner p-7 pt-1">
+          <h5 className="tracking-tight text-gray-900 text-sm row-span-3 items-center">Sign up in last 7 days</h5>
+          <p className="text-black row-span-4 text-5xl w-full text-center pt-4">4567</p>
+        </div>
+        <div className="bg-white bg-white border border-gray-300 shadow-inner p-7 pt-1">
+          <h5 className="tracking-tight text-gray-900 text-sm row-span-3 items-center">Revenue in last 7 days</h5>
+          <p className="text-black row-span-4 text-5xl w-full text-center pt-4">£7899</p>
+        </div>
+        <div className="bg-white bg-white border border-gray-300 shadow-inner p-7 pt-1">
+          <h5 className="tracking-tight text-gray-900 text-sm row-span-3 items-center">Visitors in last 7 days</h5>
+          <p className="text-black row-span-4 text-5xl w-full text-center pt-4">4567</p>
+        </div>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5 w-full max-w-[1400px]">
         <Linechart />
         <Barchart />
         <Piechart />

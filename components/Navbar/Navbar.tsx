@@ -62,22 +62,14 @@ const HeaderManagement = () => {
       }
       if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
-          name: "Products",
+          name: "Travel Services",
           url: "#",
           subLinks: [
+
             {
-              name: "Type Definition",
+              name: "Manage Services",
               subLinks: [
-                {
-                  name: "Product Type",
-                  url: `/${lang}/backoffice/owner/addInitialProductCategory`,
-                },
-              ],
-            },
-            {
-              name: "Manage Data",
-              subLinks: [
-                { name: "Add Product", url: `/${lang}/backoffice/owner/add-product` },
+                { name: "Create new service", url: `/${lang}/backoffice/owner/add-product` },
                 {
                   name: "Search Product",
                   url: `/${lang}/backoffice/owner/search-product`,
@@ -186,7 +178,7 @@ const HeaderManagement = () => {
             className="border-b border-gray-700 p-5 text-white "
             style={{ backgroundColor: "#2c4044" }}
           >
-            <h3 className="welcome-div mobile-nav text-white">Welcome</h3>
+            <h3 className="welcome-div mobile-nav text-white">Hello Jhon</h3>
           </div>
 
           <nav
