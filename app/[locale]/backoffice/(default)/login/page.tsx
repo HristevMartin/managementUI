@@ -47,8 +47,8 @@ const Login: React.FC = ({ lang }: any) => {
   };
 
   return (
-    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%'}}>
-      <div style={{ width: '100%'}} className='login-form-container'>
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+      <div style={{ width: '100%' }} className='login-form-container'>
         <div className="login-form-smaller-laptop-screen rounded bg-[#F0F2F5] p-8 shadow-lg">
           <div className="form-wrapper">
             <h1 className="mb-4 text-center text-4xl font-bold">Login</h1>
@@ -87,12 +87,13 @@ const Login: React.FC = ({ lang }: any) => {
                 >
                   Login
                 </button>
-                <a
+                {/* <a
                   href={`/${lang}/backoffice/register`}
                   className="management-login-signup text-[#00B3BE] no-underline hover:no-underline hover:text-[#00838b]"
                 >
                   Do not have an Account? Sign up now.
-                </a>
+                </a> */}
+                <br /><br /><br /><br />
               </div>
               {error && <div className="mt-1 text-xs text-red-500">{error}</div>}
             </form>
