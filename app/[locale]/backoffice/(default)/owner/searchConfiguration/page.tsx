@@ -176,12 +176,12 @@ const Index = () => {
   console.log('show me the responsePayload', responsePayload);
 
   return (
-    <div style={{width: '100vw'}} className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
-      <div className="max-w-5xl mx-auto">
+    <div style={{ width: '100vw' }} className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8 md:p-16">
+      <div className="max-w-7xl mx-auto">
         <Card className="shadow-xl border-gray-100 overflow-hidden">
-          <CardHeader className="border-b pb-4 bg-gradient-to-r from-blue-500 to-blue-600">
+          <CardHeader className="border-b pb-6 bg-gradient-to-r from-blue-500 to-blue-600">
             <div className="flex justify-between items-center">
-              <CardTitle className="text-2xl font-bold text-white">
+              <CardTitle className="text-3xl font-bold text-white">
                 External Configuration
               </CardTitle>
               <Button
@@ -189,17 +189,17 @@ const Index = () => {
                 size="sm"
                 className="rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all"
               >
-                <Settings className="h-4 w-4 mr-2" />
+                <Settings className="h-5 w-5 mr-2" />
                 Manage UI
               </Button>
             </div>
           </CardHeader>
-          <CardContent className="pt-8 space-y-8">
-            <div className="space-y-6">
+          <CardContent className="pt-10 space-y-10">
+            <div className="space-y-8">
               {/* Category Selection */}
-              <div className="space-y-3">
-                <Label htmlFor="category" className="text-base font-medium flex items-center">
-                  <Database className="h-4 w-4 mr-2 text-blue-500" />
+              <div className="space-y-4">
+                <Label htmlFor="category" className="text-lg font-medium flex items-center">
+                  <Database className="h-5 w-5 mr-3 text-blue-500" />
                   Select Category
                 </Label>
                 <Select value={category} onValueChange={setCategory}>
@@ -215,13 +215,13 @@ const Index = () => {
               </div>
 
               {/* Search Type Selection */}
-              <div className="space-y-3 bg-blue-50 p-6 rounded-lg border border-blue-100">
-                <Label className="text-base font-medium flex items-center">
-                  <Server className="h-4 w-4 mr-2 text-blue-500" />
+              <div className="space-y-4 bg-blue-50 p-8 rounded-lg border border-blue-100">
+                <Label className="text-lg font-medium flex items-center">
+                  <Server className="h-5 w-5 mr-3 text-blue-500" />
                   Type of Search
                 </Label>
-                <div className="flex space-x-6 mt-2">
-                  <div className="flex items-center space-x-2 hover:bg-white/60 p-2 rounded-md transition-colors cursor-pointer">
+                <div className="flex space-x-8 mt-3">
+                  <div className="flex items-center space-x-3 hover:bg-white/60 p-3 rounded-md transition-colors cursor-pointer">
                     <input
                       type="radio"
                       id="external"
@@ -229,11 +229,11 @@ const Index = () => {
                       value="external"
                       checked={searchType === "external"}
                       onChange={(e) => setSearchType(e.target.value)}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      className="h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
                     <Label htmlFor="external" className="font-normal text-gray-700 cursor-pointer">External</Label>
                   </div>
-                  <div className="flex items-center space-x-2 hover:bg-white/60 p-2 rounded-md transition-colors cursor-pointer">
+                  <div className="flex items-center space-x-3 hover:bg-white/60 p-3 rounded-md transition-colors cursor-pointer">
                     <input
                       type="radio"
                       id="searchEngine"
@@ -241,7 +241,7 @@ const Index = () => {
                       value="searchEngine"
                       checked={searchType === "searchEngine"}
                       onChange={(e) => setSearchType(e.target.value)}
-                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                      className="h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
                     <Label htmlFor="searchEngine" className="font-normal text-gray-700 cursor-pointer">Search Engine</Label>
                   </div>
@@ -250,7 +250,7 @@ const Index = () => {
 
               {/* Recommendation Option (only for searchEngine) */}
               {searchType === "searchEngine" && (
-                <div className="flex items-center space-x-2 ml-4 mt-2 p-3 bg-white rounded-md border border-gray-100 shadow-sm transition-all">
+                <div className="flex items-center space-x-3 ml-5 mt-3 p-4 bg-white rounded-md border border-gray-100 shadow-sm transition-all">
                   <Checkbox
                     id="recommendation"
                     checked={recommendation}
@@ -263,15 +263,15 @@ const Index = () => {
 
               {/* External API Configuration (only for external) */}
               {searchType === "external" && (
-                <div className="space-y-5 p-5 border rounded-lg shadow-md bg-white">
-                  <h3 className="font-semibold text-lg text-gray-800 flex items-center">
-                    <Code className="h-4 w-4 mr-2 text-blue-500" />
+                <div className="space-y-6 p-6 border rounded-lg shadow-md bg-white">
+                  <h3 className="font-semibold text-xl text-gray-800 flex items-center">
+                    <Code className="h-5 w-5 mr-3 text-blue-500" />
                     API Configuration
                   </h3>
 
-                  <div className="space-y-5">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="space-y-2">
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-3">
                         <Label htmlFor="url" className="text-gray-700">URL</Label>
                         <Input
                           id="url"
@@ -291,7 +291,7 @@ const Index = () => {
                         />
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-3">
                         <Label htmlFor="method" className="text-gray-700">HTTP Method</Label>
                         <Select onValueChange={(value) => {
                           // Update the external attribute with the method
@@ -316,7 +316,7 @@ const Index = () => {
                       </div>
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <Label className="text-gray-700">Headers</Label>
                         <Button
@@ -324,15 +324,15 @@ const Index = () => {
                           variant="outline"
                           size="sm"
                           onClick={addHeader}
-                          className="h-8 px-3 text-xs rounded-full border-blue-300 text-blue-600 hover:bg-blue-50"
+                          className="h-9 px-4 text-sm rounded-full border-blue-300 text-blue-600 hover:bg-blue-50"
                         >
-                          <PlusCircle className="h-3.5 w-3.5 mr-1" />
+                          <PlusCircle className="h-4 w-4 mr-2" />
                           Add Header
                         </Button>
                       </div>
 
                       {headers.map((header, index) => (
-                        <div key={index} className="flex items-center space-x-2 p-3 rounded-md bg-blue-50/50 border border-blue-100 animate-in fade-in duration-300">
+                        <div key={index} className="flex items-center space-x-3 p-4 rounded-md bg-blue-50/50 border border-blue-100 animate-in fade-in duration-300">
                           <Input
                             placeholder="Header Key"
                             value={header.key}
@@ -353,44 +353,44 @@ const Index = () => {
                             variant="ghost"
                             size="icon"
                             onClick={() => removeHeader(index)}
-                            className="h-8 w-8 text-red-500 hover:bg-red-50 rounded-full"
+                            className="h-9 w-9 text-red-500 hover:bg-red-50 rounded-full"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </Button>
                         </div>
                       ))}
                     </div>
 
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-3">
                         <Label htmlFor="payload" className="text-gray-700 flex items-center">
-                          <FileJson className="h-4 w-4 mr-2 text-blue-500" />
+                          <FileJson className="h-5 w-5 mr-3 text-blue-500" />
                           Payload
                         </Label>
                         {payload && (
                           isValidJSON(payload)
-                            ? <CheckCircle className="h-4 w-4 text-green-500" />
-                            : <AlertCircle className="h-4 w-4 text-red-500" />
+                            ? <CheckCircle className="h-5 w-5 text-green-500" />
+                            : <AlertCircle className="h-5 w-5 text-red-500" />
                         )}
                       </div>
                       <Textarea
                         id="payload"
                         placeholder="Enter payload details in JSON format"
-                        className={`min-h-[100px] border-gray-300 rounded-md font-mono text-sm ${payloadError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'}`}
+                        className={`min-h-[120px] border-gray-300 rounded-md font-mono text-sm ${payloadError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'}`}
                         value={payload}
                         onChange={(e) => validatePayload(e.target.value)}
                       />
                       {payloadError && (
-                        <Alert variant="destructive" className="py-2 bg-red-50 text-red-800 border-red-200">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription className="text-sm font-medium ml-2">
+                        <Alert variant="destructive" className="py-3 bg-red-50 text-red-800 border-red-200">
+                          <AlertCircle className="h-5 w-5" />
+                          <AlertDescription className="text-sm font-medium ml-3">
                             {payloadError}
                           </AlertDescription>
                         </Alert>
                       )}
                     </div>
 
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <Label className="text-gray-700">Response Parser</Label>
                         <Button
@@ -398,15 +398,15 @@ const Index = () => {
                           variant="outline"
                           size="sm"
                           onClick={addResponseParser}
-                          className="h-8 px-3 text-xs rounded-full border-blue-300 text-blue-600 hover:bg-blue-50"
+                          className="h-9 px-4 text-sm rounded-full border-blue-300 text-blue-600 hover:bg-blue-50"
                         >
-                          <PlusCircle className="h-3.5 w-3.5 mr-1" />
+                          <PlusCircle className="h-4 w-4 mr-2" />
                           Add Parser
                         </Button>
                       </div>
 
                       {responseParsers.map((parser, index) => (
-                        <div key={index} className="flex items-center space-x-2 p-3 rounded-md bg-blue-50/50 border border-blue-100 animate-in fade-in duration-300">
+                        <div key={index} className="flex items-center space-x-3 p-4 rounded-md bg-blue-50/50 border border-blue-100 animate-in fade-in duration-300">
                           <Input
                             placeholder="Parser Key"
                             value={parser.key}
@@ -427,35 +427,35 @@ const Index = () => {
                             variant="ghost"
                             size="icon"
                             onClick={() => removeResponseParser(index)}
-                            className="h-8 w-8 text-red-500 hover:bg-red-50 rounded-full"
+                            className="h-9 w-9 text-red-500 hover:bg-red-50 rounded-full"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                           </Button>
                         </div>
                       ))}
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <Label htmlFor="responsePayload" className="text-gray-700 flex items-center">
-                        <FileJson className="h-4 w-4 mr-2 text-blue-500" />
+                        <FileJson className="h-5 w-5 mr-3 text-blue-500" />
                         Response Payload
                       </Label>
                       {responsePayload && (
                         isValidJSON(responsePayload)
-                          ? <CheckCircle className="h-4 w-4 text-green-500" />
-                          : <AlertCircle className="h-4 w-4 text-red-500" />
+                          ? <CheckCircle className="h-5 w-5 text-green-500" />
+                          : <AlertCircle className="h-5 w-5 text-red-500" />
                       )}
                       <Textarea
                         id="responsePayload"
                         placeholder="Enter response payload details"
-                        className={`min-h-[100px] border-gray-300 rounded-md font-mono text-sm ${responsePayloadError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'}`}
+                        className={`min-h-[120px] border-gray-300 rounded-md font-mono text-sm ${responsePayloadError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'}`}
                         value={responsePayload}
                         onChange={(e) => validateResponsePayload(e.target.value)}
                       />
                       {responsePayloadError && (
-                        <Alert variant="destructive" className="py-2 bg-red-50 text-red-800 border-red-200">
-                          <AlertCircle className="h-4 w-4" />
-                          <AlertDescription className="text-sm font-medium ml-2">
+                        <Alert variant="destructive" className="py-3 bg-red-50 text-red-800 border-red-200">
+                          <AlertCircle className="h-5 w-5" />
+                          <AlertDescription className="text-sm font-medium ml-3">
                             {responsePayloadError}
                           </AlertDescription>
                         </Alert>
@@ -466,15 +466,15 @@ const Index = () => {
               )}
 
               {/* External Attributes Section */}
-              <div className="space-y-3">
-                <Label className="text-base font-medium flex items-center">
-                  <Settings className="h-4 w-4 mr-2 text-blue-500" />
+              <div className="space-y-4">
+                <Label className="text-lg font-medium flex items-center">
+                  <Settings className="h-5 w-5 mr-3 text-blue-500" />
                   External Configuration
                 </Label>
-                <div className="border rounded-lg p-4 max-h-[200px] overflow-y-auto shadow-sm bg-gradient-to-b from-white to-gray-50">
-                  <div className="space-y-2">
+                <div className="border rounded-lg p-5 max-h-[300px] overflow-y-auto shadow-sm bg-gradient-to-b from-white to-gray-50">
+                  <div className="space-y-3">
                     {categoryNames.map((attr) => (
-                      <div key={attr} className="flex items-center space-x-2 p-2 hover:bg-blue-50 rounded-md transition-colors">
+                      <div key={attr} className="flex items-center space-x-3 p-3 hover:bg-blue-50 rounded-md transition-colors">
                         <Checkbox
                           id={`attr-${attr}`}
                           value={attr}
@@ -503,30 +503,30 @@ const Index = () => {
               </div>
             </div>
           </CardContent>
-          <CardFooter className="flex justify-end space-x-4 border-t pt-5 bg-gray-50">
+          <CardFooter className="flex justify-end space-x-5 border-t pt-6 bg-gray-50">
             <Button
               variant="outline"
               type="button"
-              className="flex items-center gap-1 border-gray-300 hover:bg-gray-100"
+              className="flex items-center gap-2 border-gray-300 hover:bg-gray-100"
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="h-5 w-5" />
               Reset
             </Button>
             <Button
               variant="destructive"
               type="button"
-              className="flex items-center gap-1"
+              className="flex items-center gap-2"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-5 w-5" />
               Delete
             </Button>
             <Button
               type="button"
               onClick={handleSubmit}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 flex items-center gap-1"
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 flex items-center gap-2"
               disabled={searchType === 'external' && payload && !!payloadError}
             >
-              <Save className="h-4 w-4" />
+              <Save className="h-5 w-5" />
               Save
             </Button>
           </CardFooter>
