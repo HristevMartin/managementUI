@@ -171,12 +171,9 @@ const Index = () => {
     });
   };
 
-  console.log('show me the payload', payload);
-
-  console.log('show me the responsePayload', responsePayload);
 
   return (
-    <div style={{ width: '100vw' }} className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8 md:p-16">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8 md:p-16">
       <div className="max-w-7xl mx-auto">
         <Card className="shadow-xl border-gray-100 overflow-hidden">
           <CardHeader className="border-b pb-6 bg-gradient-to-r from-blue-500 to-blue-600">
@@ -184,14 +181,14 @@ const Index = () => {
               <CardTitle className="text-3xl font-bold text-white">
                 External Configuration
               </CardTitle>
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 className="rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all"
               >
                 <Settings className="h-5 w-5 mr-2" />
                 Manage UI
-              </Button>
+              </Button> */}
             </div>
           </CardHeader>
           <CardContent className="pt-10 space-y-10">
@@ -202,13 +199,15 @@ const Index = () => {
                   <Database className="h-5 w-5 mr-3 text-blue-500" />
                   Select Category
                 </Label>
-                <Select value={category} onValueChange={setCategory}>
-                  <SelectTrigger className="w-full rounded-md border-gray-300 shadow-sm hover:border-blue-400 transition-colors">
+                <Select value={category} onValueChange={setCategory} className="w-full">
+                  <SelectTrigger className="rounded-md border border-gray-300 shadow-sm hover:border-blue-400 transition-colors">
                     <SelectValue placeholder="Select a category" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="border border-gray-300 rounded-md shadow-lg z-10">
                     {categoryNames.map((name) => (
-                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                      <SelectItem key={name} value={name} className="hover:bg-blue-100 transition-colors">
+                        {name}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

@@ -75,7 +75,7 @@ import Table from '@/components/Table';
 import { Plus } from 'lucide-react';
 
 const Dashboard = () => {
-  
+
   // Animating entry of components
   useEffect(() => {
     const cards = document.querySelectorAll('.animate-fade-in-up');
@@ -90,62 +90,63 @@ const Dashboard = () => {
       <div className="container mx-auto px-4 py-8">
         <header className="mb-8 animate-fade-in-down flex justify-between items-center">
           <h1 className="text-3xl font-semibold text-gray-900">Sample Dashboard</h1>
-          <button 
+          <button
             className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md transition-colors"
           >
             <Plus size={16} />
             <span>Add Product</span>
           </button>
         </header>
-        
+
         {/* Stats Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          <StatCard 
-            label="Sign ups in last 7 days" 
-            value={2130} 
+          <StatCard
+            label="Sign ups in last 7 days"
+            value={2130}
             className="delay-100"
           />
-          <StatCard 
-            label="Revenue in last 7 days" 
-            value={4250} 
-            prefix="$" 
+          <StatCard
+            label="Revenue in last 7 days"
+            value={4250}
+            prefix="$"
             className="delay-200"
           />
-          <StatCard 
-            label="Visitors in last 7 days" 
-            value={4210} 
+          <StatCard
+            label="Visitors in last 7 days"
+            value={4210}
             className="delay-300"
           />
         </div>
-        
+
         {/* Charts Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-          <DashboardCard 
-            title="Revenue By Source" 
-            contentClassName="h-[300px]"
+          
+          <DashboardCard
+            title="Revenue By Source"
+            contentClassName="h-[380px]"
             className="delay-400"
           >
             <PieChart />
           </DashboardCard>
-          
-          <DashboardCard 
-            title="Monthly Sign Ups" 
-            contentClassName="h-[300px]"
+
+          <DashboardCard
+            title="Monthly Sign Ups"
+            contentClassName="h-[340px]"
             className="delay-500"
           >
             <LineChart />
           </DashboardCard>
-          
-          <DashboardCard 
-            title="Monthly Visitors by Source" 
+
+          <DashboardCard
+            title="Monthly Visitors by Source"
             contentClassName="h-[300px]"
             className="delay-600"
           >
             <BarChart />
           </DashboardCard>
-          
-          <DashboardCard 
-            title="Top Performing Support Agents" 
+
+          <DashboardCard
+            title="Top Performing Support Agents"
             contentClassName="h-[300px]"
             className="delay-700"
           >

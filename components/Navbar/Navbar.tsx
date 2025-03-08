@@ -170,8 +170,7 @@ const HeaderManagement = () => {
 
       <div
         // ref={sidebarRef}
-        className={`sidebar ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"
-          }`}
+        className={`sidebar ${isSidebarOpen ? "sidebar-open" : "sidebar-closed"} hidden sm:block`}
       >
         <div className="flex h-full flex-col text-black">
 

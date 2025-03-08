@@ -37,7 +37,7 @@ export default function RootLayout({
             <HeaderManagement />
           </div>
         )}
-        <main className="px-4 sm:px-10 lg:px-12 2xl:mx-auto 2xl:px-0 overflow-x-hidden">
+        <main style={{ width: '87%', marginLeft: 'auto' }} className="overflow-x-hidden">
           <div><Header /></div>
           {children}
         </main>
