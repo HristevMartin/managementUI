@@ -1,12 +1,11 @@
 'use client';
 
-
 import React, { useEffect, useState } from 'react';
-import AppLayout from '@/components/AppLayout';
 import { PlusCircle, Trash2, Settings, Save, RotateCcw, ChevronDown, Database, Server, Code, FileJson, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import axios from 'axios';
 import { useAuthJHipster } from '@/context/JHipsterContext';
+import { useModal } from '@/context/useModal';
 
 // Utility functions to validate JSON and create payload
 const isValidJSON = (str: string) => {
@@ -18,23 +17,34 @@ const isValidJSON = (str: string) => {
   }
 };
 
-// Simple function to create configuration payload
-const createConfigurationPayload = (
-  category: string,
-  searchType: string,
-  recommendation: boolean,
-  selectedAttributes: any[],
-  searchableAttributes: any[],
-  searchableRelationFields: any[]
-) => {
-  return {
-    category,
-    searchType,
-    recommendation,
-    selectedAttributes,
-    searchableAttributes,
-    searchableRelationFields
-  };
+// Format response payload to handle template parts
+const formatResponsePayload = (inputValue) => {
+  // Initially assume the input is a straightforward JSON string
+  let formattedValue = inputValue;
+
+  // Check and handle template parts
+  const templateRegex = /<#[^>]+>/g; // Adjust regex to accurately capture your template syntax
+  let match;
+  let lastIndex = 0;
+  let result = '';
+
+  while ((match = templateRegex.exec(inputValue)) !== null) {
+    // Add the part before the template, handling JSON escaping
+    const jsonPart = inputValue.substring(lastIndex, match.index);
+    result += jsonPart.replace(/\\(["\\])/g, '$1'); // Unescape JSON-specific characters
+
+    // Add the template part unchanged
+    result += match[0];
+    lastIndex = templateRegex.lastIndex;
+  }
+
+  // Handle the last part of the string after the final template, if any
+  if (lastIndex < inputValue.length) {
+    const jsonPart = inputValue.substring(lastIndex);
+    result += jsonPart.replace(/\\(["\\])/g, '$1');
+  }
+
+  return result;
 };
 
 const ExternalConfiguration = () => {
@@ -52,22 +62,36 @@ const ExternalConfiguration = () => {
   const [responsePayloadError, setResponsePayloadError] = useState("");
   const { jHipsterAuthToken } = useAuthJHipster();
   const [categoryNames, setCategoryNames] = useState([]);
+  const [attributes, setAttributes] = useState([]);
+  const [searchableAttributes, setSearchableAttributes] = useState([]);
+  const [relatedAttributes, setRelatedAttributes] = useState({});
+  const [searchableRelationFields, setSearchableRelationFields] = useState([]);
+  const [isDataPresent, setIsDataPresent] = useState(false);
+  const [existingData, setExistingData] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
+  const [warningMessage, setWarningMessage] = useState('');
+  const [notificationMessage, setNotificationMessage] = useState('');
+  const { showModal } = useModal ? useModal() : { showModal: () => {} };
 
+  // Add this debugging useEffect to see what's happening with searchType
+  useEffect(() => {
+    console.log("Current searchType:", searchType);
+  }, [searchType]);
 
-
-
+  // Fetch category names on component mount
   useEffect(() => {
     const fetchCategoryNames = async () => {
       try {
         const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-names-list`, {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
+            Authorization: `Bearer ${jHipsterAuthToken}`
           }
         });
         setCategoryNames(response.data);
       } catch (error) {
         console.error("Error fetching category names", error);
+        setErrorMessage("Error fetching category names");
       }
     };
 
@@ -76,168 +100,408 @@ const ExternalConfiguration = () => {
     }
   }, [jHipsterAuthToken]);
 
-  const addHeader = () => {
-    setHeaders([...headers, { key: "", value: "" }]);
-  };
-
-  const removeHeader = (index: number) => {
-    setHeaders(headers.filter((_, i) => i !== index));
-  };
-
-  const addResponseParser = () => {
-    setResponseParsers([...responseParsers, { key: "", value: "" }]);
-  };
-
-  const removeResponseParser = (index: number) => {
-    setResponseParsers(responseParsers.filter((_, i) => i !== index));
-  };
-
-  const validatePayload = (value: string) => {
-    setPayload(value);
-    if (!value.trim()) {
+  // Check if data exists and fetch attributes when category changes
+  useEffect(() => {
+    if (category) {
+      // Reset form fields when category changes
+      setSearchType("");
+      setSelectedAttributes([]);
+      setSearchableAttributes([]);
+      setSearchableRelationFields([]);
+      setPayload("");
+      setResponsePayload("");
+      setHeaders([{ key: "", value: "" }]);
+      setResponseParsers([{ key: "", value: "" }]);
+      setWarningMessage("");
+      setNotificationMessage("");
       setPayloadError("");
-      return;
-    }
-
-    if (isValidJSON(value)) {
-      setPayloadError("");
-      // Update the selectedAttributes for the external attribute with the new payload
-      setSelectedAttributes(prev => {
-        return prev.map(attr => {
-          if (attr.attribute === 'external') {
-            return { ...attr, payload: value };
-          }
-          return attr;
-        });
-      });
-    } else {
-      setPayloadError("Invalid JSON format");
-    }
-  };
-
-  const validateResponsePayload = (value: string) => {
-    setResponsePayload(value);
-    if (!value.trim()) {
       setResponsePayloadError("");
-      return;
-    }
-
-    if (isValidJSON(value)) {
-      setResponsePayloadError("");
-      // Update the selectedAttributes for the external attribute with the new responsePayload
-      setSelectedAttributes(prev => {
-        return prev.map(attr => {
-          if (attr.attribute === 'external') {
-            return { ...attr, responsePayload: value };
-          }
-          return attr;
-        });
-      });
-    } else {
-      setResponsePayloadError("Invalid JSON format");
-    }
-  };
-
-  const handleSubmit = () => {
-    // Validate JSON payload before submission
-    if (searchType === 'external' && payload && !isValidJSON(payload)) {
-      setPayloadError("Cannot submit with invalid JSON payload");
-      return;
-    }
-
-    if (searchType === 'external' && responsePayload && !isValidJSON(responsePayload)) {
-      setResponsePayloadError("Cannot submit with invalid JSON response payload");
-      return;
-    }
-
-    // Create the final payload
-    const formData = createConfigurationPayload(
-      category,
-      searchType,
-      recommendation,
-      selectedAttributes.map(attr => ({
-        attribute: attr.attribute,
-        externalUrl: attr.externalUrl || '',
-        httpMethod: attr.httpMethod || '',
-        headers: attr.headers || [],
-        payload: attr.payload || '',
-        responsePayload: attr.responsePayload || '',
-        responseParser: attr.responseParser || []
-      })),
-      [], // searchableAttributes (empty in this demo)
-      [] // searchableRelationFields (empty in this demo)
-    );
-
-    console.log("Form submitted with data:", formData);
-    // Here you would typically send this data to your API
-  };
-
-  console.log('selectedAttributes are', selectedAttributes);
-
-  // Event handlers for Input components
-  const handleHeaderChange = (index: number, key: string, value: string) => {
-    const newHeaders = [...headers];
-    newHeaders[index] = { key, value };
-    setHeaders(newHeaders);
-
-    // Update the selectedAttributes with the headers
-    setSelectedAttributes(prev => {
-      return prev.map(attr => {
-        if (attr.attribute === 'external') {
-          return { ...attr, headers: newHeaders };
-        }
-        return attr;
-      });
-    });
-  };
-
-  const handleResponseParserChange = (index: number, key: string, value: string) => {
-    const newParsers = [...responseParsers];
-    newParsers[index] = { key, value };
-    setResponseParsers(newParsers);
-
-    // Update the selectedAttributes with the response parsers
-    setSelectedAttributes(prev => {
-      return prev.map(attr => {
-        if (attr.attribute === 'external') {
-          return { ...attr, responseParser: newParsers };
-        }
-        return attr;
-      });
-    });
-  };
-
-  // Update the searchType state handler to initialize the external attribute
-  const handleSearchTypeChange = (type: string) => {
-    setSearchType(type);
-    
-    // If external is selected, ensure we have an external attribute in selectedAttributes
-    if (type === "external") {
-      // Check if we already have an external attribute
-      const hasExternalAttr = selectedAttributes.some(attr => attr.attribute === 'external');
       
-      if (!hasExternalAttr) {
-        // Add the external attribute with initial empty values
-        setSelectedAttributes([...selectedAttributes, {
-          attribute: 'external',
-          externalUrl: '',
-          httpMethod: '',
-          headers: headers,
-          payload: payload,
-          responsePayload: responsePayload,
-          responseParser: responseParsers
-        }]);
+      // Then check if data exists and fetch attributes
+      checkIfDataPresent();
+      handleCategoryChange();
+    }
+  }, [category]);
+
+  // Fetch attributes for the selected category
+  useEffect(() => {
+    if (category) {
+      const fetchAttributes = async () => {
+        try {
+          const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${category}`, {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${jHipsterAuthToken}`
+            }
+          });
+
+          const data = response.data;
+          const newAttributes = data.fields.map(field => {
+            const [key, type, ...rest] = field.split(' ');
+            return {
+              key,
+              type,
+              required: rest.includes('required'),
+              unique: rest.includes('unique'),
+              validations: [],
+              isChecked: false,
+              relationships: []
+            };
+          });
+
+          // Add relationship fields as attributes
+          data.relationships.forEach(relationship => {
+            const match = relationship.relationshipFrom.match(/\{(.+?)\(/);
+            if (match) {
+              const relationshipField = match[1];
+              newAttributes.push({
+                key: relationshipField,
+                type: 'Relationship',
+                required: false,
+                unique: false,
+                validations: [],
+                isChecked: false,
+                relationships: [relationship.relationshipTo]
+              });
+            }
+          });
+
+          setAttributes(newAttributes);
+          setExternalAttributes(newAttributes);
+
+          // Fetch related attributes for all attributes
+          newAttributes.forEach(attr => {
+            if (attr.relationships && attr.relationships.length > 0) {
+              attr.relationships.forEach(async (relatedEntityName) => {
+                await fetchRelatedAttributes(relatedEntityName, attr.key);
+              });
+            }
+          });
+        } catch (error) {
+          setErrorMessage("Error fetching attributes");
+          console.error("Error fetching attributes", error);
+        }
+      };
+
+      if (jHipsterAuthToken) {
+        fetchAttributes();
       }
     }
+  }, [category, jHipsterAuthToken]);
+
+  // Fetch related attributes for relationship fields
+  const fetchRelatedAttributes = async (relatedEntityName, fieldName) => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${relatedEntityName}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jHipsterAuthToken}`
+        }
+      });
+      
+      const relatedData = response.data.fields.map(field => {
+        const [key, type, ...rest] = field.split(' ');
+        return {
+          key,
+          type,
+          required: rest.includes('required'),
+          unique: rest.includes('unique'),
+          validations: [],
+          isChecked: false
+        };
+      });
+
+      setRelatedAttributes(prev => ({ ...prev, [relatedEntityName]: relatedData }));
+
+      // Only add new searchableRelationFields if it does not already exist
+      setSearchableRelationFields(prevFields => {
+        const alreadyExists = prevFields.some(
+          field => field.fieldName === fieldName && field.relatedEntityName === relatedEntityName
+        );
+
+        if (!alreadyExists && relatedData.length > 0) {
+          return [
+            ...prevFields,
+            {
+              relatedEntityName: response?.data?.entityName,
+              fieldName: fieldName,
+              relatedFieldName: relatedData[0]?.key
+            }
+          ];
+        }
+        return prevFields;
+      });
+    } catch (error) {
+      console.error("Error fetching related attributes", error);
+    }
   };
 
-  // Update the URL input handler
-  const handleUrlChange = (url: string) => {
-    // Find if we have an external attribute
+  // Handle category change
+  const handleCategoryChange = async () => {
+    try {
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${category}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jHipsterAuthToken}`
+        }
+      });
+      const data = response.data;
+
+      const newAttributes = data.externalAttributesMetaData.map(attr => ({
+        key: attr.attributeName,
+        type: attr.type,
+        required: attr.required,
+        validations: attr.validations,
+        isChecked: data.externalAttributesMetaData.some(dataAttr => dataAttr.attributeName === attr.attributeName)
+      }));
+
+      setAttributes(newAttributes);
+      setExternalAttributes(newAttributes);
+    } catch (error) {
+      console.error("Error fetching attributes", error);
+      setAttributes([]);
+      setExternalAttributes([]);
+    }
+  };
+
+  // Check if configuration data already exists for this category
+  const checkIfDataPresent = async () => {
+    if (!category) return;
+    
+    try {
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${category}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jHipsterAuthToken}`
+          }
+        }
+      );
+      
+      const data = response.data;
+      setIsDataPresent(!!data);
+      
+      if (data) {
+        setExistingData(data);
+        
+        // Explicitly set the search type to ensure radio buttons are updated
+        if (data.entitySearchType) {
+          console.log("Setting search type from data:", data.entitySearchType);
+          // Normalize the search type to ensure consistent casing
+          const normalizedType = data.entitySearchType.toLowerCase() === "searchengine" 
+            ? "searchEngine" 
+            : data.entitySearchType;
+          setSearchType(normalizedType);
+        }
+        
+        // Set payload and responsePayload if they exist in the external entity metadata
+        if (data.externalEntityMetaData) {
+          if (data.externalEntityMetaData.payload) {
+            setPayload(typeof data.externalEntityMetaData.payload === 'string' 
+              ? data.externalEntityMetaData.payload 
+              : JSON.stringify(data.externalEntityMetaData.payload, null, 2));
+          }
+          
+          if (data.externalEntityMetaData.responsePayload) {
+            setResponsePayload(typeof data.externalEntityMetaData.responsePayload === 'string' 
+              ? data.externalEntityMetaData.responsePayload 
+              : JSON.stringify(data.externalEntityMetaData.responsePayload, null, 2));
+          }
+          
+          // Set headers if they exist
+          if (data.externalEntityMetaData.headers && data.externalEntityMetaData.headers.length > 0) {
+            setHeaders(data.externalEntityMetaData.headers);
+          }
+          
+          // Set response parsers if they exist
+          if (data.externalEntityMetaData.responseParser && data.externalEntityMetaData.responseParser.length > 0) {
+            setResponseParsers(data.externalEntityMetaData.responseParser);
+          }
+        }
+        
+        // Set selected attributes
+        const externalMetadata = data.externalEntityMetaData ? { ...data.externalEntityMetaData, attribute: 'external' } : null;
+        const attributesArray = data.externalAttributesMetaData || [];
+        setSelectedAttributes(externalMetadata ? [...attributesArray, externalMetadata] : attributesArray);
+        
+        setRecommendation(data.recommendation || false);
+        
+        // Handle related attributes
+        if (data.searchableRelationFields) {
+          const newRelatedAttributes = {};
+          const newExpandedAttributes = {};
+          
+          data.searchableRelationFields.forEach(field => {
+            if (field.relatedEntityName) {
+              if (!newRelatedAttributes[field.relatedEntityName]) {
+                newRelatedAttributes[field.relatedEntityName] = [];
+              }
+              newRelatedAttributes[field.relatedEntityName].push({
+                key: field.relatedFieldName,
+                selected: true
+              });
+              newExpandedAttributes[field.fieldName] = true;
+            }
+          });
+
+          // Merge with existing related attributes
+          setRelatedAttributes(prev => {
+            const merged = { ...prev };
+            Object.keys(newRelatedAttributes).forEach(entityName => {
+              if (!merged[entityName]) {
+                merged[entityName] = [];
+              }
+              newRelatedAttributes[entityName].forEach(newAttr => {
+                const existingAttr = merged[entityName].find(attr => attr.key === newAttr.key);
+                if (existingAttr) {
+                  existingAttr.selected = true;
+                } else {
+                  merged[entityName].push(newAttr);
+                }
+              });
+            });
+            return merged;
+          });
+
+          setExpandedAttributes(prev => ({ ...prev, ...newExpandedAttributes }));
+        }
+
+        // Set searchable attributes
+        if (data.searchableFields) {
+          setSearchableAttributes(data.searchableFields);
+        }
+
+        // Set searchable relation fields
+        if (data.searchableRelationFields) {
+          setSearchableRelationFields(data.searchableRelationFields);
+        }
+      }
+    } catch (error) {
+      console.error("Check data error", error);
+      setIsDataPresent(false);
+    }
+  };
+
+  // Handle attribute expansion for related attributes
+  const handleAttributeClick = (attribute) => {
+    const isExpanded = expandedAttributes[attribute.key];
+    setExpandedAttributes(prev => ({ ...prev, [attribute.key]: !isExpanded }));
+
+    if (!isExpanded && attribute.relationships && attribute.relationships.length > 0) {
+      attribute.relationships.forEach(async (relatedEntityName) => {
+        if (!relatedAttributes[relatedEntityName]) {
+          await fetchRelatedAttributes(relatedEntityName, attribute.key);
+        }
+      });
+    }
+  };
+
+  // Handle search type change
+  const handleSearchTypeChange = (type) => {
+    console.log("Setting search type to:", type);
+    setSearchType(type);
+    
+    if (type === 'external') {
+      setSelectedAttributes(prev => {
+        const externalAttribute = prev.find(attr => attr.attribute === 'external');
+        if (!externalAttribute) {
+          return [...prev, { 
+            attribute: 'external',
+            externalUrl: '',
+            httpMethod: '',
+            headers: headers,
+            payload: payload,
+            responsePayload: responsePayload,
+            responseParser: responseParsers
+          }];
+        }
+        return prev;
+      });
+    } else {
+      setSelectedAttributes(prev => prev.filter(attr => attr.attribute !== 'external'));
+    }
+  };
+
+  // Handle searchable attributes change
+  const handleSearchableAttributesChange = (e) => {
+    const { value, checked } = e.target;
+    setSearchableAttributes(prevState => {
+      if (checked) {
+        return [...prevState, value];
+      } else {
+        return prevState.filter(attr => attr !== value);
+      }
+    });
+  };
+
+  // Handle related attribute change
+  const handleRelatedAttributeChange = (checked, relAttr, attr) => {
+    if (checked) {
+      setSearchableRelationFields(prevFields => {
+        const alreadyExists = prevFields.some(field =>
+          field.fieldName === attr.key &&
+          field.relatedEntityName === attr.relationships[0] &&
+          field.relatedFieldName === relAttr.key
+        );
+        
+        if (!alreadyExists) {
+          return [
+            ...prevFields,
+            {
+              fieldName: attr.key,
+              relatedEntityName: attr.relationships[0],
+              relatedFieldName: relAttr.key
+            },
+          ];
+        }
+        return prevFields;
+      });
+    } else {
+      setSearchableRelationFields(prevFields =>
+        prevFields.filter(field =>
+          !(field.relatedFieldName === relAttr.key && field.fieldName === attr.key)
+        )
+      );
+    }
+  };
+
+  // Handle external attributes change
+  const handleExternalAttributesChange = (e) => {
+    const { value, checked } = e.target;
+    
+    setSelectedAttributes(prevState => {
+      if (checked) {
+        const existingAttribute = prevState.find(attr => attr.attribute === value || attr?.attributeName === value);
+        
+        if (existingAttribute) {
+          return prevState.map(attr =>
+            attr.attribute === value || attr?.attributeName === value
+              ? { ...attr, attribute: value }
+              : attr
+          );
+        }
+        
+        return [...prevState, {
+          attribute: value,
+          externalUrl: '',
+          httpMethod: '',
+          headers: [],
+          payload: '',
+          responsePayload: [],
+          responseParser: []
+        }];
+      } else {
+        return prevState.filter(attr => attr.attribute !== value);
+      }
+    });
+  };
+
+  // Handle URL change
+  const handleUrlChange = (url) => {
     const hasExternalAttr = selectedAttributes.some(attr => attr.attribute === 'external');
     
     if (hasExternalAttr) {
-      // Update the existing external attribute
       setSelectedAttributes(prev => {
         return prev.map(attr => {
           if (attr.attribute === 'external') {
@@ -247,7 +511,6 @@ const ExternalConfiguration = () => {
         });
       });
     } else {
-      // Create a new external attribute
       setSelectedAttributes([...selectedAttributes, {
         attribute: 'external',
         externalUrl: url,
@@ -260,8 +523,8 @@ const ExternalConfiguration = () => {
     }
   };
 
-  // Similar handler for HTTP method
-  const handleHttpMethodChange = (method: string) => {
+  // Handle HTTP method change
+  const handleHttpMethodChange = (method) => {
     const hasExternalAttr = selectedAttributes.some(attr => attr.attribute === 'external');
     
     if (hasExternalAttr) {
@@ -283,6 +546,335 @@ const ExternalConfiguration = () => {
         responsePayload: responsePayload,
         responseParser: responseParsers
       }]);
+    }
+  };
+
+  // Handle header changes
+  const handleHeaderChange = (index, field, value, attribute) => {
+    const updatedHeaders = [...headers];
+    if (index >= updatedHeaders.length) {
+      while (updatedHeaders.length <= index) {
+        updatedHeaders.push({ key: '', value: '' });
+      }
+    }
+    updatedHeaders[index] = { ...updatedHeaders[index], [field]: value };
+    setHeaders(updatedHeaders);
+
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === attribute) {
+          const attrHeaders = Array.isArray(attr.headers) ? [...attr.headers] : [];
+          if (index >= attrHeaders.length) {
+            while (attrHeaders.length <= index) {
+              attrHeaders.push({ key: '', value: '' });
+            }
+          }
+          attrHeaders[index] = { ...attrHeaders[index], [field]: value };
+          return { ...attr, headers: attrHeaders };
+        }
+        return attr;
+      });
+    });
+  };
+
+  // Handle response parser changes
+  const handleResponseParserChange = (index, field, value, attribute) => {
+    const updatedParsers = [...responseParsers];
+    if (index >= updatedParsers.length) {
+      while (updatedParsers.length <= index) {
+        updatedParsers.push({ key: '', value: '' });
+      }
+    }
+    updatedParsers[index] = { ...updatedParsers[index], [field]: value };
+    setResponseParsers(updatedParsers);
+
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === attribute) {
+          const attrParsers = Array.isArray(attr.responseParser) ? [...attr.responseParser] : [];
+          if (index >= attrParsers.length) {
+            while (attrParsers.length <= index) {
+              attrParsers.push({ key: '', value: '' });
+            }
+          }
+          attrParsers[index] = { ...attrParsers[index], [field]: value };
+          return { ...attr, responseParser: attrParsers };
+        }
+        return attr;
+      });
+    });
+  };
+
+  // Add a new header
+  const addHeader = () => {
+    setHeaders([...headers, { key: "", value: "" }]);
+    
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === 'external') {
+          const headers = Array.isArray(attr.headers) ? [...attr.headers, { key: '', value: '' }] : [{ key: '', value: '' }];
+          return { ...attr, headers };
+        }
+        return attr;
+      });
+    });
+  };
+
+  // Remove a header
+  const removeHeader = (index, attribute) => {
+    setHeaders(headers.filter((_, i) => i !== index));
+    
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === attribute) {
+          const headers = Array.isArray(attr.headers) 
+            ? attr.headers.filter((_, i) => i !== index)
+            : [];
+          return { ...attr, headers };
+        }
+        return attr;
+      });
+    });
+  };
+
+  // Add a new response parser
+  const addResponseParser = () => {
+    setResponseParsers([...responseParsers, { key: "", value: "" }]);
+    
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === 'external') {
+          const responseParser = Array.isArray(attr.responseParser) 
+            ? [...attr.responseParser, { key: '', value: '' }]
+            : [{ key: '', value: '' }];
+          return { ...attr, responseParser };
+        }
+        return attr;
+      });
+    });
+  };
+
+  // Remove a response parser
+  const removeResponseParser = (index, attribute) => {
+    setResponseParsers(responseParsers.filter((_, i) => i !== index));
+    
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === attribute) {
+          const responseParser = Array.isArray(attr.responseParser)
+            ? attr.responseParser.filter((_, i) => i !== index)
+            : [];
+          return { ...attr, responseParser };
+        }
+        return attr;
+      });
+    });
+  };
+
+  // Handle JSON payload validation
+  const validatePayload = (value) => {
+    setPayload(value);
+    if (!value.trim()) {
+      setPayloadError("");
+      return;
+    }
+
+    if (isValidJSON(value)) {
+      setPayloadError("");
+      setSelectedAttributes(prev => {
+        return prev.map(attr => {
+          if (attr.attribute === 'external') {
+            return { ...attr, payload: value };
+          }
+          return attr;
+        });
+      });
+    } else {
+      setPayloadError("Invalid JSON format");
+    }
+  };
+
+  // Handle JSON response payload validation
+  const validateResponsePayload = (value) => {
+    setResponsePayload(value);
+    if (!value.trim()) {
+      setResponsePayloadError("");
+      return;
+    }
+
+    if (isValidJSON(value)) {
+      setResponsePayloadError("");
+      setSelectedAttributes(prev => {
+        return prev.map(attr => {
+          if (attr.attribute === 'external') {
+            return { ...attr, responsePayload: value };
+          }
+          return attr;
+        });
+      });
+    } else {
+      setResponsePayloadError("Invalid JSON format");
+    }
+  };
+
+  // Create payload for submission
+  const createPayload = () => {
+    const relationFieldNames = searchableRelationFields.map(field => field.fieldName);
+
+    const externalAttributesMetaData = selectedAttributes
+      .map(attribute => {
+        if (attribute.attribute === 'external') return null;
+        return {
+          attributeName: attribute.attribute,
+          externalUrl: attribute.externalUrl || '',
+          httpMethod: attribute.httpMethod || '',
+          headers: attribute.headers?.filter(header => header.key && header.value) || [],
+          payload: attribute.payload || {},
+          responsePayload: attribute.responsePayload && Object.keys(attribute.responsePayload).length > 0 
+            ? attribute.responsePayload 
+            : {},
+          responseParser: attribute.responseParser?.filter(parser => parser.key && parser.value) || {}
+        };
+      }).filter(attribute => attribute !== null);
+
+    const entityData = selectedAttributes.find(e => e.attribute === 'external');
+    
+    // Ensure responsePayload is correctly set
+    let responsePayload = entityData?.responsePayload ? entityData.responsePayload : {};
+
+    // Remove backslashes from the responsePayload if it's a string
+    if (typeof responsePayload === 'string') {
+      responsePayload = responsePayload.replace(/\\/g, '').replace(/([^\\])\\([^\\])/g, '$1$2');
+    }
+
+    // Check if the searchType is 'searchEngine'
+    if (searchType === 'searchEngine') {
+      return {
+        entityName: category,
+        entitySearchType: searchType,
+        recommendation: recommendation,
+        searchableFields: searchableAttributes.filter(attr => !relationFieldNames.includes(attr)),
+        searchableRelationFields: searchableRelationFields,
+        externalAttributesMetaData: externalAttributesMetaData
+      };
+    }
+
+    // If it's not 'searchEngine', return the payload for external search
+    return {
+      entityName: category,
+      entitySearchType: searchType,
+      Searchable: searchableAttributes,
+      externalEntityMetaData: {
+        ...entityData,
+        headers: entityData?.headers?.filter(header => header.key && header.value) || [],
+        responseParser: entityData?.responseParser?.filter(parser => parser.key && parser.value) || [],
+        responsePayload: responsePayload
+      },
+      externalAttributesMetaData: externalAttributesMetaData
+    };
+  };
+
+  // Handle form submission
+  const handleSubmit = async () => {
+    // Validate JSON payload before submission
+    if (searchType === 'external' && payload !== undefined && payload !== null && payload !== '' && !isValidJSON(payload)) {
+      setPayloadError("Cannot submit with invalid JSON payload");
+      return;
+    }
+
+    if (searchType === 'external' && responsePayload !== undefined && responsePayload !== null && responsePayload !== '' && !isValidJSON(responsePayload)) {
+      setResponsePayloadError("Cannot submit with invalid JSON response payload");
+      return;
+    }
+
+    // Check if searchType is selected
+    if (!searchType) {
+      setWarningMessage('Please select a type of search before submitting.');
+      return;
+    }
+
+    // Clear any existing warning message
+    setWarningMessage('');
+
+    // Check for related attributes only if searchType is 'searchEngine'
+    if (searchType === 'searchEngine') {
+      const hasSelectedRelatedAttribute = searchableRelationFields.length > 0;
+      if (!hasSelectedRelatedAttribute) {
+        // Check if there are any related attributes available
+        const hasRelatedAttributes = attributes.some(attr =>
+          attr.relationships && attr.relationships.length > 0
+        );
+
+        if (hasRelatedAttributes) {
+          setWarningMessage('Please select at least one related attribute before submitting.');
+          return;
+        }
+      }
+    }
+
+    const submissionPayload = createPayload();
+    console.log("Payload being sent:", submissionPayload);
+
+    try {
+      if (isDataPresent) {
+        // If data exists, update it
+        const response = await axios.put(
+          `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/update-entity-search-configuration`,
+          submissionPayload,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${jHipsterAuthToken}`
+            }
+          }
+        );
+        if (showModal) {
+          showModal('success', 'Update successful!');
+        } else {
+          setNotificationMessage('Update successful!');
+        }
+      } else {
+        // If no data, create a new entry
+        const response = await axios.post(
+          `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/create-entity-search-configuration`,
+          submissionPayload,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${jHipsterAuthToken}`
+            }
+          }
+        );
+        setNotificationMessage('Submission successful!');
+      }
+    } catch (error) {
+      console.error("Submit/Update error", error);
+      setWarningMessage('An error occurred while submitting/updating. Please try again.');
+    }
+  };
+
+  // Handle deletion
+  const handleDelete = async () => {
+    try {
+      const response = await axios.delete(
+        `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/delete-entity-search-configuration/${category}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jHipsterAuthToken}`
+          }
+        }
+      );
+      setNotificationMessage('Deletion successful!');
+      // Reset form after deletion
+      setCategory("");
+      setSearchType("");
+      setSelectedAttributes([]);
+      setSearchableAttributes([]);
+      setSearchableRelationFields([]);
+    } catch (error) {
+      console.error("Delete error", error);
+      setWarningMessage('An error occurred while deleting. Please try again.');
     }
   };
 
@@ -330,10 +922,19 @@ const ExternalConfiguration = () => {
                   name="searchType"
                   value="external"
                   checked={searchType === "external"}
-                  onChange={(e) => handleSearchTypeChange(e.target.value)}
+                  onChange={() => {
+                    console.log("Setting to external");
+                    setSearchType("external");
+                  }}
                   className="h-4 w-4 text-indigo-600 border-gray-300"
                 />
-                <label htmlFor="external" className="text-sm text-gray-700">External</label>
+                <label 
+                  htmlFor="external" 
+                  className="text-sm text-gray-700 cursor-pointer"
+                  onClick={() => setSearchType("external")}
+                >
+                  External
+                </label>
               </div>
               <div className="flex items-center space-x-3">
                 <input
@@ -342,10 +943,19 @@ const ExternalConfiguration = () => {
                   name="searchType"
                   value="searchEngine"
                   checked={searchType === "searchEngine"}
-                  onChange={(e) => handleSearchTypeChange(e.target.value)}
+                  onChange={() => {
+                    console.log("Setting to searchEngine");
+                    setSearchType("searchEngine");
+                  }}
                   className="h-4 w-4 text-indigo-600 border-gray-300"
                 />
-                <label htmlFor="searchEngine" className="text-sm text-gray-700">Search Engine</label>
+                <label 
+                  htmlFor="searchEngine" 
+                  className="text-sm text-gray-700 cursor-pointer"
+                  onClick={() => setSearchType("searchEngine")}
+                >
+                  Search Engine
+                </label>
               </div>
             </div>
           </div>
@@ -382,6 +992,7 @@ const ExternalConfiguration = () => {
                       placeholder="Enter API URL"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       onChange={(e) => handleUrlChange(e.target.value)}
+                      defaultValue={selectedAttributes.find(attr => attr.attribute === 'external')?.externalUrl || ''}
                     />
                   </div>
 
@@ -391,6 +1002,7 @@ const ExternalConfiguration = () => {
                       id="method"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       onChange={(e) => handleHttpMethodChange(e.target.value)}
+                      defaultValue={selectedAttributes.find(attr => attr.attribute === 'external')?.httpMethod || ''}
                     >
                       <option value="">Select HTTP Method</option>
                       <option value="GET">GET</option>
@@ -415,14 +1027,14 @@ const ExternalConfiguration = () => {
                     </Button>
                   </div>
 
-                  {headers.map((header, index) => (
+                  {(selectedAttributes.find(attr => attr.attribute === 'external')?.headers || headers).map((header, index) => (
                     <div key={index} className="flex items-center space-x-3 p-3 rounded-md bg-gray-50 border border-gray-200">
                       <input
                         type="text"
                         placeholder="Header Key"
                         value={header.key}
                         onChange={(e) => {
-                          handleHeaderChange(index, e.target.value, header.value);
+                          handleHeaderChange(index, 'key', e.target.value, 'external');
                         }}
                         className="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
@@ -431,12 +1043,12 @@ const ExternalConfiguration = () => {
                         placeholder="Header Value"
                         value={header.value}
                         onChange={(e) => {
-                          handleHeaderChange(index, header.key, e.target.value);
+                          handleHeaderChange(index, 'value', e.target.value, 'external');
                         }}
                         className="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                       <button
-                        onClick={() => removeHeader(index)}
+                        onClick={() => removeHeader(index, 'external')}
                         className="p-1 text-red-500 hover:bg-red-50 rounded-full"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -466,6 +1078,7 @@ const ExternalConfiguration = () => {
                       }`}
                     value={payload}
                     onChange={(e) => validatePayload(e.target.value)}
+                    defaultValue={selectedAttributes.find(attr => attr.attribute === 'external')?.payload || ''}
                   />
                   {payloadError && (
                     <div className="p-3 bg-red-50 text-red-800 border border-red-200 rounded-md flex items-center">
@@ -490,14 +1103,14 @@ const ExternalConfiguration = () => {
                     </Button>
                   </div>
 
-                  {responseParsers.map((parser, index) => (
+                  {(selectedAttributes.find(attr => attr.attribute === 'external')?.responseParser || responseParsers).map((parser, index) => (
                     <div key={index} className="flex items-center space-x-3 p-3 rounded-md bg-gray-50 border border-gray-200">
                       <input
                         type="text"
                         placeholder="Parser Key"
                         value={parser.key}
                         onChange={(e) => {
-                          handleResponseParserChange(index, e.target.value, parser.value);
+                          handleResponseParserChange(index, 'key', e.target.value, 'external');
                         }}
                         className="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
@@ -506,12 +1119,12 @@ const ExternalConfiguration = () => {
                         placeholder="Parser Value"
                         value={parser.value}
                         onChange={(e) => {
-                          handleResponseParserChange(index, parser.key, e.target.value);
+                          handleResponseParserChange(index, 'value', e.target.value, 'external');
                         }}
                         className="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                       <button
-                        onClick={() => removeResponseParser(index)}
+                        onClick={() => removeResponseParser(index, 'external')}
                         className="p-1 text-red-500 hover:bg-red-50 rounded-full"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -534,6 +1147,7 @@ const ExternalConfiguration = () => {
                       }`}
                     value={responsePayload}
                     onChange={(e) => validateResponsePayload(e.target.value)}
+                    defaultValue={selectedAttributes.find(attr => attr.attribute === 'external')?.responsePayload || ''}
                   />
                   {responsePayloadError && (
                     <div className="p-3 bg-red-50 text-red-800 border border-red-200 rounded-md flex items-center">
@@ -541,6 +1155,59 @@ const ExternalConfiguration = () => {
                       <span className="text-sm font-medium">{responsePayloadError}</span>
                     </div>
                   )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Searchable Attributes Section (only for searchEngine) */}
+          {searchType === "searchEngine" && (
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-gray-700 flex items-center">
+                <Database className="h-4 w-4 mr-2 text-indigo-500" />
+                Select Searchable Attributes
+              </label>
+              <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto shadow-sm bg-white">
+                <div className="space-y-2">
+                  {attributes.map(attr => (
+                    <div key={attr.key}>
+                      <label onClick={() => handleAttributeClick(attr)} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
+                        <input
+                          type="checkbox"
+                          name="searchable-attributes"
+                          value={attr.key}
+                          checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
+                          onChange={handleSearchableAttributesChange}
+                          className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                        />
+                        <span className="text-sm text-gray-700">{attr.key.charAt(0).toUpperCase() + attr.key.slice(1)}</span>
+                      </label>
+                      {expandedAttributes[attr.key] && attr.relationships && attr.relationships.length > 0 && relatedAttributes[attr.relationships[0]] && (
+                        <div className="ml-6 mt-2 space-y-2 border-l-2 border-gray-200 pl-4">
+                          {relatedAttributes[attr.relationships[0]].map((relAttr) => (
+                            <label key={relAttr.key} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
+                              <input
+                                type="checkbox"
+                                name="related-attributes"
+                                value={relAttr.key}
+                                checked={relAttr.selected || searchableRelationFields.some(field =>
+                                  field.fieldName === attr.key &&
+                                  field.relatedEntityName === attr.relationships[0] &&
+                                  field.relatedFieldName === relAttr.key
+                                )}
+                                onChange={(e) => {
+                                  const { checked } = e.target;
+                                  handleRelatedAttributeChange(checked, relAttr, attr);
+                                }}
+                                className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                              />
+                              <span className="text-sm text-gray-700">{relAttr.key.charAt(0).toUpperCase() + relAttr.key.slice(1)}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -554,35 +1221,37 @@ const ExternalConfiguration = () => {
             </label>
             <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto shadow-sm bg-white">
               <div className="space-y-2">
-                {categoryNames.map((attr) => (
-                  <div key={attr} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
+                {externalAttributes.map((attr) => (
+                  <div key={attr.key} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
                     <input
                       type="checkbox"
-                      id={`attr-${attr}`}
-                      value={attr}
-                      onChange={(e) => {
-                        if (e.target.checked) {
-                          setSelectedAttributes([...selectedAttributes, {
-                            attribute: attr,
-                            externalUrl: '',
-                            httpMethod: '',
-                            headers: [],
-                            payload: '',
-                            responsePayload: '',
-                            responseParser: []
-                          }]);
-                        } else {
-                          setSelectedAttributes(selectedAttributes.filter(a => a.attribute !== attr));
-                        }
-                      }}
+                      id={`attr-${attr.key}`}
+                      value={attr.key}
+                      checked={selectedAttributes.some(a => a.attribute === attr.key || a?.attributeName === attr.key)}
+                      onChange={handleExternalAttributesChange}
                       className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
                     />
-                    <label htmlFor={`attr-${attr}`} className="text-sm text-gray-700">{attr}</label>
+                    <label htmlFor={`attr-${attr.key}`} className="text-sm text-gray-700">{attr.key.charAt(0).toUpperCase() + attr.key.slice(1)}</label>
                   </div>
                 ))}
               </div>
             </div>
           </div>
+
+          {/* Display warnings and notifications */}
+          {warningMessage && (
+            <div className="p-4 bg-yellow-50 text-yellow-800 border border-yellow-200 rounded-md flex items-center">
+              <AlertCircle className="h-5 w-5 mr-2" />
+              <span className="text-sm font-medium">{warningMessage}</span>
+            </div>
+          )}
+          
+          {notificationMessage && (
+            <div className="p-4 bg-green-50 text-green-800 border border-green-200 rounded-md flex items-center">
+              <CheckCircle className="h-5 w-5 mr-2" />
+              <span className="text-sm font-medium">{notificationMessage}</span>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end space-x-4 border-t p-6 bg-gray-50">
@@ -590,6 +1259,17 @@ const ExternalConfiguration = () => {
             variant="outline"
             type="button"
             className="gap-2"
+            onClick={() => {
+              setCategory("");
+              setSearchType("");
+              setSelectedAttributes([]);
+              setSearchableAttributes([]);
+              setSearchableRelationFields([]);
+              setPayload("");
+              setResponsePayload("");
+              setHeaders([{ key: "", value: "" }]);
+              setResponseParsers([{ key: "", value: "" }]);
+            }}
           >
             <RotateCcw className="h-4 w-4" />
             Reset
@@ -598,6 +1278,8 @@ const ExternalConfiguration = () => {
             variant="destructive"
             type="button"
             className="gap-2"
+            onClick={handleDelete}
+            disabled={!category}
           >
             <Trash2 className="h-4 w-4" />
             Delete
@@ -606,10 +1288,10 @@ const ExternalConfiguration = () => {
             type="button"
             onClick={handleSubmit}
             className="gap-2 bg-indigo-600 hover:bg-indigo-700"
-            disabled={searchType === 'external' && payload && !!payloadError}
+            disabled={!category || !searchType || (searchType === 'external' && payload && !!payloadError)}
           >
-            <Save className="h-4 w-4" />
-            Save
+            <Save className="h-4 w-4 text-white" />
+            <p className='text-white'>{isDataPresent ? 'Update' : 'Save'}</p>
           </Button>
         </div>
       </div>
