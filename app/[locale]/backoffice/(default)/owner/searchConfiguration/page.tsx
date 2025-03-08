@@ -1,942 +1,539 @@
-"use client";
-import React, { useState, useEffect } from 'react';
-import './page.css'; // Import the CSS file
-import axios from 'axios';
-import { Button, IconButton, TextField } from '@mui/material';
-import DeleteIcon from '@mui/icons-material/Delete';
-import { useAuthJHipster } from "@/context/JHipsterContext"; // Import the context
-import { useTranslations } from 'next-intl';
-import { useModal } from '@/context/useModal';
+'use client';
 
-const AddProductCategoryPage = () => {
-  const { jHipsterAuthToken } = useAuthJHipster(); // Get the token from context
-  const [category, setCategory] = useState('');
-  const [categoryNames, setCategoryNames] = useState([]);
-  const [searchType, setSearchType] = useState('');
-  const [selectedAttributes, setSelectedAttributes] = useState([]);
-  const [apiDetails, setApiDetails] = useState({
-    attribute: '',
-    externalUrl: '',
-    httpMethod: '',
-    headers: [],
-    payload: '',
-    responsePayload: [],
-    responseParser: []
-  });
-  const [isDataPresent, setIsDataPresent] = useState(false);
-  const [existingData, setExistingData] = useState(null);
-  const [attributes, setAttributes] = useState([]);
-  const [searchableAttributes, setSearchableAttributes] = useState([]);
-  const [externalAttributes, setExternalAttributes] = useState([]);
-  const [expandedAttributes, setExpandedAttributes] = useState({});
-  const [relatedAttributes, setRelatedAttributes] = useState({});
-  const [searchableRelationFields, setSearchableRelationFields] = useState([])
-  const [errorMessage, setErrorMessage] = useState(''); // State for error messages
-  const [warningMessage, setWarningMessage] = useState('');
-  const [notificationMessage, setNotificationMessage] = useState('');
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Separator } from "@/components/ui/separator";
+import { Checkbox } from "@/components/ui/checkbox";
+import { PlusCircle, Trash2, Settings, Save, RotateCcw, ChevronDown, Database, Server, Code, FileJson, AlertCircle, CheckCircle } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { isValidJSON, createConfigurationPayload } from "@/utils/utils";
+// import { isValidJSON, createConfigurationPayload } from "@//utils";
 
-  // Function to clear error messages
-  const clearError = () => setErrorMessage('');
+const Index = () => {
+  const [category, setCategory] = useState("");
+  const [searchType, setSearchType] = useState("");
   const [recommendation, setRecommendation] = useState(false);
-  const { showModal } = useModal();
+  const [externalAttributes, setExternalAttributes] = useState([]);
+  const [selectedAttributes, setSelectedAttributes] = useState([]);
+  const [expandedAttributes, setExpandedAttributes] = useState({});
+  const [headers, setHeaders] = useState([{ key: "", value: "" }]);
+  const [responseParsers, setResponseParsers] = useState([{ key: "", value: "" }]);
+  const [payloadError, setPayloadError] = useState("");
+  const [payload, setPayload] = useState("");
+  const [responsePayload, setResponsePayload] = useState("");
+  const [responsePayloadError, setResponsePayloadError] = useState("");
 
-
-  const handleHeaderChange = (index, field, value, attribute) => {
-    const updatedHeaders = apiDetails.headers.map((header, idx) => {
-      if (idx === index) {
-        return { ...header, [field]: value };
-      }
-      return header;
-    });
-    const findD = selectedAttributes.find(e => e.attribute === attribute).headers.map((header, idx) => {
-      if (idx === index) {
-        return { ...header, [field]: value };
-      }
-      return header;
-    });
-
-    setSelectedAttributes(prev => {
-      return prev.map(attr =>
-        attr.attribute === attribute ? { ...attr, headers: findD } : attr
-      );
-    });
-    setApiDetails((prev) => ({ ...prev, headers: updatedHeaders }));
-  };
-
-  const handleSearchableAttributesChange = (e) => {
-    const { value, checked } = e.target;
-    setSearchableAttributes(prevState => {
-      if (checked) {
-        return [...prevState, value];
-      } else {
-        return prevState.filter(attr => attr !== value);
-      }
-    });
-  };
-
-  const handleResponseParserChange = (index, field, value, attribute) => {
-    const updatedResponseParser = apiDetails.responseParser.map((responseParser, idx) => {
-      if (idx === index) {
-        return { ...responseParser, [field]: value };
-      }
-      return responseParser;
-    });
-
-    const findD = selectedAttributes.map(attr => {
-      if (attr.attribute === attribute) {
-        return {
-          ...attr,
-          responseParser: attr.responseParser.map((responseParser, idx) => {
-            if (idx === index) {
-              return { ...responseParser, [field]: value };
-            }
-            return responseParser;
-          })
-        };
-      }
-      return attr;
-    });
-
-    setSelectedAttributes(findD);
-    setApiDetails((prev) => ({ ...prev, responseParser: updatedResponseParser }));
-  };
-
-  const removeHeader = (index, attribute) => {
-    setSelectedAttributes(prev => {
-      return prev.map(attr => {
-        if (attr.attribute === attribute) {
-          return { ...attr, headers: attr.headers.filter((_, idx) => idx !== index) };
-        }
-        return attr;
-      });
-    });
-    setApiDetails((prev) => ({
-      ...prev,
-      headers: prev.headers.filter((_, idx) => idx !== index),
-    }));
-  };
-  const removeResponseParser = (index, attribute) => {
-    setSelectedAttributes(prev => {
-      return prev.map(attr => {
-        if (attr.attribute === attribute) {
-          return { ...attr, responseParser: attr.responseParser.filter((_, idx) => idx !== index) };
-        }
-        return attr;
-      });
-    });
-    setApiDetails((prev) => ({
-      ...prev,
-      responseParser: prev.responseParser.filter((_, idx) => idx !== index),
-    }));
-  };
-
-  useEffect(() => {
-    checkIfDataPresent();
-    handleCategoryChange();
-  }, [category]);
-
-
-  useEffect(() => {
-    const fetchCategoryNames = async () => {
-      try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-names-list`, {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
-          }
-        });
-        setCategoryNames(response.data);
-      } catch (error) {
-        setErrorMessage("Error fetching category names");
-        console.error("Error fetching category names", error);
-      }
-    };
-
-    if (jHipsterAuthToken) {
-      fetchCategoryNames();
-    }
-  }, [jHipsterAuthToken]);
-
-  useEffect(() => {
-    if (category) {
-      const fetchAttributes = async () => {
-        try {
-          const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${category}`, {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${jHipsterAuthToken}`
-            }
-          });
-
-          const data = response.data;
-          const newAttributes = data.fields.map(field => {
-            const [key, type, ...rest] = field.split(' ');
-            return {
-              key,
-              type,
-              required: rest.includes('required'),
-              unique: rest.includes('unique'),
-              validations: [],
-              isChecked: false,
-              relationships: [] // Store relationships for later use
-            };
-          });
-
-          // Add relationship fields as attributes
-          data.relationships.forEach(relationship => {
-            const match = relationship.relationshipFrom.match(/\{(.+?)\(/);
-            if (match) {
-              const relationshipField = match[1];
-              newAttributes.push({
-                key: relationshipField,
-                type: 'Relationship',
-                required: false,
-                unique: false,
-                validations: [],
-                isChecked: false,
-                relationships: [relationship.relationshipTo]
-              });
-            }
-          });
-
-          setAttributes(newAttributes);
-          setExternalAttributes(newAttributes);
-
-          // Fetch related attributes for all attributes
-          newAttributes.forEach(attr => {
-            if (attr.relationships.length > 0) {
-              attr.relationships.forEach(async (relatedEntityName) => {
-                await fetchRelatedAttributes(relatedEntityName, attr.key);
-              });
-            }
-          });
-        } catch (error) {
-          setErrorMessage("Error fetching attributes");
-
-          console.error("Error fetching attributes", error);
-        }
-      };
-
-      if (jHipsterAuthToken) {
-        fetchAttributes();
-      }
-    }
-  }, [category, jHipsterAuthToken]);
-
-  const handleAttributeClick = (attribute) => {
-    // Check if the attribute is currently expanded
-    const isExpanded = expandedAttributes[attribute.key];
-    console.log(attribute, " kk");
-    // Toggle the expanded state for the main attribute
-    setExpandedAttributes(prev => ({ ...prev, [attribute.key]: !isExpanded }));
-
-    // If the attribute is being expanded, fetch related attributes if necessary
-    if (!isExpanded && attribute.relationships.length > 0) {
-      // Fetch related attributes if expanding
-      attribute.relationships.forEach(async (relatedEntityName) => {
-        if (!relatedAttributes[relatedEntityName]) {
-          await fetchRelatedAttributes(relatedEntityName, attribute.key);
-        }
-      });
-    }
-  };
-
-  const fetchRelatedAttributes = async (relatedEntityName, fieldName) => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${relatedEntityName}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${jHipsterAuthToken}`
-        }
-      });
-      const relatedData = response.data.fields.map(field => {
-        const [key, type, ...rest] = field.split(' ');
-        return {
-          key,
-          type,
-          required: rest.includes('required'),
-          unique: rest.includes('unique'),
-          validations: [],
-          isChecked: false
-        };
-      });
-      console.log("result1", relatedEntityName)
-      console.log("result3", relatedData)
-
-      setRelatedAttributes(prev => ({ ...prev, [relatedEntityName]: relatedData }));
-      console.log("result2", relatedAttributes)
-      // Only add new searchableRelationFields if it does not already exist
-      setSearchableRelationFields(prevFields => {
-        const alreadyExists = prevFields.some(
-          field => field.fieldName === fieldName && field.relatedEntityName === relatedEntityName
-        );
-
-        if (!alreadyExists && relatedData.length > 0) {
-          return [
-            ...prevFields,
-            {
-              relatedEntityName: response?.data?.entityName,
-              fieldName: fieldName,
-              relatedFieldName: relatedData[0]?.key // Ensure valid relatedFieldName
-            }
-          ];
-        }
-        return prevFields;
-      });
-
-      console.log(searchableAttributes, relatedData, " entity name 8 pm");
-    } catch (error) {
-      console.error("Error fetching related attributes", error);
-    }
-  };
-  const handleCategoryChange = async (e) => {
-    // const { value } = e.target;
-    // setCategory(value);
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${value}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
-        }
-      });
-      const data = response.data;
-
-      const newAttributes = data.externalAttributesMetaData.map(attr => ({
-        key: attr.attributeName,
-        type: attr.type,
-        required: attr.required,
-        validations: attr.validations,
-        isChecked: data.externalAttributesMetaData.some(dataAttr => dataAttr.attributeName === attr.attributeName)
-      }));
-
-      setAttributes(newAttributes);
-      setExternalAttributes(newAttributes);
-    } catch (error) {
-      console.error("Error fetching attributes", error);
-      setAttributes([]);
-      setExternalAttributes([]);
-    }
-  };
-
-  const handleSearchTypeChange = (e) => {
-    const { value } = e.target;
-    setSearchType(value);
-    if (value === 'external') {
-      setSelectedAttributes(prev => {
-        const externalAttribute = prev.find(attr => attr.attribute === 'external');
-        if (!externalAttribute) {
-          return [...prev, { ...apiDetails, attribute: 'external' }];
-        }
-        return prev;
-      });
-    } else {
-      setSelectedAttributes(prev => prev.filter(attr => attr.attribute !== 'external'));
-    }
-  };
-
-
-  const handleRelatedAttributeChange = (checked, relAttr, attr) => {
-    if (checked) {
-      // Only add if it does not already exist
-      setSearchableRelationFields(prevFields => {
-        const alreadyExists = prevFields.some(field =>
-          field.fieldName === attr.key &&
-          field.relatedEntityName === attr.relationships[0] &&
-          field.relatedFieldName === relAttr.key
-        );
-        if (!alreadyExists) {
-          return [
-            ...prevFields,
-            {
-              fieldName: attr.key,
-              relatedEntityName: attr.relationships[0],
-              relatedFieldName: relAttr.key
-            },
-          ];
-        }
-        return prevFields; // No change if it already exists
-      });
-    } else {
-      // Remove the unchecked related attribute from searchableRelationFields
-      setSearchableRelationFields(prevFields =>
-        prevFields.filter(field =>
-          !(field.relatedFieldName === relAttr.key && field.fieldName === attr.key)
-        )
-      );
-    }
-  };
-
-
-  const handleExternalAttributesChange = (e) => {
-    const { value, checked } = e.target;
-    setSelectedAttributes(prevState => {
-      if (checked) {
-        const existingAttribute = prevState.find(attr => attr.attribute === value || attr?.attributeName === value);
-        if (existingAttribute) {
-          return prevState.map(attr =>
-            attr.attribute === value || attr?.attributeName === value
-              ? { ...attr, attribute: value }
-              : attr
-          );
-        }
-        return [...prevState, {
-          attribute: value,
-          externalUrl: '',
-          httpMethod: '',
-          headers: [],
-          payload: '',
-          responsePayload: [],
-          responseParser: []
-        }];
-      } else {
-        return prevState.filter(attr => attr.attribute !== value);
-      }
-    });
-  };
-
-  const resetApiDetails = () => {
-    setApiDetails({
-      externalUrl: '',
-      httpMethod: '',
-      headers: [],
-      payload: '',
-      responsePayload: [],
-      responseParser: []
-    });
-  };
-
-
-  const createPayload = () => {
-    const relationFieldNames = searchableRelationFields.map(field => field.fieldName);
-
-    const externalAttributesMetaData = selectedAttributes
-      .map(attribute => {
-        if (attribute.attribute === 'external') return null;
-        return {
-          attributeName: attribute.attribute,
-          externalUrl: attribute.externalUrl || '',
-          httpMethod: attribute.httpMethod || '',
-          headers: attribute.headers.filter(header => header.key && header.value) || [],
-          payload: attribute.payload || {},
-          responsePayload: attribute.responsePayload && Object.keys(attribute.responsePayload).length > 0 ? attribute.responsePayload : {},
-          responseParser: attribute.responseParser.filter(parser => parser.key && parser.value) || {}
-        };
-      }).filter(attribute => attribute !== null);
-
-    const entityData = selectedAttributes.find(e => e.attribute === searchType);
-    // Ensure responsePayload is correctly set
-    let responsePayload = entityData?.responsePayload ? entityData.responsePayload : {};
-
-    // remove the backslashes from the responsePayload
-    if (typeof responsePayload === 'string') {
-      responsePayload = responsePayload.replace(/\\/g, '').replace(/([^\\])\\([^\\])/g, '$1$2');
-    }
-
-    // const responsePayload = entityData?.responsePayload ? btoa(entityData?.responsePayload || '') : {};
-
-    // Check if the searchType is 'searchengine'
-    if (searchType === 'searchEngine') {
-      return {
-        entityName: category,
-        entitySearchType: searchType,
-        recommendation: recommendation,
-        searchableFields: searchableAttributes.filter(attr => !relationFieldNames.includes(attr)), // Filter out relation field names
-        searchableRelationFields: searchableRelationFields, // Keep this as is
-        externalAttributesMetaData: externalAttributesMetaData // No external attributes for search engine
-      };
-    }
-
-    // If it's not 'searchengine', return the payload for external search
-    let finalObj = {
-      entityName: category,
-      entitySearchType: searchType,
-      Searchable: searchableAttributes,
-      externalEntityMetaData: {
-        ...entityData,
-        headers: entityData.headers.filter(header => header.key && header.value),
-        responseParser: entityData.responseParser.filter(parser => parser.key && parser.value),
-        responsePayload: responsePayload
-      },
-      externalAttributesMetaData: externalAttributesMetaData
-    }
-
-    return finalObj;
-
-  };
-
-  const handleDelete = async () => {
-    try {
-      const response = await axios.delete(
-        `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/delete-entity-search-configuration/${category}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
-          }
-        }
-      );
-      console.log('Delete successful', response);
-      setNotificationMessage('Deletion successful!');
-    } catch (error) {
-      console.error("Delete error", error);
-    }
-  };
-  const handleSubmitOrUpdate = async () => {
-    // Check if searchType is selected
-    if (!searchType) {
-      setWarningMessage('Please select a type of search before submitting.');
-      return; // Prevent further execution
-    }
-
-    // Clear any existing warning message
-    setWarningMessage('');
-
-    // Check for related attributes only if searchType is 'searchEngine'
-    if (searchType === 'searchEngine') {
-      const hasSelectedRelatedAttribute = searchableRelationFields.length > 0;
-      if (!hasSelectedRelatedAttribute) {
-        // Check if there are any related attributes available
-        const hasRelatedAttributes = selectedAttributes.some(attr =>
-          attr.relationships && attr.relationships.length > 0
-        );
-
-        if (hasRelatedAttributes) {
-          setWarningMessage('Please select at least one related attribute before submitting.');
-          return;
-        }
-      }
-    }
-
-    const payload = createPayload();
-    console.log("Payload being sent:", payload);
-    // if (payload && payload.externalEntityMetaData && payload.externalEntityMetaData.responsePayload) {
-    //   payload.externalEntityMetaData.responsePayload = JSON.stringify(payload.externalEntityMetaData.responsePayload);
-    // }
-    try {
-      console.log('show me the payload', payload)
-      if (isDataPresent) {
-        // If data exists, update it
-        const response = await axios.put(
-          `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/update-entity-search-configuration`,
-          payload,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${jHipsterAuthToken}`
-            }
-          }
-        );
-        // setNotificationMessage('Update successful!');
-        showModal('success', 'Update successful!');
-        console.log('update here')
-        // console.log('Update successful', response);
-      } else {
-        // If no data, create a new entry
-        const response = await axios.post(
-          `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/create-entity-search-configuration`,
-          payload,
-          {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${jHipsterAuthToken}`
-            }
-          }
-        );
-        setNotificationMessage('Submission successful!');
-        console.log('Submit successful', response);
-      }
-    } catch (error) {
-      console.error("Submit/Update error", error);
-      setWarningMessage('An error occurred while submitting/updating. Please try again.');
-    }
-  };
-  const checkIfDataPresent = async () => {
-    if (!category) return;
-    try {
-      const response = await axios.get(
-        `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${category}`,
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${jHipsterAuthToken}`
-          }
-        }
-      );
-      const data = response.data;
-      setIsDataPresent(!!data);
-      if (data) {
-        setExistingData(data);
-        setSearchType(data.entitySearchType);
-        setSelectedAttributes([...data.externalAttributesMetaData, { ...data.externalEntityMetaData, attribute: 'external' }]);
-        setRecommendation(data.recommendation || false);
-        // Handle related attributes
-        if (data.searchableRelationFields) {
-          const newRelatedAttributes = {};
-          const newExpandedAttributes = {};
-          data.searchableRelationFields.forEach(field => {
-            if (field.relatedEntityName) {
-              if (!newRelatedAttributes[field.relatedEntityName]) {
-                newRelatedAttributes[field.relatedEntityName] = [];
-              }
-              newRelatedAttributes[field.relatedEntityName].push({
-                key: field.relatedFieldName,
-                selected: true // Mark as selected
-              });
-              newExpandedAttributes[field.fieldName] = true; // Expand the main attribute
-            }
-          });
-
-          // Merge with existing related attributes
-          setRelatedAttributes(prev => {
-            const merged = { ...prev };
-            Object.keys(newRelatedAttributes).forEach(entityName => {
-              if (!merged[entityName]) {
-                merged[entityName] = [];
-              }
-              newRelatedAttributes[entityName].forEach(newAttr => {
-                const existingAttr = merged[entityName].find(attr => attr.key === newAttr.key);
-                if (existingAttr) {
-                  existingAttr.selected = true;
-                } else {
-                  merged[entityName].push(newAttr);
-                }
-              });
-            });
-            return merged;
-          });
-
-          // Update expanded attributes
-          setExpandedAttributes(prev => ({ ...prev, ...newExpandedAttributes }));
-        }
-
-        // Set searchable attributes
-        if (data.searchableFields) {
-          setSearchableAttributes(data.searchableFields);
-        }
-
-        // Set searchable relation fields
-        if (data.searchableRelationFields) {
-          setSearchableRelationFields(data.searchableRelationFields);
-        }
-      }
-    } catch (error) {
-      console.error("Check data error", error);
-      setIsDataPresent(false);
-    }
-  };
+  // Mock categories for demo purposes - in real implementation this would be fetched from API
+  const categoryNames = ["Product", "Order", "Customer", "Inventory"];
 
   const addHeader = () => {
-    // setSelectedAttributes(p => p.map(e => ({ ...e, headers: [...e.headers, { key: '', value: '' }] })));
-    setSelectedAttributes(p => p.map(e => ({
-      ...e,
-      headers: Array.isArray(e.headers) ? [...e.headers, { key: '', value: '' }] : [{ key: '', value: '' }]
-    })));
+    setHeaders([...headers, { key: "", value: "" }]);
+  };
 
-    setApiDetails((prev) => ({
-      ...prev,
-      headers: [...prev.headers, { key: '', value: '' }],
-    }));
+  const removeHeader = (index) => {
+    setHeaders(headers.filter((_, i) => i !== index));
   };
 
   const addResponseParser = () => {
-    // setSelectedAttributes(p => p.map(e => ({ ...e, responseParser: [...e.responseParser, { key: '', value: '' }] })));
-    setSelectedAttributes(p => p.map(e => ({
-      ...e,
-      responseParser: Array.isArray(e.responseParser) ? [...e.responseParser, { key: '', value: '' }] : [{ key: '', value: '' }]
-    })));
-
-
-    setApiDetails((prev) => ({
-      ...prev,
-      responseParser: [...prev.responseParser, { key: '', value: '' }],
-    }));
+    setResponseParsers([...responseParsers, { key: "", value: "" }]);
   };
 
+  const removeResponseParser = (index) => {
+    setResponseParsers(responseParsers.filter((_, i) => i !== index));
+  };
+
+  const validatePayload = (value) => {
+    setPayload(value);
+    if (!value.trim()) {
+      setPayloadError("");
+      return;
+    }
+
+    if (isValidJSON(value)) {
+      setPayloadError("");
+      // Update the selectedAttributes for the external attribute with the new payload
+      setSelectedAttributes(prev => {
+        return prev.map(attr => {
+          if (attr.attribute === 'external') {
+            return { ...attr, payload: value };
+          }
+          return attr;
+        });
+      });
+    } else {
+      setPayloadError("Invalid JSON format");
+    }
+  };
+
+  const validateResponsePayload = (value) => {
+    setResponsePayload(value);
+    if (!value.trim()) {
+      setResponsePayloadError("");
+      return;
+    }
+
+    if (isValidJSON(value)) {
+      setResponsePayloadError("");
+      // Update the selectedAttributes for the external attribute with the new responsePayload
+      setSelectedAttributes(prev => {
+        return prev.map(attr => {
+          if (attr.attribute === 'external') {
+            return { ...attr, responsePayload: value };
+          }
+          return attr;
+        });
+      });
+    } else {
+      setResponsePayloadError("Invalid JSON format");
+    }
+  };
+
+  const handleSubmit = () => {
+    // Validate JSON payload before submission
+    if (searchType === 'external' && payload && !isValidJSON(payload)) {
+      setPayloadError("Cannot submit with invalid JSON payload");
+      return;
+    }
+
+    if (searchType === 'external' && responsePayload && !isValidJSON(responsePayload)) {
+      setResponsePayloadError("Cannot submit with invalid JSON response payload");
+      return;
+    }
+
+    // Create the final payload
+    const formData = createConfigurationPayload(
+      category,
+      searchType,
+      recommendation,
+      selectedAttributes.map(attr => ({
+        attribute: attr.attribute,
+        externalUrl: attr.externalUrl || '',
+        httpMethod: attr.httpMethod || '',
+        headers: attr.headers || [],
+        payload: attr.payload || '',
+        responsePayload: attr.responsePayload || '',
+        responseParser: attr.responseParser || []
+      })),
+      [], // searchableAttributes (empty in this demo)
+      [] // searchableRelationFields (empty in this demo)
+    );
+
+    console.log("Form submitted with data:", formData);
+    // Here you would typically send this data to your API
+  };
+
+  // Event handlers for Input components
+  const handleHeaderChange = (index: number, key: string, value: string) => {
+    const newHeaders = [...headers];
+    newHeaders[index] = { key, value };
+    setHeaders(newHeaders);
+
+    // Update the selectedAttributes with the headers
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === 'external') {
+          return { ...attr, headers: newHeaders };
+        }
+        return attr;
+      });
+    });
+  };
+
+  const handleResponseParserChange = (index: number, key: string, value: string) => {
+    const newParsers = [...responseParsers];
+    newParsers[index] = { key, value };
+    setResponseParsers(newParsers);
+
+    // Update the selectedAttributes with the response parsers
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === 'external') {
+          return { ...attr, responseParser: newParsers };
+        }
+        return attr;
+      });
+    });
+  };
+
+  const handleExternalAttributesChange = (attribute: string, value: any) => {
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === attribute) {
+          return { ...attr, ...value };
+        }
+        return attr;
+      });
+    });
+  };
+
+  console.log('show me the payload', payload);
+
+  console.log('show me the responsePayload', responsePayload);
 
   return (
-    <main>
-      <section className="search-config">
-        <label id="category-label" htmlFor="category">Select Category:</label>
-        <select id="category" value={category} onChange={(e) => setCategory(e.target.value)}>
-          <option value="">Select a category</option>
-          {categoryNames.map((name) => (
-            <option key={name} value={name}>{name}</option>
-          ))}
-        </select>
+    <div style={{width: '100vw'}} className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-4 md:p-8">
+      <div className="max-w-5xl mx-auto">
+        <Card className="shadow-xl border-gray-100 overflow-hidden">
+          <CardHeader className="border-b pb-4 bg-gradient-to-r from-blue-500 to-blue-600">
+            <div className="flex justify-between items-center">
+              <CardTitle className="text-2xl font-bold text-white">
+                External Configuration
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                className="rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Manage UI
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="pt-8 space-y-8">
+            <div className="space-y-6">
+              {/* Category Selection */}
+              <div className="space-y-3">
+                <Label htmlFor="category" className="text-base font-medium flex items-center">
+                  <Database className="h-4 w-4 mr-2 text-blue-500" />
+                  Select Category
+                </Label>
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger className="w-full rounded-md border-gray-300 shadow-sm hover:border-blue-400 transition-colors">
+                    <SelectValue placeholder="Select a category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryNames.map((name) => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
-        <fieldset>
-          <legend>Type of Search:</legend>
-          <div className="radio-group">
-            <label><input type="radio" name="searchType" value="external" checked={searchType === 'external'} onChange={handleSearchTypeChange} /> External</label>
-            <label><input type="radio" name="searchType" value="searchEngine" checked={searchType === 'searchEngine'} onChange={handleSearchTypeChange} /> Search Engine</label>
-          </div>
-        </fieldset>
-
-        {searchType === 'searchEngine' && (
-          <div className="recommendation-checkbox">
-            <label>
-              <input
-                type="checkbox"
-                checked={recommendation}
-                onChange={(e) => setRecommendation(e.target.checked)}
-              />
-              Enable Recommendations
-            </label>
-          </div>
-        )}
-
-        <div id="searchType-accordion-container">
-          {searchType === 'external' && selectedAttributes.find(e => (e.attribute === 'external')) && (
-            <Accordion attribute={searchType} existingData={existingData} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange} handleResponseParserChange={handleResponseParserChange} removeHeader={removeHeader} removeResponseParser={removeResponseParser} apiDetails={selectedAttributes.find(e => e.attribute === 'external')} addHeader={addHeader} addResponseParser={addResponseParser} />
-          )}
-        </div>
-        {searchType == 'searchEngine' && (
-          <fieldset>
-            <legend>Select Searchable Attributes:</legend>
-            <div id="attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
-              {attributes.map(attr => (
-                <div key={attr.key}>
-                  <label onClick={() => handleAttributeClick(attr)}>
+              {/* Search Type Selection */}
+              <div className="space-y-3 bg-blue-50 p-6 rounded-lg border border-blue-100">
+                <Label className="text-base font-medium flex items-center">
+                  <Server className="h-4 w-4 mr-2 text-blue-500" />
+                  Type of Search
+                </Label>
+                <div className="flex space-x-6 mt-2">
+                  <div className="flex items-center space-x-2 hover:bg-white/60 p-2 rounded-md transition-colors cursor-pointer">
                     <input
-                      type="checkbox"
-                      name="Searchable-attributes"
-                      value={attr.key}
-                      checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
-                      onChange={handleSearchableAttributesChange}
-                      style={{ marginRight: '10px' }}
+                      type="radio"
+                      id="external"
+                      name="searchType"
+                      value="external"
+                      checked={searchType === "external"}
+                      onChange={(e) => setSearchType(e.target.value)}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
                     />
-                    {attr.key.charAt(0).toUpperCase() + attr.key.slice(1)}
-                  </label>
-                  {expandedAttributes[attr.key] && attr.relationships.length > 0 && relatedAttributes[attr.relationships[0]] && (
-                    <div style={{ paddingLeft: '20px' }}>
-                      {relatedAttributes[attr.relationships[0]].map((relAttr) => (
-                        <div key={relAttr.key}>
-                          <label>
-                            <input
-                              type="checkbox"
-                              name="Related-attributes"
-                              value={relAttr.key}
-                              checked={relAttr.selected || searchableRelationFields.some(field =>
-                                field.fieldName === attr.key &&
-                                field.relatedEntityName === attr.relationships[0] &&
-                                field.relatedFieldName === relAttr.key
-                              )}
-                              onChange={(e) => {
-                                const { checked } = e.target;
-                                handleRelatedAttributeChange(checked, relAttr, attr);
-                              }}
-                              style={{ marginRight: '10px' }}
-                            />
-                            {relAttr.key.charAt(0).toUpperCase() + relAttr.key.slice(1)}
-                          </label>
+                    <Label htmlFor="external" className="font-normal text-gray-700 cursor-pointer">External</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 hover:bg-white/60 p-2 rounded-md transition-colors cursor-pointer">
+                    <input
+                      type="radio"
+                      id="searchEngine"
+                      name="searchType"
+                      value="searchEngine"
+                      checked={searchType === "searchEngine"}
+                      onChange={(e) => setSearchType(e.target.value)}
+                      className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                    />
+                    <Label htmlFor="searchEngine" className="font-normal text-gray-700 cursor-pointer">Search Engine</Label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Recommendation Option (only for searchEngine) */}
+              {searchType === "searchEngine" && (
+                <div className="flex items-center space-x-2 ml-4 mt-2 p-3 bg-white rounded-md border border-gray-100 shadow-sm transition-all">
+                  <Checkbox
+                    id="recommendation"
+                    checked={recommendation}
+                    onCheckedChange={(checked) => setRecommendation(checked === true)}
+                    className="text-blue-600 border-gray-300"
+                  />
+                  <Label htmlFor="recommendation" className="font-normal text-gray-700">Enable Recommendations</Label>
+                </div>
+              )}
+
+              {/* External API Configuration (only for external) */}
+              {searchType === "external" && (
+                <div className="space-y-5 p-5 border rounded-lg shadow-md bg-white">
+                  <h3 className="font-semibold text-lg text-gray-800 flex items-center">
+                    <Code className="h-4 w-4 mr-2 text-blue-500" />
+                    API Configuration
+                  </h3>
+
+                  <div className="space-y-5">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="space-y-2">
+                        <Label htmlFor="url" className="text-gray-700">URL</Label>
+                        <Input
+                          id="url"
+                          placeholder="Enter API URL"
+                          className="border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                          onChange={(e) => {
+                            // Update the external attribute with the URL
+                            setSelectedAttributes(prev => {
+                              return prev.map(attr => {
+                                if (attr.attribute === 'external') {
+                                  return { ...attr, externalUrl: e.target.value };
+                                }
+                                return attr;
+                              });
+                            });
+                          }}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="method" className="text-gray-700">HTTP Method</Label>
+                        <Select onValueChange={(value) => {
+                          // Update the external attribute with the method
+                          setSelectedAttributes(prev => {
+                            return prev.map(attr => {
+                              if (attr.attribute === 'external') {
+                                return { ...attr, httpMethod: value };
+                              }
+                              return attr;
+                            });
+                          });
+                        }}>
+                          <SelectTrigger className="border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
+                            <SelectValue placeholder="Select HTTP Method" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="GET">GET</SelectItem>
+                            <SelectItem value="POST">POST</SelectItem>
+                            <SelectItem value="PUT">PUT</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-gray-700">Headers</Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addHeader}
+                          className="h-8 px-3 text-xs rounded-full border-blue-300 text-blue-600 hover:bg-blue-50"
+                        >
+                          <PlusCircle className="h-3.5 w-3.5 mr-1" />
+                          Add Header
+                        </Button>
+                      </div>
+
+                      {headers.map((header, index) => (
+                        <div key={index} className="flex items-center space-x-2 p-3 rounded-md bg-blue-50/50 border border-blue-100 animate-in fade-in duration-300">
+                          <Input
+                            placeholder="Header Key"
+                            value={header.key}
+                            onChange={(e) => {
+                              handleHeaderChange(index, e.target.value, header.value);
+                            }}
+                            className="flex-1 border-gray-300"
+                          />
+                          <Input
+                            placeholder="Header Value"
+                            value={header.value}
+                            onChange={(e) => {
+                              handleHeaderChange(index, header.key, e.target.value);
+                            }}
+                            className="flex-1 border-gray-300"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeHeader(index)}
+                            className="h-8 w-8 text-red-500 hover:bg-red-50 rounded-full"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </div>
                       ))}
                     </div>
-                  )}
+
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <Label htmlFor="payload" className="text-gray-700 flex items-center">
+                          <FileJson className="h-4 w-4 mr-2 text-blue-500" />
+                          Payload
+                        </Label>
+                        {payload && (
+                          isValidJSON(payload)
+                            ? <CheckCircle className="h-4 w-4 text-green-500" />
+                            : <AlertCircle className="h-4 w-4 text-red-500" />
+                        )}
+                      </div>
+                      <Textarea
+                        id="payload"
+                        placeholder="Enter payload details in JSON format"
+                        className={`min-h-[100px] border-gray-300 rounded-md font-mono text-sm ${payloadError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'}`}
+                        value={payload}
+                        onChange={(e) => validatePayload(e.target.value)}
+                      />
+                      {payloadError && (
+                        <Alert variant="destructive" className="py-2 bg-red-50 text-red-800 border-red-200">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription className="text-sm font-medium ml-2">
+                            {payloadError}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-gray-700">Response Parser</Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addResponseParser}
+                          className="h-8 px-3 text-xs rounded-full border-blue-300 text-blue-600 hover:bg-blue-50"
+                        >
+                          <PlusCircle className="h-3.5 w-3.5 mr-1" />
+                          Add Parser
+                        </Button>
+                      </div>
+
+                      {responseParsers.map((parser, index) => (
+                        <div key={index} className="flex items-center space-x-2 p-3 rounded-md bg-blue-50/50 border border-blue-100 animate-in fade-in duration-300">
+                          <Input
+                            placeholder="Parser Key"
+                            value={parser.key}
+                            onChange={(e) => {
+                              handleResponseParserChange(index, e.target.value, parser.value);
+                            }}
+                            className="flex-1 border-gray-300"
+                          />
+                          <Input
+                            placeholder="Parser Value"
+                            value={parser.value}
+                            onChange={(e) => {
+                              handleResponseParserChange(index, parser.key, e.target.value);
+                            }}
+                            className="flex-1 border-gray-300"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeResponseParser(index)}
+                            className="h-8 w-8 text-red-500 hover:bg-red-50 rounded-full"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="responsePayload" className="text-gray-700 flex items-center">
+                        <FileJson className="h-4 w-4 mr-2 text-blue-500" />
+                        Response Payload
+                      </Label>
+                      {responsePayload && (
+                        isValidJSON(responsePayload)
+                          ? <CheckCircle className="h-4 w-4 text-green-500" />
+                          : <AlertCircle className="h-4 w-4 text-red-500" />
+                      )}
+                      <Textarea
+                        id="responsePayload"
+                        placeholder="Enter response payload details"
+                        className={`min-h-[100px] border-gray-300 rounded-md font-mono text-sm ${responsePayloadError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'}`}
+                        value={responsePayload}
+                        onChange={(e) => validateResponsePayload(e.target.value)}
+                      />
+                      {responsePayloadError && (
+                        <Alert variant="destructive" className="py-2 bg-red-50 text-red-800 border-red-200">
+                          <AlertCircle className="h-4 w-4" />
+                          <AlertDescription className="text-sm font-medium ml-2">
+                            {responsePayloadError}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              ))}
+              )}
+
+              {/* External Attributes Section */}
+              <div className="space-y-3">
+                <Label className="text-base font-medium flex items-center">
+                  <Settings className="h-4 w-4 mr-2 text-blue-500" />
+                  External Configuration
+                </Label>
+                <div className="border rounded-lg p-4 max-h-[200px] overflow-y-auto shadow-sm bg-gradient-to-b from-white to-gray-50">
+                  <div className="space-y-2">
+                    {categoryNames.map((attr) => (
+                      <div key={attr} className="flex items-center space-x-2 p-2 hover:bg-blue-50 rounded-md transition-colors">
+                        <Checkbox
+                          id={`attr-${attr}`}
+                          value={attr}
+                          onCheckedChange={(checked) => {
+                            if (checked === true) {
+                              setSelectedAttributes([...selectedAttributes, {
+                                attribute: attr,
+                                externalUrl: '',
+                                httpMethod: '',
+                                headers: [],
+                                payload: '',
+                                responsePayload: '',
+                                responseParser: []
+                              }]);
+                            } else {
+                              setSelectedAttributes(selectedAttributes.filter(a => a.attribute !== attr));
+                            }
+                          }}
+                          className="text-blue-600 border-gray-300"
+                        />
+                        <Label htmlFor={`attr-${attr}`} className="font-normal text-gray-700 cursor-pointer">{attr}</Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             </div>
-          </fieldset>
-        )}
-        <fieldset>
-          <legend>External Configuration:</legend>
-          <label>Select Specific Attributes:</label>
-          <div id="external-attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
-            {externalAttributes.map(attr => (
-              <label key={attr.key}>
-                <input
-                  type="checkbox"
-                  name="external-attributes"
-                  value={attr.key}
-                  checked={selectedAttributes.find(e => e.attribute === attr.key || e?.attributeName === attr.key)}
-                  onChange={handleExternalAttributesChange}
-                  style={{ marginRight: '10px' }}
-                /> {attr.key.charAt(0).toUpperCase() + attr.key.slice(1)} {/* Capitalize first character */}
-
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        {selectedAttributes.map(attr => {
-          if (attr.attribute === 'external' || attr?.attributeName === 'external') return;
-          return <Accordion key={attr.attribute} attribute={attr.attribute} existingData={attr} setApiDetails={setSelectedAttributes} handleHeaderChange={handleHeaderChange} handleResponseParserChange={handleResponseParserChange} removeHeader={removeHeader} removeResponseParser={removeResponseParser} apiDetails={attr} addHeader={addHeader} addResponseParser={addResponseParser} />
-        })}
-        {warningMessage && <p className="warning-message">{warningMessage}</p>}
-        {notificationMessage && <p className="notification-message">{notificationMessage}</p>}
-
-        <button type="button" id="submit-button" onClick={handleSubmitOrUpdate}>
-          {isDataPresent ? 'Update' : 'Submit'}
-        </button>
-        <button type="button" id="delete-button" onClick={handleDelete}>Delete</button>
-      </section>
-    </main>
-  );
-};
-
-function formatResponsePayload(inputValue) {
-  // Initially assume the input is a straightforward JSON string
-  let formattedValue = inputValue;
-
-  // Check and handle template parts
-  const templateRegex = /<#[^>]+>/g; // Adjust regex to accurately capture your template syntax
-  let match;
-  let lastIndex = 0;
-  let result = '';
-
-  while ((match = templateRegex.exec(inputValue)) !== null) {
-    // Add the part before the template, handling JSON escaping
-    const jsonPart = inputValue.substring(lastIndex, match.index);
-    result += jsonPart.replace(/\\(["\\])/g, '$1'); // Unescape JSON-specific characters
-
-    // Add the template part unchanged
-    result += match[0];
-    lastIndex = templateRegex.lastIndex;
-  }
-
-  // Handle the last part of the string after the final template, if any
-  if (lastIndex < inputValue.length) {
-    const jsonPart = inputValue.substring(lastIndex);
-    result += jsonPart.replace(/\\(["\\])/g, '$1');
-  }
-
-  return result;
-}
-
-const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange, removeHeader, apiDetails, addHeader, addResponseParser, handleResponseParserChange, removeResponseParser }) => {
-  const [error, setError] = useState('');
-
-  const toggleAccordion = (e) => {
-    e.target.classList.toggle('active');
-    const panel = e.target.nextElementSibling;
-    panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
-  };
-
-  const handleJsonChange = (e, key, attribute) => {
-    const inputValue = e.target.value;
-
-    console.log('Input value:2', inputValue);
-
-    setApiDetails(prev => prev.map(item =>
-      item.attribute === attribute ? { ...item, [key]: inputValue } : item
-    ));
-  };
-
-  existingData = apiDetails;
-  return (
-    <>
-      <button className="accordion" onClick={toggleAccordion}>
-        {attribute === 'external' ? 'API Configuration' : existingData?.attributeName || attribute}
-      </button>
-      <div className="panel" style={{ display: 'none' }}>
-        <label htmlFor={`${attribute}-url`}>URL:</label>
-        <input type="text" id={`${attribute}-url`} placeholder="Enter API URL" defaultValue={existingData.externalUrl || ''} onChange={(e) => setApiDetails(prev =>
-          prev.map(item =>
-            item.attribute === attribute
-              ? { ...item, externalUrl: e.target.value }
-              : item
-          )
-        )} /><br />
-        <label htmlFor={`${attribute}-httpMethod`}>HTTP Method:</label>
-        <select id={`${attribute}-httpMethod`} defaultValue={existingData.httpMethod || ''} onChange={(e) => setApiDetails(prev =>
-          prev.map(item =>
-            item.attribute === attribute
-              ? { ...item, httpMethod: e.target.value }
-              : item
-          )
-        )}>
-          <option value="">Select HTTP Method</option>
-          <option value="POST">POST</option>
-          <option value="GET">GET</option>
-          <option value="PUT">PUT</option>
-        </select><br />
-        <label htmlFor={`${attribute}-headers`}>Headers:</label>
-        {apiDetails?.headers?.map((header, index) => (
-          <div
-            key={index}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '10px',
-              marginTop: '14px',
-            }}
-          >
-            <TextField
-              variant="standard"
-              label="Header Key"
-              value={header.key}
-              onChange={(e) => handleHeaderChange(index, 'key', e.target.value, attribute)}
-              style={{ marginRight: '10px' }}
-            />
-
-
-
-            <TextField
-              variant="standard"
-              label="Header Value"
-              value={header.value}
-              onChange={(e) => handleHeaderChange(index, 'value', e.target.value, attribute)}
-            />
-            <div className='ml-6'>
-              <IconButton onClick={() => removeHeader(index, attribute)}>
-                <DeleteIcon />
-              </IconButton>
-            </div>
-          </div>
-        ))}
-        <Button onClick={() => addHeader(attribute)} variant="outlined">
-          Add Header
-        </Button>
-        <label htmlFor={`${attribute}-payload`}>Payload:</label>
-        <textarea id={`${attribute}-payload`} placeholder="Enter payload details in JSON format" defaultValue={existingData.payload ? JSON.stringify(existingData.payload) : ''} onChange={(e) => handleJsonChange(e, 'payload', attribute)}></textarea><br />
-        <label htmlFor={`${attribute}-responseParser`}>Response Parser</label>
-        {apiDetails?.responseParser?.map((header, index) => (
-          <div
-            key={index}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              marginBottom: '10px',
-              marginTop: '14px',
-            }}
-          >
-            <TextField
-              variant="standard"
-              label="Response Parser Key"
-              value={header.key}
-              onChange={(e) => handleResponseParserChange(index, 'key', e.target.value, attribute)}
-              style={{ marginRight: '10px' }}
-            />
-            <TextField
-              variant="standard"
-              label="Response Parser Value"
-              value={header.value}
-              onChange={(e) => handleResponseParserChange(index, 'value', e.target.value, attribute)}
-            />
-            <div className='ml-6'>
-              <IconButton onClick={() => removeResponseParser(index, attribute)}>
-                <DeleteIcon />
-              </IconButton>
-            </div>
-          </div>
-        ))}
-        <Button onClick={() => addResponseParser(attribute)} variant="outlined">
-          Add Response Parser
-        </Button>
-
-        <label htmlFor={`${attribute}-response-payload`}>Response Payload:</label>
-        {console.log(" existingData responsePayload", existingData.responsePayload)}
-        {console.log("the attribute is", attribute)}
-        <textarea id={`${attribute}-response-payload`}
-          placeholder="Enter response payload details"
-          defaultValue={existingData.responsePayload ? JSON.stringify(existingData.responsePayload[0]) : ''}
-          // defaultValue={existingData.responsePayload || ''}
-          onChange={(e) => handleJsonChange(e, 'responsePayload', attribute)}>
-        </textarea>
-        <br />
-        {error && <p style={{ color: 'red' }}>{error}</p>}
+          </CardContent>
+          <CardFooter className="flex justify-end space-x-4 border-t pt-5 bg-gray-50">
+            <Button
+              variant="outline"
+              type="button"
+              className="flex items-center gap-1 border-gray-300 hover:bg-gray-100"
+            >
+              <RotateCcw className="h-4 w-4" />
+              Reset
+            </Button>
+            <Button
+              variant="destructive"
+              type="button"
+              className="flex items-center gap-1"
+            >
+              <Trash2 className="h-4 w-4" />
+              Delete
+            </Button>
+            <Button
+              type="button"
+              onClick={handleSubmit}
+              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 flex items-center gap-1"
+              disabled={searchType === 'external' && payload && !!payloadError}
+            >
+              <Save className="h-4 w-4" />
+              Save
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
-    </>
+    </div>
   );
 };
 
-export default AddProductCategoryPage;
+export default Index;
