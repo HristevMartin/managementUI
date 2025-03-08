@@ -1,23 +1,24 @@
-import React, { ReactNode } from 'react';
-import { MoreHorizontal } from "lucide-react";
+import React from 'react';
 
 interface DashboardCardProps {
   title: string;
-  children: ReactNode;
-  className?: string;
+  children: React.ReactNode;
   contentClassName?: string;
+  className?: string;
 }
 
-const DashboardCard = ({ title, children, className, contentClassName }: DashboardCardProps) => {
+const DashboardCard: React.FC<DashboardCardProps> = ({ 
+  title, 
+  children, 
+  contentClassName,
+  className 
+}) => {
   return (
-    <div className={`bg-white rounded-lg shadow-md animate-fade-in-up ${className}`}>
-      <div className="flex justify-between items-center p-4 pb-0">
-        <h3 className="text-lg font-medium text-gray-900">{title}</h3>
-        <button className="text-gray-400 hover:text-gray-700 transition-colors">
-          <MoreHorizontal size={16} />
-        </button>
+    <div className={`animate-fade-in-up bg-white border border-gray-200 shadow-sm rounded-lg overflow-hidden ${className || ''}`}>
+      <div className="px-6 py-4 border-b border-gray-200">
+        <h2 className="font-medium text-gray-800">{title}</h2>
       </div>
-      <div className={`p-4 ${contentClassName} flex flex-col`}>
+      <div className={`p-6 ${contentClassName || ''}`}>
         {children}
       </div>
     </div>

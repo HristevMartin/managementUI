@@ -1,20 +1,41 @@
 'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { Checkbox } from "@/components/ui/checkbox";
-import { PlusCircle, Trash2, Settings, Save, RotateCcw, ChevronDown, Database, Server, Code, FileJson, AlertCircle, CheckCircle } from "lucide-react";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { isValidJSON, createConfigurationPayload } from "@/utils/utils";
-// import { isValidJSON, createConfigurationPayload } from "@//utils";
 
-const Index = () => {
+import React, { useState } from 'react';
+import AppLayout from '@/components/AppLayout';
+import { PlusCircle, Trash2, Settings, Save, RotateCcw, ChevronDown, Database, Server, Code, FileJson, AlertCircle, CheckCircle } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+
+// Utility functions to validate JSON and create payload
+const isValidJSON = (str: string) => {
+  try {
+    JSON.parse(str);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+// Simple function to create configuration payload
+const createConfigurationPayload = (
+  category: string,
+  searchType: string,
+  recommendation: boolean,
+  selectedAttributes: any[],
+  searchableAttributes: any[],
+  searchableRelationFields: any[]
+) => {
+  return {
+    category,
+    searchType,
+    recommendation,
+    selectedAttributes,
+    searchableAttributes,
+    searchableRelationFields
+  };
+};
+
+const ExternalConfiguration = () => {
   const [category, setCategory] = useState("");
   const [searchType, setSearchType] = useState("");
   const [recommendation, setRecommendation] = useState(false);
@@ -23,19 +44,19 @@ const Index = () => {
   const [expandedAttributes, setExpandedAttributes] = useState({});
   const [headers, setHeaders] = useState([{ key: "", value: "" }]);
   const [responseParsers, setResponseParsers] = useState([{ key: "", value: "" }]);
-  const [payloadError, setPayloadError] = useState("");
   const [payload, setPayload] = useState("");
+  const [payloadError, setPayloadError] = useState("");
   const [responsePayload, setResponsePayload] = useState("");
   const [responsePayloadError, setResponsePayloadError] = useState("");
 
-  // Mock categories for demo purposes - in real implementation this would be fetched from API
+  // Mock categories for demo purposes
   const categoryNames = ["Product", "Order", "Customer", "Inventory"];
 
   const addHeader = () => {
     setHeaders([...headers, { key: "", value: "" }]);
   };
 
-  const removeHeader = (index) => {
+  const removeHeader = (index: number) => {
     setHeaders(headers.filter((_, i) => i !== index));
   };
 
@@ -43,11 +64,11 @@ const Index = () => {
     setResponseParsers([...responseParsers, { key: "", value: "" }]);
   };
 
-  const removeResponseParser = (index) => {
+  const removeResponseParser = (index: number) => {
     setResponseParsers(responseParsers.filter((_, i) => i !== index));
   };
 
-  const validatePayload = (value) => {
+  const validatePayload = (value: string) => {
     setPayload(value);
     if (!value.trim()) {
       setPayloadError("");
@@ -70,7 +91,7 @@ const Index = () => {
     }
   };
 
-  const validateResponsePayload = (value) => {
+  const validateResponsePayload = (value: string) => {
     setResponsePayload(value);
     if (!value.trim()) {
       setResponsePayloadError("");
@@ -160,379 +181,355 @@ const Index = () => {
     });
   };
 
-  const handleExternalAttributesChange = (attribute: string, value: any) => {
-    setSelectedAttributes(prev => {
-      return prev.map(attr => {
-        if (attr.attribute === attribute) {
-          return { ...attr, ...value };
-        }
-        return attr;
-      });
-    });
-  };
-
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-8 md:p-16">
-      <div className="max-w-7xl mx-auto">
-        <Card className="shadow-xl border-gray-100 overflow-hidden">
-          <CardHeader className="border-b pb-6 bg-gradient-to-r from-blue-500 to-blue-600">
-            <div className="flex justify-between items-center">
-              <CardTitle className="text-3xl font-bold text-white">
-                External Configuration
-              </CardTitle>
-              {/* <Button
-                variant="outline"
-                size="sm"
-                className="rounded-full border border-white/20 bg-white/10 text-white hover:bg-white/20 transition-all"
-              >
-                <Settings className="h-5 w-5 mr-2" />
-                Manage UI
-              </Button> */}
+    <div className="animate-fade-in-down">
+      <div className="mb-8 flex justify-between items-center">
+        <h1 className="text-3xl font-semibold text-gray-900">External Configuration</h1>
+      </div>
+
+      <div className="bg-white border border-gray-200 shadow-sm rounded-lg overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-indigo-700">
+          <h2 className="font-medium text-white">API Configuration</h2>
+        </div>
+        
+        <div className="p-6 space-y-8">
+          {/* Category Selection */}
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700 flex items-center">
+              <Database className="h-4 w-4 mr-2 text-indigo-500" />
+              Select Category
+            </label>
+            <select 
+              value={category} 
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            >
+              <option value="">Select a category</option>
+              {categoryNames.map((name) => (
+                <option key={name} value={name}>{name}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Search Type Selection */}
+          <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-200">
+            <label className="block text-sm font-medium text-gray-700 flex items-center">
+              <Server className="h-4 w-4 mr-2 text-indigo-500" />
+              Type of Search
+            </label>
+            <div className="flex space-x-8 mt-3">
+              <div className="flex items-center space-x-3">
+                <input
+                  type="radio"
+                  id="external"
+                  name="searchType"
+                  value="external"
+                  checked={searchType === "external"}
+                  onChange={(e) => setSearchType(e.target.value)}
+                  className="h-4 w-4 text-indigo-600 border-gray-300"
+                />
+                <label htmlFor="external" className="text-sm text-gray-700">External</label>
+              </div>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="radio"
+                  id="searchEngine"
+                  name="searchType"
+                  value="searchEngine"
+                  checked={searchType === "searchEngine"}
+                  onChange={(e) => setSearchType(e.target.value)}
+                  className="h-4 w-4 text-indigo-600 border-gray-300"
+                />
+                <label htmlFor="searchEngine" className="text-sm text-gray-700">Search Engine</label>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent className="pt-10 space-y-10">
-            <div className="space-y-8">
-              {/* Category Selection */}
-              <div className="space-y-4">
-                <Label htmlFor="category" className="text-lg font-medium flex items-center">
-                  <Database className="h-5 w-5 mr-3 text-blue-500" />
-                  Select Category
-                </Label>
-                <Select value={category} onValueChange={setCategory} className="w-full">
-                  <SelectTrigger className="rounded-md border border-gray-300 shadow-sm hover:border-blue-400 transition-colors">
-                    <SelectValue placeholder="Select a category" />
-                  </SelectTrigger>
-                  <SelectContent className="border border-gray-300 rounded-md shadow-lg z-10">
-                    {categoryNames.map((name) => (
-                      <SelectItem key={name} value={name} className="hover:bg-blue-100 transition-colors">
-                        {name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          </div>
 
-              {/* Search Type Selection */}
-              <div className="space-y-4 bg-blue-50 p-8 rounded-lg border border-blue-100">
-                <Label className="text-lg font-medium flex items-center">
-                  <Server className="h-5 w-5 mr-3 text-blue-500" />
-                  Type of Search
-                </Label>
-                <div className="flex space-x-8 mt-3">
-                  <div className="flex items-center space-x-3 hover:bg-white/60 p-3 rounded-md transition-colors cursor-pointer">
+          {/* Recommendation Option (only for searchEngine) */}
+          {searchType === "searchEngine" && (
+            <div className="flex items-center space-x-3 p-4 bg-white rounded-md border border-gray-200">
+              <input
+                type="checkbox"
+                id="recommendation"
+                checked={recommendation}
+                onChange={(e) => setRecommendation(e.target.checked)}
+                className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+              />
+              <label htmlFor="recommendation" className="text-sm text-gray-700">Enable Recommendations</label>
+            </div>
+          )}
+
+          {/* External API Configuration (only for external) */}
+          {searchType === "external" && (
+            <div className="space-y-6 p-6 border rounded-lg shadow-sm bg-white">
+              <h3 className="font-semibold text-lg text-gray-800 flex items-center">
+                <Code className="h-4 w-4 mr-2 text-indigo-500" />
+                API Configuration
+              </h3>
+
+              <div className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label htmlFor="url" className="block text-sm font-medium text-gray-700">URL</label>
                     <input
-                      type="radio"
-                      id="external"
-                      name="searchType"
-                      value="external"
-                      checked={searchType === "external"}
-                      onChange={(e) => setSearchType(e.target.value)}
-                      className="h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <Label htmlFor="external" className="font-normal text-gray-700 cursor-pointer">External</Label>
-                  </div>
-                  <div className="flex items-center space-x-3 hover:bg-white/60 p-3 rounded-md transition-colors cursor-pointer">
-                    <input
-                      type="radio"
-                      id="searchEngine"
-                      name="searchType"
-                      value="searchEngine"
-                      checked={searchType === "searchEngine"}
-                      onChange={(e) => setSearchType(e.target.value)}
-                      className="h-5 w-5 text-blue-600 border-gray-300 focus:ring-blue-500"
-                    />
-                    <Label htmlFor="searchEngine" className="font-normal text-gray-700 cursor-pointer">Search Engine</Label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Recommendation Option (only for searchEngine) */}
-              {searchType === "searchEngine" && (
-                <div className="flex items-center space-x-3 ml-5 mt-3 p-4 bg-white rounded-md border border-gray-100 shadow-sm transition-all">
-                  <Checkbox
-                    id="recommendation"
-                    checked={recommendation}
-                    onCheckedChange={(checked) => setRecommendation(checked === true)}
-                    className="text-blue-600 border-gray-300"
-                  />
-                  <Label htmlFor="recommendation" className="font-normal text-gray-700">Enable Recommendations</Label>
-                </div>
-              )}
-
-              {/* External API Configuration (only for external) */}
-              {searchType === "external" && (
-                <div className="space-y-6 p-6 border rounded-lg shadow-md bg-white">
-                  <h3 className="font-semibold text-xl text-gray-800 flex items-center">
-                    <Code className="h-5 w-5 mr-3 text-blue-500" />
-                    API Configuration
-                  </h3>
-
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="space-y-3">
-                        <Label htmlFor="url" className="text-gray-700">URL</Label>
-                        <Input
-                          id="url"
-                          placeholder="Enter API URL"
-                          className="border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
-                          onChange={(e) => {
-                            // Update the external attribute with the URL
-                            setSelectedAttributes(prev => {
-                              return prev.map(attr => {
-                                if (attr.attribute === 'external') {
-                                  return { ...attr, externalUrl: e.target.value };
-                                }
-                                return attr;
-                              });
-                            });
-                          }}
-                        />
-                      </div>
-
-                      <div className="space-y-3">
-                        <Label htmlFor="method" className="text-gray-700">HTTP Method</Label>
-                        <Select onValueChange={(value) => {
-                          // Update the external attribute with the method
-                          setSelectedAttributes(prev => {
-                            return prev.map(attr => {
-                              if (attr.attribute === 'external') {
-                                return { ...attr, httpMethod: value };
-                              }
-                              return attr;
-                            });
-                          });
-                        }}>
-                          <SelectTrigger className="border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500">
-                            <SelectValue placeholder="Select HTTP Method" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="GET">GET</SelectItem>
-                            <SelectItem value="POST">POST</SelectItem>
-                            <SelectItem value="PUT">PUT</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-gray-700">Headers</Label>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={addHeader}
-                          className="h-9 px-4 text-sm rounded-full border-blue-300 text-blue-600 hover:bg-blue-50"
-                        >
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Add Header
-                        </Button>
-                      </div>
-
-                      {headers.map((header, index) => (
-                        <div key={index} className="flex items-center space-x-3 p-4 rounded-md bg-blue-50/50 border border-blue-100 animate-in fade-in duration-300">
-                          <Input
-                            placeholder="Header Key"
-                            value={header.key}
-                            onChange={(e) => {
-                              handleHeaderChange(index, e.target.value, header.value);
-                            }}
-                            className="flex-1 border-gray-300"
-                          />
-                          <Input
-                            placeholder="Header Value"
-                            value={header.value}
-                            onChange={(e) => {
-                              handleHeaderChange(index, header.key, e.target.value);
-                            }}
-                            className="flex-1 border-gray-300"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeHeader(index)}
-                            className="h-9 w-9 text-red-500 hover:bg-red-50 rounded-full"
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex items-center space-x-3">
-                        <Label htmlFor="payload" className="text-gray-700 flex items-center">
-                          <FileJson className="h-5 w-5 mr-3 text-blue-500" />
-                          Payload
-                        </Label>
-                        {payload && (
-                          isValidJSON(payload)
-                            ? <CheckCircle className="h-5 w-5 text-green-500" />
-                            : <AlertCircle className="h-5 w-5 text-red-500" />
-                        )}
-                      </div>
-                      <Textarea
-                        id="payload"
-                        placeholder="Enter payload details in JSON format"
-                        className={`min-h-[120px] border-gray-300 rounded-md font-mono text-sm ${payloadError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'}`}
-                        value={payload}
-                        onChange={(e) => validatePayload(e.target.value)}
-                      />
-                      {payloadError && (
-                        <Alert variant="destructive" className="py-3 bg-red-50 text-red-800 border-red-200">
-                          <AlertCircle className="h-5 w-5" />
-                          <AlertDescription className="text-sm font-medium ml-3">
-                            {payloadError}
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                    </div>
-
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-gray-700">Response Parser</Label>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={addResponseParser}
-                          className="h-9 px-4 text-sm rounded-full border-blue-300 text-blue-600 hover:bg-blue-50"
-                        >
-                          <PlusCircle className="h-4 w-4 mr-2" />
-                          Add Parser
-                        </Button>
-                      </div>
-
-                      {responseParsers.map((parser, index) => (
-                        <div key={index} className="flex items-center space-x-3 p-4 rounded-md bg-blue-50/50 border border-blue-100 animate-in fade-in duration-300">
-                          <Input
-                            placeholder="Parser Key"
-                            value={parser.key}
-                            onChange={(e) => {
-                              handleResponseParserChange(index, e.target.value, parser.value);
-                            }}
-                            className="flex-1 border-gray-300"
-                          />
-                          <Input
-                            placeholder="Parser Value"
-                            value={parser.value}
-                            onChange={(e) => {
-                              handleResponseParserChange(index, parser.key, e.target.value);
-                            }}
-                            className="flex-1 border-gray-300"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => removeResponseParser(index)}
-                            className="h-9 w-9 text-red-500 hover:bg-red-50 rounded-full"
-                          >
-                            <Trash2 className="h-5 w-5" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="space-y-3">
-                      <Label htmlFor="responsePayload" className="text-gray-700 flex items-center">
-                        <FileJson className="h-5 w-5 mr-3 text-blue-500" />
-                        Response Payload
-                      </Label>
-                      {responsePayload && (
-                        isValidJSON(responsePayload)
-                          ? <CheckCircle className="h-5 w-5 text-green-500" />
-                          : <AlertCircle className="h-5 w-5 text-red-500" />
-                      )}
-                      <Textarea
-                        id="responsePayload"
-                        placeholder="Enter response payload details"
-                        className={`min-h-[120px] border-gray-300 rounded-md font-mono text-sm ${responsePayloadError ? 'border-red-300 focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500'}`}
-                        value={responsePayload}
-                        onChange={(e) => validateResponsePayload(e.target.value)}
-                      />
-                      {responsePayloadError && (
-                        <Alert variant="destructive" className="py-3 bg-red-50 text-red-800 border-red-200">
-                          <AlertCircle className="h-5 w-5" />
-                          <AlertDescription className="text-sm font-medium ml-3">
-                            {responsePayloadError}
-                          </AlertDescription>
-                        </Alert>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* External Attributes Section */}
-              <div className="space-y-4">
-                <Label className="text-lg font-medium flex items-center">
-                  <Settings className="h-5 w-5 mr-3 text-blue-500" />
-                  External Configuration
-                </Label>
-                <div className="border rounded-lg p-5 max-h-[300px] overflow-y-auto shadow-sm bg-gradient-to-b from-white to-gray-50">
-                  <div className="space-y-3">
-                    {categoryNames.map((attr) => (
-                      <div key={attr} className="flex items-center space-x-3 p-3 hover:bg-blue-50 rounded-md transition-colors">
-                        <Checkbox
-                          id={`attr-${attr}`}
-                          value={attr}
-                          onCheckedChange={(checked) => {
-                            if (checked === true) {
-                              setSelectedAttributes([...selectedAttributes, {
-                                attribute: attr,
-                                externalUrl: '',
-                                httpMethod: '',
-                                headers: [],
-                                payload: '',
-                                responsePayload: '',
-                                responseParser: []
-                              }]);
-                            } else {
-                              setSelectedAttributes(selectedAttributes.filter(a => a.attribute !== attr));
+                      id="url"
+                      type="text"
+                      placeholder="Enter API URL"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      onChange={(e) => {
+                        setSelectedAttributes(prev => {
+                          return prev.map(attr => {
+                            if (attr.attribute === 'external') {
+                              return { ...attr, externalUrl: e.target.value };
                             }
-                          }}
-                          className="text-blue-600 border-gray-300"
-                        />
-                        <Label htmlFor={`attr-${attr}`} className="font-normal text-gray-700 cursor-pointer">{attr}</Label>
-                      </div>
-                    ))}
+                            return attr;
+                          });
+                        });
+                      }}
+                    />
                   </div>
+
+                  <div className="space-y-2">
+                    <label htmlFor="method" className="block text-sm font-medium text-gray-700">HTTP Method</label>
+                    <select
+                      id="method"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      onChange={(e) => {
+                        setSelectedAttributes(prev => {
+                          return prev.map(attr => {
+                            if (attr.attribute === 'external') {
+                              return { ...attr, httpMethod: e.target.value };
+                            }
+                            return attr;
+                          });
+                        });
+                      }}
+                    >
+                      <option value="">Select HTTP Method</option>
+                      <option value="GET">GET</option>
+                      <option value="POST">POST</option>
+                      <option value="PUT">PUT</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-gray-700">Headers</label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addHeader}
+                      className="h-8 px-3 text-xs"
+                    >
+                      <PlusCircle className="h-3 w-3 mr-1" />
+                      Add Header
+                    </Button>
+                  </div>
+
+                  {headers.map((header, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-3 rounded-md bg-gray-50 border border-gray-200">
+                      <input
+                        type="text"
+                        placeholder="Header Key"
+                        value={header.key}
+                        onChange={(e) => {
+                          handleHeaderChange(index, e.target.value, header.value);
+                        }}
+                        className="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Header Value"
+                        value={header.value}
+                        onChange={(e) => {
+                          handleHeaderChange(index, header.key, e.target.value);
+                        }}
+                        className="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <button
+                        onClick={() => removeHeader(index)}
+                        className="p-1 text-red-500 hover:bg-red-50 rounded-full"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <label htmlFor="payload" className="block text-sm font-medium text-gray-700 flex items-center">
+                      <FileJson className="h-4 w-4 mr-2 text-indigo-500" />
+                      Payload
+                    </label>
+                    {payload && (
+                      isValidJSON(payload)
+                        ? <CheckCircle className="h-4 w-4 text-green-500" />
+                        : <AlertCircle className="h-4 w-4 text-red-500" />
+                    )}
+                  </div>
+                  <textarea
+                    id="payload"
+                    placeholder="Enter payload details in JSON format"
+                    className={`w-full min-h-[120px] px-3 py-2 border rounded-md font-mono text-sm ${
+                      payloadError 
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                    }`}
+                    value={payload}
+                    onChange={(e) => validatePayload(e.target.value)}
+                  />
+                  {payloadError && (
+                    <div className="p-3 bg-red-50 text-red-800 border border-red-200 rounded-md flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      <span className="text-sm font-medium">{payloadError}</span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-sm font-medium text-gray-700">Response Parser</label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={addResponseParser}
+                      className="h-8 px-3 text-xs"
+                    >
+                      <PlusCircle className="h-3 w-3 mr-1" />
+                      Add Parser
+                    </Button>
+                  </div>
+
+                  {responseParsers.map((parser, index) => (
+                    <div key={index} className="flex items-center space-x-3 p-3 rounded-md bg-gray-50 border border-gray-200">
+                      <input
+                        type="text"
+                        placeholder="Parser Key"
+                        value={parser.key}
+                        onChange={(e) => {
+                          handleResponseParserChange(index, e.target.value, parser.value);
+                        }}
+                        className="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Parser Value"
+                        value={parser.value}
+                        onChange={(e) => {
+                          handleResponseParserChange(index, parser.key, e.target.value);
+                        }}
+                        className="flex-1 px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      />
+                      <button
+                        onClick={() => removeResponseParser(index)}
+                        className="p-1 text-red-500 hover:bg-red-50 rounded-full"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="responsePayload" className="block text-sm font-medium text-gray-700 flex items-center">
+                    <FileJson className="h-4 w-4 mr-2 text-indigo-500" />
+                    Response Payload
+                  </label>
+                  <textarea
+                    id="responsePayload"
+                    placeholder="Enter response payload details"
+                    className={`w-full min-h-[120px] px-3 py-2 border rounded-md font-mono text-sm ${
+                      responsePayloadError 
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                        : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                    }`}
+                    value={responsePayload}
+                    onChange={(e) => validateResponsePayload(e.target.value)}
+                  />
+                  {responsePayloadError && (
+                    <div className="p-3 bg-red-50 text-red-800 border border-red-200 rounded-md flex items-center">
+                      <AlertCircle className="h-4 w-4 mr-2" />
+                      <span className="text-sm font-medium">{responsePayloadError}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
-          </CardContent>
-          <CardFooter className="flex justify-end space-x-5 border-t pt-6 bg-gray-50">
-            <Button
-              variant="outline"
-              type="button"
-              className="flex items-center gap-2 border-gray-300 hover:bg-gray-100"
-            >
-              <RotateCcw className="h-5 w-5" />
-              Reset
-            </Button>
-            <Button
-              variant="destructive"
-              type="button"
-              className="flex items-center gap-2"
-            >
-              <Trash2 className="h-5 w-5" />
-              Delete
-            </Button>
-            <Button
-              type="button"
-              onClick={handleSubmit}
-              className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 flex items-center gap-2"
-              disabled={searchType === 'external' && payload && !!payloadError}
-            >
-              <Save className="h-5 w-5" />
-              Save
-            </Button>
-          </CardFooter>
-        </Card>
+          )}
+
+          {/* External Attributes Section */}
+          <div className="space-y-4">
+            <label className="block text-sm font-medium text-gray-700 flex items-center">
+              <Settings className="h-4 w-4 mr-2 text-indigo-500" />
+              External Configuration
+            </label>
+            <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto shadow-sm bg-white">
+              <div className="space-y-2">
+                {categoryNames.map((attr) => (
+                  <div key={attr} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
+                    <input
+                      type="checkbox"
+                      id={`attr-${attr}`}
+                      value={attr}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedAttributes([...selectedAttributes, {
+                            attribute: attr,
+                            externalUrl: '',
+                            httpMethod: '',
+                            headers: [],
+                            payload: '',
+                            responsePayload: '',
+                            responseParser: []
+                          }]);
+                        } else {
+                          setSelectedAttributes(selectedAttributes.filter(a => a.attribute !== attr));
+                        }
+                      }}
+                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                    />
+                    <label htmlFor={`attr-${attr}`} className="text-sm text-gray-700">{attr}</label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div className="flex justify-end space-x-4 border-t p-6 bg-gray-50">
+          <Button
+            variant="outline"
+            type="button"
+            className="gap-2"
+          >
+            <RotateCcw className="h-4 w-4" />
+            Reset
+          </Button>
+          <Button
+            variant="destructive"
+            type="button"
+            className="gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete
+          </Button>
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            className="gap-2 bg-indigo-600 hover:bg-indigo-700"
+            disabled={searchType === 'external' && payload && !!payloadError}
+          >
+            <Save className="h-4 w-4" />
+            Save
+          </Button>
+        </div>
       </div>
     </div>
   );
 };
 
-export default Index;
+export default ExternalConfiguration;
