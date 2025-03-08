@@ -1,10 +1,12 @@
 'use client';
 
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { PlusCircle, Trash2, Settings, Save, RotateCcw, ChevronDown, Database, Server, Code, FileJson, AlertCircle, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import axios from 'axios';
+import { useAuthJHipster } from '@/context/JHipsterContext';
 
 // Utility functions to validate JSON and create payload
 const isValidJSON = (str: string) => {
@@ -48,9 +50,31 @@ const ExternalConfiguration = () => {
   const [payloadError, setPayloadError] = useState("");
   const [responsePayload, setResponsePayload] = useState("");
   const [responsePayloadError, setResponsePayloadError] = useState("");
+  const { jHipsterAuthToken } = useAuthJHipster();
+  const [categoryNames, setCategoryNames] = useState([]);
 
-  // Mock categories for demo purposes
-  const categoryNames = ["Product", "Order", "Customer", "Inventory"];
+
+
+
+  useEffect(() => {
+    const fetchCategoryNames = async () => {
+      try {
+        const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-names-list`, {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${jHipsterAuthToken}` // Use the token from context
+          }
+        });
+        setCategoryNames(response.data);
+      } catch (error) {
+        console.error("Error fetching category names", error);
+      }
+    };
+
+    if (jHipsterAuthToken) {
+      fetchCategoryNames();
+    }
+  }, [jHipsterAuthToken]);
 
   const addHeader = () => {
     setHeaders([...headers, { key: "", value: "" }]);
@@ -148,6 +172,8 @@ const ExternalConfiguration = () => {
     // Here you would typically send this data to your API
   };
 
+  console.log('selectedAttributes are', selectedAttributes);
+
   // Event handlers for Input components
   const handleHeaderChange = (index: number, key: string, value: string) => {
     const newHeaders = [...headers];
@@ -181,6 +207,85 @@ const ExternalConfiguration = () => {
     });
   };
 
+  // Update the searchType state handler to initialize the external attribute
+  const handleSearchTypeChange = (type: string) => {
+    setSearchType(type);
+    
+    // If external is selected, ensure we have an external attribute in selectedAttributes
+    if (type === "external") {
+      // Check if we already have an external attribute
+      const hasExternalAttr = selectedAttributes.some(attr => attr.attribute === 'external');
+      
+      if (!hasExternalAttr) {
+        // Add the external attribute with initial empty values
+        setSelectedAttributes([...selectedAttributes, {
+          attribute: 'external',
+          externalUrl: '',
+          httpMethod: '',
+          headers: headers,
+          payload: payload,
+          responsePayload: responsePayload,
+          responseParser: responseParsers
+        }]);
+      }
+    }
+  };
+
+  // Update the URL input handler
+  const handleUrlChange = (url: string) => {
+    // Find if we have an external attribute
+    const hasExternalAttr = selectedAttributes.some(attr => attr.attribute === 'external');
+    
+    if (hasExternalAttr) {
+      // Update the existing external attribute
+      setSelectedAttributes(prev => {
+        return prev.map(attr => {
+          if (attr.attribute === 'external') {
+            return { ...attr, externalUrl: url };
+          }
+          return attr;
+        });
+      });
+    } else {
+      // Create a new external attribute
+      setSelectedAttributes([...selectedAttributes, {
+        attribute: 'external',
+        externalUrl: url,
+        httpMethod: '',
+        headers: headers,
+        payload: payload,
+        responsePayload: responsePayload,
+        responseParser: responseParsers
+      }]);
+    }
+  };
+
+  // Similar handler for HTTP method
+  const handleHttpMethodChange = (method: string) => {
+    const hasExternalAttr = selectedAttributes.some(attr => attr.attribute === 'external');
+    
+    if (hasExternalAttr) {
+      setSelectedAttributes(prev => {
+        return prev.map(attr => {
+          if (attr.attribute === 'external') {
+            return { ...attr, httpMethod: method };
+          }
+          return attr;
+        });
+      });
+    } else {
+      setSelectedAttributes([...selectedAttributes, {
+        attribute: 'external',
+        externalUrl: '',
+        httpMethod: method,
+        headers: headers,
+        payload: payload,
+        responsePayload: responsePayload,
+        responseParser: responseParsers
+      }]);
+    }
+  };
+
   return (
     <div className="animate-fade-in-down">
       <div className="mb-8 flex justify-between items-center">
@@ -191,7 +296,7 @@ const ExternalConfiguration = () => {
         <div className="px-6 py-4 border-b border-gray-200 bg-gradient-to-r from-indigo-600 to-indigo-700">
           <h2 className="font-medium text-white">API Configuration</h2>
         </div>
-        
+
         <div className="p-6 space-y-8">
           {/* Category Selection */}
           <div className="space-y-4">
@@ -199,8 +304,8 @@ const ExternalConfiguration = () => {
               <Database className="h-4 w-4 mr-2 text-indigo-500" />
               Select Category
             </label>
-            <select 
-              value={category} 
+            <select
+              value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
@@ -225,7 +330,7 @@ const ExternalConfiguration = () => {
                   name="searchType"
                   value="external"
                   checked={searchType === "external"}
-                  onChange={(e) => setSearchType(e.target.value)}
+                  onChange={(e) => handleSearchTypeChange(e.target.value)}
                   className="h-4 w-4 text-indigo-600 border-gray-300"
                 />
                 <label htmlFor="external" className="text-sm text-gray-700">External</label>
@@ -237,7 +342,7 @@ const ExternalConfiguration = () => {
                   name="searchType"
                   value="searchEngine"
                   checked={searchType === "searchEngine"}
-                  onChange={(e) => setSearchType(e.target.value)}
+                  onChange={(e) => handleSearchTypeChange(e.target.value)}
                   className="h-4 w-4 text-indigo-600 border-gray-300"
                 />
                 <label htmlFor="searchEngine" className="text-sm text-gray-700">Search Engine</label>
@@ -276,16 +381,7 @@ const ExternalConfiguration = () => {
                       type="text"
                       placeholder="Enter API URL"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      onChange={(e) => {
-                        setSelectedAttributes(prev => {
-                          return prev.map(attr => {
-                            if (attr.attribute === 'external') {
-                              return { ...attr, externalUrl: e.target.value };
-                            }
-                            return attr;
-                          });
-                        });
-                      }}
+                      onChange={(e) => handleUrlChange(e.target.value)}
                     />
                   </div>
 
@@ -294,16 +390,7 @@ const ExternalConfiguration = () => {
                     <select
                       id="method"
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      onChange={(e) => {
-                        setSelectedAttributes(prev => {
-                          return prev.map(attr => {
-                            if (attr.attribute === 'external') {
-                              return { ...attr, httpMethod: e.target.value };
-                            }
-                            return attr;
-                          });
-                        });
-                      }}
+                      onChange={(e) => handleHttpMethodChange(e.target.value)}
                     >
                       <option value="">Select HTTP Method</option>
                       <option value="GET">GET</option>
@@ -373,11 +460,10 @@ const ExternalConfiguration = () => {
                   <textarea
                     id="payload"
                     placeholder="Enter payload details in JSON format"
-                    className={`w-full min-h-[120px] px-3 py-2 border rounded-md font-mono text-sm ${
-                      payloadError 
-                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                    className={`w-full min-h-[120px] px-3 py-2 border rounded-md font-mono text-sm ${payloadError
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                         : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                    }`}
+                      }`}
                     value={payload}
                     onChange={(e) => validatePayload(e.target.value)}
                   />
@@ -442,11 +528,10 @@ const ExternalConfiguration = () => {
                   <textarea
                     id="responsePayload"
                     placeholder="Enter response payload details"
-                    className={`w-full min-h-[120px] px-3 py-2 border rounded-md font-mono text-sm ${
-                      responsePayloadError 
-                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500' 
+                    className={`w-full min-h-[120px] px-3 py-2 border rounded-md font-mono text-sm ${responsePayloadError
+                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
                         : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
-                    }`}
+                      }`}
                     value={responsePayload}
                     onChange={(e) => validateResponsePayload(e.target.value)}
                   />
@@ -499,7 +584,7 @@ const ExternalConfiguration = () => {
             </div>
           </div>
         </div>
-        
+
         <div className="flex justify-end space-x-4 border-t p-6 bg-gray-50">
           <Button
             variant="outline"
