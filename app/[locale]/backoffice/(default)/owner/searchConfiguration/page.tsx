@@ -176,50 +176,31 @@ const ExternalConfiguration = () => {
 
       console.log("Processed attributes:", newAttributes);
       
-      // If no attributes were found and this is Ancillary, add default attributes
-      if (newAttributes.length === 0 && category.toLowerCase() === "ancillary") {
-        const defaultAncillaryAttributes = [
-          { key: "name", type: "String", required: true, unique: false, validations: [], isChecked: false, relationships: [] },
-          { key: "description", type: "String", required: false, unique: false, validations: [], isChecked: false, relationships: [] },
-          { key: "code", type: "String", required: true, unique: true, validations: [], isChecked: false, relationships: [] },
-          { key: "price", type: "BigDecimal", required: false, unique: false, validations: [], isChecked: false, relationships: [] },
-          { key: "category", type: "String", required: false, unique: false, validations: [], isChecked: false, relationships: [] }
-        ];
-        setAttributes(defaultAncillaryAttributes);
-        setExternalAttributes(defaultAncillaryAttributes);
-        console.log("Using default Ancillary attributes:", defaultAncillaryAttributes);
-      } else {
-        setAttributes(newAttributes);
-        setExternalAttributes(newAttributes);
+      // Set attributes regardless of category type
+      setAttributes(newAttributes);
+      setExternalAttributes(newAttributes);
 
-        // Fetch related attributes for all attributes
-        newAttributes.forEach(attr => {
-          if (attr.relationships && attr.relationships.length > 0) {
-            attr.relationships.forEach(async (relatedEntityName) => {
-              await fetchRelatedAttributes(relatedEntityName, attr.key);
-            });
-          }
-        });
-      }
+      // Fetch related attributes for all attributes
+      newAttributes.forEach(attr => {
+        if (attr.relationships && attr.relationships.length > 0) {
+          attr.relationships.forEach(async (relatedEntityName) => {
+            await fetchRelatedAttributes(relatedEntityName, attr.key);
+          });
+        }
+      });
     } catch (error) {
       console.error("Error fetching attributes for category:", category, error);
       setErrorMessage("Error fetching attributes");
       
-      // If there's an error and this is Ancillary, still provide default attributes
-      if (category.toLowerCase() === "ancillary") {
-        const defaultAncillaryAttributes = [
-          { key: "name", type: "String", required: true, unique: false, validations: [], isChecked: false, relationships: [] },
-          { key: "description", type: "String", required: false, unique: false, validations: [], isChecked: false, relationships: [] },
-          { key: "code", type: "String", required: true, unique: true, validations: [], isChecked: false, relationships: [] },
-          { key: "price", type: "BigDecimal", required: false, unique: false, validations: [], isChecked: false, relationships: [] },
-          { key: "category", type: "String", required: false, unique: false, validations: [], isChecked: false, relationships: [] }
-        ];
-        setAttributes(defaultAncillaryAttributes);
-        setExternalAttributes(defaultAncillaryAttributes);
-        console.log("Using default Ancillary attributes after error:", defaultAncillaryAttributes);
+      // Clear attributes on error
+      setAttributes([]);
+      setExternalAttributes([]);
+      
+      // Show a more descriptive error message
+      if (error.response && error.response.status === 404) {
+        setWarningMessage(`No entity definition found for "${category}". Please ensure this entity is properly defined in the backend.`);
       } else {
-        setAttributes([]);
-        setExternalAttributes([]);
+        setWarningMessage(`Failed to fetch attributes for "${category}". Please try again or contact support if the issue persists.`);
       }
     }
   };
@@ -736,6 +717,9 @@ const ExternalConfiguration = () => {
   // Handle JSON response payload validation
   const validateResponsePayload = (value) => {
     setResponsePayload(value);
+    
+    // Comment out validation logic to allow template-based payloads
+    /*
     if (!value.trim()) {
       setResponsePayloadError("");
       return;
@@ -754,6 +738,18 @@ const ExternalConfiguration = () => {
     } else {
       setResponsePayloadError("Invalid JSON format");
     }
+    */
+    
+    // Always update the state without validation
+    setResponsePayloadError("");
+    setSelectedAttributes(prev => {
+      return prev.map(attr => {
+        if (attr.attribute === 'external') {
+          return { ...attr, responsePayload: value };
+        }
+        return attr;
+      });
+    });
   };
 
   // Create payload for submission
@@ -769,22 +765,15 @@ const ExternalConfiguration = () => {
           httpMethod: attribute.httpMethod || '',
           headers: attribute.headers?.filter(header => header.key && header.value) || [],
           payload: attribute.payload || {},
-          responsePayload: attribute.responsePayload && Object.keys(attribute.responsePayload).length > 0 
-            ? attribute.responsePayload 
-            : {},
+          responsePayload: attribute.responsePayload || {},
           responseParser: attribute.responseParser?.filter(parser => parser.key && parser.value) || {}
         };
       }).filter(attribute => attribute !== null);
 
     const entityData = selectedAttributes.find(e => e.attribute === 'external');
     
-    // Ensure responsePayload is correctly set
-    let responsePayload = entityData?.responsePayload ? entityData.responsePayload : {};
-
-    // Remove backslashes from the responsePayload if it's a string
-    if (typeof responsePayload === 'string') {
-      responsePayload = responsePayload.replace(/\\/g, '').replace(/([^\\])\\([^\\])/g, '$1$2');
-    }
+    // Use the response payload as-is without trying to parse it as JSON
+    let responsePayload = entityData?.responsePayload || "";
 
     // Check if the searchType is 'searchEngine'
     if (searchType === 'searchEngine') {
@@ -821,10 +810,13 @@ const ExternalConfiguration = () => {
       return;
     }
 
+    // Comment out response payload validation to allow template-based payloads
+    /*
     if (searchType === 'external' && responsePayload !== undefined && responsePayload !== null && responsePayload !== '' && !isValidJSON(responsePayload)) {
       setResponsePayloadError("Cannot submit with invalid JSON response payload");
       return;
     }
+    */
 
     // Check if searchType is selected
     if (!searchType) {

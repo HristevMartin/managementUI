@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronRight, LogOut, User } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import hasRequiredRole from '@/utils/checkRole';
-import { getCurrentLocale } from '@/services/getCurrentLocale';
 interface NavbarProps {
   toggleSidebar?: () => void;
   params: {
@@ -14,29 +13,23 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
   const [userName, setUserName] = useState('Guest');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState<string[]>([]);
   const [links, setLinks] = useState<any[]>([]);
 
-  const locale = params.locale;
+  const lang = params.locale;
 
   const { data: session } = useSession();
-
-  let lang = getCurrentLocale();
 
   let userId = session?.user?.id;
   let userRoles = session?.user?.role;
 
-
   // Simulating session data
   useEffect(() => {
-    // This would come from your auth context in a real app
     setIsLoggedIn(true);
-    setUserName('Martoo');
-    setUserRole(userRoles);
-  }, [userRoles]);  
+    setUserName('John Doe');
+  }, [userId, userRoles]);
 
   const handleLogout = () => {
-    signOut({ redirect: true, callbackUrl: `/${locale}/backoffice/welcome-login` });
+    signOut({ redirect: true, callbackUrl: `/${lang}/backoffice/welcome-login` });
   };
 
   const toggleExpand = (sectionName: string) => {
@@ -46,65 +39,13 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
     }));
   };
 
-  // Mock links data based on user role
-  // const links = [
-  //   {
-  //     name: "Home",
-  //     url: `/${locale}/backoffice/management`,
-  //   },
-  //   userRole.includes("PRODUCTOWNER") && {
-  //     name: "Travel Services",
-  //     url: "#",
-  //     subLinks: [
-  //       {
-  //         name: "Manage Services",
-  //         subLinks: [
-  //           { name: "Create new service", url: `/${locale}/backoffice/owner/add-product` },
-  //           { name: "Search Product", url: `/${locale}/backoffice/owner/search-product` },
-  //         ],
-  //       },
-  //       {
-  //         name: "Search Configuration",
-  //         subLinks: [
-  //           { name: 'Search Configuration', url: `/${locale}/backoffice/owner/searchConfiguration` },
-  //           { name: 'External Search Configuration', url: `/${locale}/backoffice/owner/externalSearchConfiguration` },
-  //         ],
-  //       },
-  //     ],
-  //   },
-  //   userRole.includes("PRODUCTOWNER") && {
-  //     name: "Localization",
-  //     url: "#",
-  //     subLinks: [
-  //       { name: "Currencies", url: `/${locale}/backoffice/currencies` },
-  //       { name: "Language Settings", url: `/${locale}/backoffice/language` },
-  //     ],
-  //   },
-  //   userRole.includes("PRODUCTOWNER") && {
-  //     name: "User Management",
-  //     url: "#",
-  //     subLinks: [
-  //       { name: "Create User", url: `/${locale}/backoffice/user-management/create-user` },
-  //       { name: "Search User", url: `/${locale}/backoffice/user-management/search-user` },
-  //     ],
-  //   },
-  //   userRole.includes("PRODUCTOWNER") && {
-  //     name: "Rule Interface",
-  //     url: `/${locale}/backoffice/rule-interface`,
-  //   },
-  //   userRole.includes("PRODUCTOWNER") && {
-  //     name: "Create Package",
-  //     url: `/${locale}/backoffice/package`,
-  //   },
-  // ].filter(Boolean);
-
+  
   useEffect(() => {
     let allowedLinks = [];
     if (userId) {
       allowedLinks.push({
         name: "Home",
         url: `/${lang}/backoffice/management`,
-        subLinks: [],
       });
       if (hasRequiredRole(userRoles, "ADMIN")) {
         allowedLinks.push({
@@ -294,7 +235,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
         </div>
       </div>
 
-      {isLoggedIn && (
+      {userId && (
         <button
           onClick={handleLogout}
           className="w-full px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 transition-colors flex items-center justify-center gap-2"

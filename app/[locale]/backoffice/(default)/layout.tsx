@@ -18,7 +18,7 @@ const isAuthPagePath = (pathname: string) => {
     '/forgot-password',
     '/reset-password'
   ];
-  
+
   return authPatterns.some(pattern => pathname.includes(pattern));
 };
 
@@ -33,7 +33,7 @@ export default function RootLayout({
 }) {
   // Get initial state from window location if available (client-side only)
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
+
   // Initialize with null to indicate "not determined yet"
   const [isAuthPage, setIsAuthPage] = useState<boolean | null>(null);
 
@@ -41,10 +41,10 @@ export default function RootLayout({
     // Check if current path is an auth page
     const pathname = window.location.pathname;
     const isOnAuthPage = isAuthPagePath(pathname);
-    
+
     console.log("Current path:", pathname);
     console.log("Is auth page:", isOnAuthPage);
-    
+
     setIsAuthPage(isOnAuthPage);
 
     // Close sidebar when clicking outside on mobile
@@ -92,14 +92,12 @@ export default function RootLayout({
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     }>
-      <div style={{maxWidth: '100vw', overflowX: 'hidden'}} className="min-h-screen bg-gray-50">
+      <div style={{ maxWidth: '100vw', overflowX: 'hidden' }} className="min-h-screen bg-gray-50">
         {!isAuthPage && (
           <>
-            {/* Mobile sidebar with fixed positioning */}
             <aside
-              className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out ${
-                isSidebarOpen ? "transform-none" : "-translate-x-full sm:translate-x-0"
-              }`}
+              className={`fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out ${isSidebarOpen ? "transform-none" : "-translate-x-full sm:translate-x-0"
+                }`}
               data-sidebar
             >
               <Navbar toggleSidebar={() => setIsSidebarOpen(false)} params={params} />
@@ -108,9 +106,8 @@ export default function RootLayout({
         )}
 
         {/* Main content - add transition for width changes */}
-        <main className={`min-h-screen transition-all duration-300 ease-in-out ${
-          !isAuthPage ? "sm:pl-64" : ""
-        }`}>
+        <main className={`min-h-screen transition-all duration-300 ease-in-out ${!isAuthPage ? "sm:pl-64" : ""
+          }`}>
           {!isAuthPage && (
             <header className="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 py-3 sm:px-6">
               <div className="flex items-center justify-between">

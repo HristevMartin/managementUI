@@ -6,7 +6,7 @@ const Header: React.FC = () => {
   return (
     <div className="flex items-center justify-between w-full h-16 px-4">
       {/* Big Travel Label */}
-      <div className="text-2xl font-bold text-indigo-600">Big Travel</div>
+      <div className="text-xl sm:text-2xl font-bold text-indigo-600">Big Travel</div>
 
       {/* Right side icons */}
       <div className="flex items-center space-x-4">
