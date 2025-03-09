@@ -912,7 +912,7 @@ const Accordion = ({ attribute, existingData, setApiDetails, handleHeaderChange,
               value={header.value}
               onChange={(e) => handleResponseParserChange(index, 'value', e.target.value, attribute)}
             />
-            <div className='ml-6'>
+            <div style={{border: '10px solid green'}} className='ml-6'>
               <IconButton onClick={() => removeResponseParser(index, attribute)}>
                 <DeleteIcon />
               </IconButton>
