@@ -138,8 +138,11 @@ import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { useRouter } from 'next/navigation';
+import { registerUser } from '@/services/userService';
+import { signIn } from 'next-auth/react';
 
-const Register = () => {
+const Register = ({ lang }: { lang: string }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
@@ -156,6 +159,7 @@ const Register = () => {
   const validatePassword = (password: string) => {
     return password.length >= 8;
   };
+
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -177,12 +181,32 @@ const Register = () => {
 
     setErrors({ email: emailError, password: passwordError, repeatPassword: repeatPasswordError });
 
+    const registrationData = { email, password, password2: repeatPassword, role: 'USER' };
     if (!emailError && !passwordError && !repeatPasswordError) {
-      const registrationData = { email, password, repeatPassword };
       console.log('Registration details:', registrationData);
-      // This is where you would normally call your registration service
-      // For now, we'll just redirect to the login page
-      window.location.href = '/welcome-login';
+      try {
+        const result = await registerUser(registrationData);
+        console.log('show me the result', result);
+        if (result.success) {
+          alert('Registration successful please login');
+
+          // let payload = {
+          //   id: result.message.id || '1',
+          //   role: result.message.roles || 'USER',
+          //   callbackUrl: `${lang}/backoffice/management` || '',
+          //   token: result.message.token || '',
+          // }
+
+          // signIn('credentials', payload);
+
+        } else {
+          console.log('Registration failed:', result.error);
+          setErrors((prev) => ({ ...prev, email: result.error }));
+        }
+      } catch (error: any) {
+        console.error('Registration failed:', error);
+        setErrors((prev) => ({ ...prev, email: error.message }));
+      }
     }
   };
 
