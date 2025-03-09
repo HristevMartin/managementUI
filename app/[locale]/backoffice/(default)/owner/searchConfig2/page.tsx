@@ -741,7 +741,7 @@ const AddProductCategoryPage = () => {
         <fieldset>
           <legend>External Configuration:</legend>
           <label>Select Specific Attributes:</label>
-          <div id="external-attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
+          <div id="external-attributes-container" style={{ height: '150px', overflowY: 'auto', border: '1px solid red', padding: '10px' }}>
             {externalAttributes.map(attr => (
               <label key={attr.key}>
                 <input

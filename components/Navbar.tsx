@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronRight, LogOut, User } from 'lucide-react';
-
+import { signOut, useSession } from 'next-auth/react';
+import hasRequiredRole from '@/utils/checkRole';
+import { getCurrentLocale } from '@/services/getCurrentLocale';
 interface NavbarProps {
   toggleSidebar?: () => void;
   params: {
@@ -13,20 +15,28 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
   const [userName, setUserName] = useState('Guest');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userRole, setUserRole] = useState<string[]>([]);
+  const [links, setLinks] = useState<any[]>([]);
 
   const locale = params.locale;
+
+  const { data: session } = useSession();
+
+  let lang = getCurrentLocale();
+
+  let userId = session?.user?.id;
+  let userRoles = session?.user?.role;
+
 
   // Simulating session data
   useEffect(() => {
     // This would come from your auth context in a real app
     setIsLoggedIn(true);
-    setUserName('John Doe');
-    setUserRole(['PRODUCTOWNER']);
-  }, []);
+    setUserName('Martoo');
+    setUserRole(userRoles);
+  }, [userRoles]);  
 
   const handleLogout = () => {
-    // Handle logout logic
-    console.log('Logging out...');
+    signOut({ redirect: true, callbackUrl: `/${locale}/backoffice/welcome-login` });
   };
 
   const toggleExpand = (sectionName: string) => {
@@ -37,56 +47,154 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
   };
 
   // Mock links data based on user role
-  const links = [
-    {
-      name: "Home",
-      url: `/${locale}/backoffice/management`,
-    },
-    userRole.includes("PRODUCTOWNER") && {
-      name: "Travel Services",
-      url: "#",
-      subLinks: [
-        {
-          name: "Manage Services",
+  // const links = [
+  //   {
+  //     name: "Home",
+  //     url: `/${locale}/backoffice/management`,
+  //   },
+  //   userRole.includes("PRODUCTOWNER") && {
+  //     name: "Travel Services",
+  //     url: "#",
+  //     subLinks: [
+  //       {
+  //         name: "Manage Services",
+  //         subLinks: [
+  //           { name: "Create new service", url: `/${locale}/backoffice/owner/add-product` },
+  //           { name: "Search Product", url: `/${locale}/backoffice/owner/search-product` },
+  //         ],
+  //       },
+  //       {
+  //         name: "Search Configuration",
+  //         subLinks: [
+  //           { name: 'Search Configuration', url: `/${locale}/backoffice/owner/searchConfiguration` },
+  //           { name: 'External Search Configuration', url: `/${locale}/backoffice/owner/externalSearchConfiguration` },
+  //         ],
+  //       },
+  //     ],
+  //   },
+  //   userRole.includes("PRODUCTOWNER") && {
+  //     name: "Localization",
+  //     url: "#",
+  //     subLinks: [
+  //       { name: "Currencies", url: `/${locale}/backoffice/currencies` },
+  //       { name: "Language Settings", url: `/${locale}/backoffice/language` },
+  //     ],
+  //   },
+  //   userRole.includes("PRODUCTOWNER") && {
+  //     name: "User Management",
+  //     url: "#",
+  //     subLinks: [
+  //       { name: "Create User", url: `/${locale}/backoffice/user-management/create-user` },
+  //       { name: "Search User", url: `/${locale}/backoffice/user-management/search-user` },
+  //     ],
+  //   },
+  //   userRole.includes("PRODUCTOWNER") && {
+  //     name: "Rule Interface",
+  //     url: `/${locale}/backoffice/rule-interface`,
+  //   },
+  //   userRole.includes("PRODUCTOWNER") && {
+  //     name: "Create Package",
+  //     url: `/${locale}/backoffice/package`,
+  //   },
+  // ].filter(Boolean);
+
+  useEffect(() => {
+    let allowedLinks = [];
+    if (userId) {
+      allowedLinks.push({
+        name: "Home",
+        url: `/${lang}/backoffice/management`,
+        subLinks: [],
+      });
+      if (hasRequiredRole(userRoles, "ADMIN")) {
+        allowedLinks.push({
+          name: "ADMIN",
+          url: `/${lang}/backoffice/admin`,
+          subLinks: [],
+        });
+      }
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+        allowedLinks.push({
+          name: "Products",
+          url: "#",
           subLinks: [
-            { name: "Create new service", url: `/${locale}/backoffice/owner/add-product` },
-            { name: "Search Product", url: `/${locale}/backoffice/owner/search-product` },
+            {
+              name: "Type Definition",
+              subLinks: [
+                {
+                  name: "Product Type",
+                  url: `/${lang}/backoffice/owner/addInitialProductCategory`,
+                },
+              ],
+            },
+            {
+              name: "Manage Data",
+              subLinks: [
+                { name: "Add Product", url: `/${lang}/backoffice/owner/add-product` },
+                {
+                  name: "Search Product",
+                  url: `/${lang}/backoffice/owner/search-product`,
+                },
+              ],
+            },
+            {
+              name: "Search Configuration",
+              subLinks: [
+                { name: 'Search Configuration', url: `/${lang}/backoffice/owner/searchConfiguration` },
+                { name: 'External Search Configuration', url: `/${lang}/backoffice/owner/externalSearchConfiguration` },
+              ],
+            },
           ],
-        },
-        {
-          name: "Search Configuration",
+        });
+      }
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+        allowedLinks.push({
+          name: "Localization",
+          url: "#",
           subLinks: [
-            { name: 'Search Configuration', url: `/${locale}/backoffice/owner/searchConfiguration` },
-            { name: 'External Search Configuration', url: `/${locale}/backoffice/owner/externalSearchConfiguration` },
+            { name: "Currencies", url: `/${lang}/backoffice/currencies` },
+            { name: "Language Settings", url: `/${lang}/backoffice/language` },
           ],
-        },
-      ],
-    },
-    userRole.includes("PRODUCTOWNER") && {
-      name: "Localization",
-      url: "#",
-      subLinks: [
-        { name: "Currencies", url: `/${locale}/backoffice/currencies` },
-        { name: "Language Settings", url: `/${locale}/backoffice/language` },
-      ],
-    },
-    userRole.includes("PRODUCTOWNER") && {
-      name: "User Management",
-      url: "#",
-      subLinks: [
-        { name: "Create User", url: `/${locale}/backoffice/user-management/create-user` },
-        { name: "Search User", url: `/${locale}/backoffice/user-management/search-user` },
-      ],
-    },
-    userRole.includes("PRODUCTOWNER") && {
-      name: "Rule Interface",
-      url: `/${locale}/backoffice/rule-interface`,
-    },
-    userRole.includes("PRODUCTOWNER") && {
-      name: "Create Package",
-      url: `/${locale}/backoffice/package`,
-    },
-  ].filter(Boolean);
+        });
+      }
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+        allowedLinks.push({
+          name: "User Management",
+          url: "#",
+          subLinks: [
+            { name: "Create User", url: `/${lang}/backoffice/user-management/create-user` },
+            { name: "Search User", url: `/${lang}/backoffice/user-management/search-user` },
+          ],
+        });
+      }
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+        allowedLinks.push({
+          name: "Rule Interface",
+          url: `/${lang}/backoffice/rule-interface`,
+          sublinks: [],
+        });
+      }
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+        allowedLinks.push({
+          name: "Create Package",
+          url: `/${lang}/backoffice/package`,
+          sublinks: [],
+        });
+      }
+    } else {
+      allowedLinks.push({
+        name: "Login",
+        url: `/${lang}/backoffice/login`,
+        subLinks: null,
+      });
+      allowedLinks.push({
+        name: "Register",
+        url: `/${lang}/backoffice/register`,
+        subLinks: null,
+      });
+    }
+    setLinks(allowedLinks);
+  }, [session]);
 
   return (
     <div className="flex h-full flex-col">

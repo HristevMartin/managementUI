@@ -17,12 +17,9 @@ const isValidJSON = (str: string) => {
   }
 };
 
-// Format response payload to handle template parts
 const formatResponsePayload = (inputValue) => {
-  // Initially assume the input is a straightforward JSON string
   let formattedValue = inputValue;
 
-  // Check and handle template parts
   const templateRegex = /<#[^>]+>/g; // Adjust regex to accurately capture your template syntax
   let match;
   let lastIndex = 0;
@@ -116,78 +113,116 @@ const ExternalConfiguration = () => {
       setNotificationMessage("");
       setPayloadError("");
       setResponsePayloadError("");
+      setAttributes([]); // Clear attributes when category changes
+      setExternalAttributes([]); // Clear external attributes when category changes
+      setRelatedAttributes({}); // Clear related attributes when category changes
+      setExpandedAttributes({}); // Clear expanded attributes when category changes
       
       // Then check if data exists and fetch attributes
       checkIfDataPresent();
-      handleCategoryChange();
+      fetchCategoryAttributes(); // Use a dedicated function instead of handleCategoryChange
     }
   }, [category]);
 
-  // Fetch attributes for the selected category
-  useEffect(() => {
-    if (category) {
-      const fetchAttributes = async () => {
-        try {
-          const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${category}`, {
-            headers: {
-              'Content-Type': 'application/json',
-              Authorization: `Bearer ${jHipsterAuthToken}`
-            }
-          });
+  // Dedicated function to fetch attributes for the selected category
+  const fetchCategoryAttributes = async () => {
+    if (!category) return;
+    
+    try {
+      console.log("Fetching attributes for category:", category);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${category}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${jHipsterAuthToken}`
+        }
+      });
 
-          const data = response.data;
-          const newAttributes = data.fields.map(field => {
-            const [key, type, ...rest] = field.split(' ');
-            return {
-              key,
-              type,
-              required: rest.includes('required'),
-              unique: rest.includes('unique'),
+      const data = response.data;
+      console.log("Received entity data:", data);
+      
+      // Handle case where fields might be empty or undefined
+      const fields = data.fields || [];
+      const newAttributes = fields.map(field => {
+        const [key, type, ...rest] = field.split(' ');
+        return {
+          key,
+          type,
+          required: rest.includes('required'),
+          unique: rest.includes('unique'),
+          validations: [],
+          isChecked: false,
+          relationships: []
+        };
+      });
+
+      // Add relationship fields as attributes
+      if (data.relationships && data.relationships.length > 0) {
+        data.relationships.forEach(relationship => {
+          const match = relationship.relationshipFrom.match(/\{(.+?)\(/);
+          if (match) {
+            const relationshipField = match[1];
+            newAttributes.push({
+              key: relationshipField,
+              type: 'Relationship',
+              required: false,
+              unique: false,
               validations: [],
               isChecked: false,
-              relationships: []
-            };
-          });
+              relationships: [relationship.relationshipTo]
+            });
+          }
+        });
+      }
 
-          // Add relationship fields as attributes
-          data.relationships.forEach(relationship => {
-            const match = relationship.relationshipFrom.match(/\{(.+?)\(/);
-            if (match) {
-              const relationshipField = match[1];
-              newAttributes.push({
-                key: relationshipField,
-                type: 'Relationship',
-                required: false,
-                unique: false,
-                validations: [],
-                isChecked: false,
-                relationships: [relationship.relationshipTo]
-              });
-            }
-          });
+      console.log("Processed attributes:", newAttributes);
+      
+      // If no attributes were found and this is Ancillary, add default attributes
+      if (newAttributes.length === 0 && category.toLowerCase() === "ancillary") {
+        const defaultAncillaryAttributes = [
+          { key: "name", type: "String", required: true, unique: false, validations: [], isChecked: false, relationships: [] },
+          { key: "description", type: "String", required: false, unique: false, validations: [], isChecked: false, relationships: [] },
+          { key: "code", type: "String", required: true, unique: true, validations: [], isChecked: false, relationships: [] },
+          { key: "price", type: "BigDecimal", required: false, unique: false, validations: [], isChecked: false, relationships: [] },
+          { key: "category", type: "String", required: false, unique: false, validations: [], isChecked: false, relationships: [] }
+        ];
+        setAttributes(defaultAncillaryAttributes);
+        setExternalAttributes(defaultAncillaryAttributes);
+        console.log("Using default Ancillary attributes:", defaultAncillaryAttributes);
+      } else {
+        setAttributes(newAttributes);
+        setExternalAttributes(newAttributes);
 
-          setAttributes(newAttributes);
-          setExternalAttributes(newAttributes);
-
-          // Fetch related attributes for all attributes
-          newAttributes.forEach(attr => {
-            if (attr.relationships && attr.relationships.length > 0) {
-              attr.relationships.forEach(async (relatedEntityName) => {
-                await fetchRelatedAttributes(relatedEntityName, attr.key);
-              });
-            }
-          });
-        } catch (error) {
-          setErrorMessage("Error fetching attributes");
-          console.error("Error fetching attributes", error);
-        }
-      };
-
-      if (jHipsterAuthToken) {
-        fetchAttributes();
+        // Fetch related attributes for all attributes
+        newAttributes.forEach(attr => {
+          if (attr.relationships && attr.relationships.length > 0) {
+            attr.relationships.forEach(async (relatedEntityName) => {
+              await fetchRelatedAttributes(relatedEntityName, attr.key);
+            });
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching attributes for category:", category, error);
+      setErrorMessage("Error fetching attributes");
+      
+      // If there's an error and this is Ancillary, still provide default attributes
+      if (category.toLowerCase() === "ancillary") {
+        const defaultAncillaryAttributes = [
+          { key: "name", type: "String", required: true, unique: false, validations: [], isChecked: false, relationships: [] },
+          { key: "description", type: "String", required: false, unique: false, validations: [], isChecked: false, relationships: [] },
+          { key: "code", type: "String", required: true, unique: true, validations: [], isChecked: false, relationships: [] },
+          { key: "price", type: "BigDecimal", required: false, unique: false, validations: [], isChecked: false, relationships: [] },
+          { key: "category", type: "String", required: false, unique: false, validations: [], isChecked: false, relationships: [] }
+        ];
+        setAttributes(defaultAncillaryAttributes);
+        setExternalAttributes(defaultAncillaryAttributes);
+        console.log("Using default Ancillary attributes after error:", defaultAncillaryAttributes);
+      } else {
+        setAttributes([]);
+        setExternalAttributes([]);
       }
     }
-  }, [category, jHipsterAuthToken]);
+  };
 
   // Fetch related attributes for relationship fields
   const fetchRelatedAttributes = async (relatedEntityName, fieldName) => {
@@ -246,21 +281,22 @@ const ExternalConfiguration = () => {
         }
       });
       const data = response.data;
-
-      const newAttributes = data.externalAttributesMetaData.map(attr => ({
-        key: attr.attributeName,
-        type: attr.type,
-        required: attr.required,
-        validations: attr.validations,
-        isChecked: data.externalAttributesMetaData.some(dataAttr => dataAttr.attributeName === attr.attributeName)
-      }));
-
-      setAttributes(newAttributes);
-      setExternalAttributes(newAttributes);
+      
+      if (data && data.externalAttributesMetaData && data.externalAttributesMetaData.length > 0) {
+        const configAttributes = data.externalAttributesMetaData.map(attr => ({
+          key: attr.attributeName,
+          type: attr.type || "String",
+          required: attr.required || false,
+          validations: attr.validations || [],
+          isChecked: true
+        }));
+        
+        console.log("Found existing configuration attributes:", configAttributes);
+        // Don't override the main attributes here, just use this for reference
+      }
     } catch (error) {
-      console.error("Error fetching attributes", error);
-      setAttributes([]);
-      setExternalAttributes([]);
+      console.error("Error fetching existing configuration", error);
+      // This is expected for new categories, so we don't need to set an error
     }
   };
 
@@ -269,6 +305,7 @@ const ExternalConfiguration = () => {
     if (!category) return;
     
     try {
+      console.log("Checking if data exists for category:", category);
       const response = await axios.get(
         `${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${category}`,
         {
@@ -280,6 +317,7 @@ const ExternalConfiguration = () => {
       );
       
       const data = response.data;
+      console.log("Existing configuration data:", data);
       setIsDataPresent(!!data);
       
       if (data) {
@@ -369,6 +407,7 @@ const ExternalConfiguration = () => {
 
         // Set searchable attributes
         if (data.searchableFields) {
+          console.log("Setting searchable fields from existing data:", data.searchableFields);
           setSearchableAttributes(data.searchableFields);
         }
 
@@ -865,6 +904,8 @@ const ExternalConfiguration = () => {
           }
         }
       );
+
+      console.log("Delete successful", response);
       setNotificationMessage('Deletion successful!');
       // Reset form after deletion
       setCategory("");
@@ -1168,47 +1209,55 @@ const ExternalConfiguration = () => {
                 Select Searchable Attributes
               </label>
               <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto shadow-sm bg-white">
-                <div className="space-y-2">
-                  {attributes.map(attr => (
-                    <div key={attr.key}>
-                      <label onClick={() => handleAttributeClick(attr)} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
-                        <input
-                          type="checkbox"
-                          name="searchable-attributes"
-                          value={attr.key}
-                          checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
-                          onChange={handleSearchableAttributesChange}
-                          className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                        />
-                        <span className="text-sm text-gray-700">{attr.key.charAt(0).toUpperCase() + attr.key.slice(1)}</span>
-                      </label>
-                      {expandedAttributes[attr.key] && attr.relationships && attr.relationships.length > 0 && relatedAttributes[attr.relationships[0]] && (
-                        <div className="ml-6 mt-2 space-y-2 border-l-2 border-gray-200 pl-4">
-                          {relatedAttributes[attr.relationships[0]].map((relAttr) => (
-                            <label key={relAttr.key} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
-                              <input
-                                type="checkbox"
-                                name="related-attributes"
-                                value={relAttr.key}
-                                checked={relAttr.selected || searchableRelationFields.some(field =>
-                                  field.fieldName === attr.key &&
-                                  field.relatedEntityName === attr.relationships[0] &&
-                                  field.relatedFieldName === relAttr.key
-                                )}
-                                onChange={(e) => {
-                                  const { checked } = e.target;
-                                  handleRelatedAttributeChange(checked, relAttr, attr);
-                                }}
-                                className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                              />
-                              <span className="text-sm text-gray-700">{relAttr.key.charAt(0).toUpperCase() + relAttr.key.slice(1)}</span>
-                            </label>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                {attributes.length > 0 ? (
+                  <div className="space-y-2">
+                    {attributes.map(attr => (
+                      <div key={`${category}-${attr.key}`}>
+                        <label onClick={() => handleAttributeClick(attr)} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
+                          <input
+                            type="checkbox"
+                            name="searchable-attributes"
+                            value={attr.key}
+                            checked={searchableAttributes.includes(attr.key) || searchableRelationFields.some(field => field.fieldName === attr.key)}
+                            onChange={handleSearchableAttributesChange}
+                            className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                          />
+                          <span className="text-sm text-gray-700">{attr.key.charAt(0).toUpperCase() + attr.key.slice(1)}</span>
+                        </label>
+                        {expandedAttributes[attr.key] && attr.relationships && attr.relationships.length > 0 && relatedAttributes[attr.relationships[0]] && (
+                          <div className="ml-6 mt-2 space-y-2 border-l-2 border-gray-200 pl-4">
+                            {relatedAttributes[attr.relationships[0]].map((relAttr) => (
+                              <label key={`${category}-${attr.key}-${relAttr.key}`} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
+                                <input
+                                  type="checkbox"
+                                  name="related-attributes"
+                                  value={relAttr.key}
+                                  checked={relAttr.selected || searchableRelationFields.some(field =>
+                                    field.fieldName === attr.key &&
+                                    field.relatedEntityName === attr.relationships[0] &&
+                                    field.relatedFieldName === relAttr.key
+                                  )}
+                                  onChange={(e) => {
+                                    const { checked } = e.target;
+                                    handleRelatedAttributeChange(checked, relAttr, attr);
+                                  }}
+                                  className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                                />
+                                <span className="text-sm text-gray-700">{relAttr.key.charAt(0).toUpperCase() + relAttr.key.slice(1)}</span>
+                              </label>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-gray-500">
+                    {category ? 
+                      `No searchable attributes found for ${category}. Please check if the entity definition is correct.` : 
+                      "Please select a category to view searchable attributes."}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -1220,21 +1269,29 @@ const ExternalConfiguration = () => {
               External Configuration
             </label>
             <div className="border rounded-lg p-4 max-h-[300px] overflow-y-auto shadow-sm bg-white">
-              <div className="space-y-2">
-                {externalAttributes.map((attr) => (
-                  <div key={attr.key} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
-                    <input
-                      type="checkbox"
-                      id={`attr-${attr.key}`}
-                      value={attr.key}
-                      checked={selectedAttributes.some(a => a.attribute === attr.key || a?.attributeName === attr.key)}
-                      onChange={handleExternalAttributesChange}
-                      className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
-                    />
-                    <label htmlFor={`attr-${attr.key}`} className="text-sm text-gray-700">{attr.key.charAt(0).toUpperCase() + attr.key.slice(1)}</label>
-                  </div>
-                ))}
-              </div>
+              {externalAttributes.length > 0 ? (
+                <div className="space-y-2">
+                  {externalAttributes.map((attr) => (
+                    <div key={`${category}-ext-${attr.key}`} className="flex items-center space-x-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
+                      <input
+                        type="checkbox"
+                        id={`attr-${attr.key}`}
+                        value={attr.key}
+                        checked={selectedAttributes.some(a => a.attribute === attr.key || a?.attributeName === attr.key)}
+                        onChange={handleExternalAttributesChange}
+                        className="h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                      />
+                      <label htmlFor={`attr-${attr.key}`} className="text-sm text-gray-700">{attr.key.charAt(0).toUpperCase() + attr.key.slice(1)}</label>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 text-center text-gray-500">
+                  {category ? 
+                    `No external attributes found for ${category}. Please check if the entity definition is correct.` : 
+                    "Please select a category to view external attributes."}
+                </div>
+              )}
             </div>
           </div>
 
