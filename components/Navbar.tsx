@@ -25,7 +25,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
   // Simulating session data
   useEffect(() => {
     setIsLoggedIn(true);
-    setUserName('John Doe');
+    setUserName('Martin');
   }, [userId, userRoles]);
 
   const handleLogout = () => {

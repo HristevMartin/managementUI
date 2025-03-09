@@ -7,7 +7,6 @@ import axios from 'axios';
 import { useAuthJHipster } from '@/context/JHipsterContext';
 import { useModal } from '@/context/useModal';
 
-// Utility functions to validate JSON and create payload
 const isValidJSON = (str: string) => {
   try {
     JSON.parse(str);
@@ -20,22 +19,19 @@ const isValidJSON = (str: string) => {
 const formatResponsePayload = (inputValue) => {
   let formattedValue = inputValue;
 
-  const templateRegex = /<#[^>]+>/g; // Adjust regex to accurately capture your template syntax
+  const templateRegex = /<#[^>]+>/g;
   let match;
   let lastIndex = 0;
   let result = '';
 
   while ((match = templateRegex.exec(inputValue)) !== null) {
-    // Add the part before the template, handling JSON escaping
     const jsonPart = inputValue.substring(lastIndex, match.index);
-    result += jsonPart.replace(/\\(["\\])/g, '$1'); // Unescape JSON-specific characters
+    result += jsonPart.replace(/\\(["\\])/g, '$1');
 
-    // Add the template part unchanged
     result += match[0];
     lastIndex = templateRegex.lastIndex;
   }
 
-  // Handle the last part of the string after the final template, if any
   if (lastIndex < inputValue.length) {
     const jsonPart = inputValue.substring(lastIndex);
     result += jsonPart.replace(/\\(["\\])/g, '$1');
@@ -68,14 +64,13 @@ const ExternalConfiguration = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [warningMessage, setWarningMessage] = useState('');
   const [notificationMessage, setNotificationMessage] = useState('');
-  const { showModal } = useModal ? useModal() : { showModal: () => {} };
+  const { showModal } = useModal ? useModal() : { showModal: () => { } };
 
-  // Add this debugging useEffect to see what's happening with searchType
   useEffect(() => {
     console.log("Current searchType:", searchType);
   }, [searchType]);
 
-  // Fetch category names on component mount
+
   useEffect(() => {
     const fetchCategoryNames = async () => {
       try {
@@ -113,21 +108,20 @@ const ExternalConfiguration = () => {
       setNotificationMessage("");
       setPayloadError("");
       setResponsePayloadError("");
-      setAttributes([]); // Clear attributes when category changes
-      setExternalAttributes([]); // Clear external attributes when category changes
-      setRelatedAttributes({}); // Clear related attributes when category changes
-      setExpandedAttributes({}); // Clear expanded attributes when category changes
-      
-      // Then check if data exists and fetch attributes
+      setAttributes([]);
+      setExternalAttributes([]);
+      setRelatedAttributes({});
+      setExpandedAttributes({});
+
       checkIfDataPresent();
-      fetchCategoryAttributes(); // Use a dedicated function instead of handleCategoryChange
+      fetchCategoryAttributes();
     }
   }, [category]);
 
   // Dedicated function to fetch attributes for the selected category
   const fetchCategoryAttributes = async () => {
     if (!category) return;
-    
+
     try {
       console.log("Fetching attributes for category:", category);
       const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${category}`, {
@@ -139,7 +133,7 @@ const ExternalConfiguration = () => {
 
       const data = response.data;
       console.log("Received entity data:", data);
-      
+
       // Handle case where fields might be empty or undefined
       const fields = data.fields || [];
       const newAttributes = fields.map(field => {
@@ -175,12 +169,11 @@ const ExternalConfiguration = () => {
       }
 
       console.log("Processed attributes:", newAttributes);
-      
+
       // Set attributes regardless of category type
       setAttributes(newAttributes);
       setExternalAttributes(newAttributes);
 
-      // Fetch related attributes for all attributes
       newAttributes.forEach(attr => {
         if (attr.relationships && attr.relationships.length > 0) {
           attr.relationships.forEach(async (relatedEntityName) => {
@@ -191,12 +184,10 @@ const ExternalConfiguration = () => {
     } catch (error) {
       console.error("Error fetching attributes for category:", category, error);
       setErrorMessage("Error fetching attributes");
-      
-      // Clear attributes on error
+
       setAttributes([]);
       setExternalAttributes([]);
-      
-      // Show a more descriptive error message
+
       if (error.response && error.response.status === 404) {
         setWarningMessage(`No entity definition found for "${category}". Please ensure this entity is properly defined in the backend.`);
       } else {
@@ -205,7 +196,6 @@ const ExternalConfiguration = () => {
     }
   };
 
-  // Fetch related attributes for relationship fields
   const fetchRelatedAttributes = async (relatedEntityName, fieldName) => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-by-name/${relatedEntityName}`, {
@@ -214,7 +204,7 @@ const ExternalConfiguration = () => {
           Authorization: `Bearer ${jHipsterAuthToken}`
         }
       });
-      
+
       const relatedData = response.data.fields.map(field => {
         const [key, type, ...rest] = field.split(' ');
         return {
@@ -229,7 +219,6 @@ const ExternalConfiguration = () => {
 
       setRelatedAttributes(prev => ({ ...prev, [relatedEntityName]: relatedData }));
 
-      // Only add new searchableRelationFields if it does not already exist
       setSearchableRelationFields(prevFields => {
         const alreadyExists = prevFields.some(
           field => field.fieldName === fieldName && field.relatedEntityName === relatedEntityName
@@ -252,39 +241,40 @@ const ExternalConfiguration = () => {
     }
   };
 
-  // Handle category change
-  const handleCategoryChange = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${category}`, {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${jHipsterAuthToken}`
-        }
-      });
-      const data = response.data;
-      
-      if (data && data.externalAttributesMetaData && data.externalAttributesMetaData.length > 0) {
-        const configAttributes = data.externalAttributesMetaData.map(attr => ({
-          key: attr.attributeName,
-          type: attr.type || "String",
-          required: attr.required || false,
-          validations: attr.validations || [],
-          isChecked: true
-        }));
-        
-        console.log("Found existing configuration attributes:", configAttributes);
-        // Don't override the main attributes here, just use this for reference
-      }
-    } catch (error) {
-      console.error("Error fetching existing configuration", error);
-      // This is expected for new categories, so we don't need to set an error
-    }
-  };
+  // const handleCategoryChange = async () => {
+  //   try {
+  //     const response = await axios.get(`${process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING}/api/jdl/get-entity-search-configuration/${category}`, {
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         Authorization: `Bearer ${jHipsterAuthToken}`
+  //       }
+  //     });
+  //     const data = response.data;
+
+  //     if (data && data.externalAttributesMetaData && data.externalAttributesMetaData.length > 0) {
+  //       const configAttributes = data.externalAttributesMetaData.map(attr => ({
+  //         key: attr.attributeName,
+  //         type: attr.type || "String",
+  //         required: attr.required || false,
+  //         validations: attr.validations || [],
+  //         isChecked: true
+  //       }));
+
+  //       console.log("Found existing configuration attributes:", configAttributes);
+  //       // Don't override the main attributes here, just use this for reference
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching existing configuration", error);
+  //     // This is expected for new categories, so we don't need to set an error
+  //   }
+  // };
 
   // Check if configuration data already exists for this category
+
+
   const checkIfDataPresent = async () => {
     if (!category) return;
-    
+
     try {
       console.log("Checking if data exists for category:", category);
       const response = await axios.get(
@@ -296,61 +286,63 @@ const ExternalConfiguration = () => {
           }
         }
       );
-      
+
       const data = response.data;
       console.log("Existing configuration data:", data);
       setIsDataPresent(!!data);
-      
+
       if (data) {
         setExistingData(data);
-        
+
         // Explicitly set the search type to ensure radio buttons are updated
         if (data.entitySearchType) {
           console.log("Setting search type from data:", data.entitySearchType);
-          // Normalize the search type to ensure consistent casing
-          const normalizedType = data.entitySearchType.toLowerCase() === "searchengine" 
-            ? "searchEngine" 
+          const normalizedType = data.entitySearchType.toLowerCase() === "searchengine"
+            ? "searchEngine"
             : data.entitySearchType;
           setSearchType(normalizedType);
         }
-        
-        // Set payload and responsePayload if they exist in the external entity metadata
+
         if (data.externalEntityMetaData) {
           if (data.externalEntityMetaData.payload) {
-            setPayload(typeof data.externalEntityMetaData.payload === 'string' 
-              ? data.externalEntityMetaData.payload 
+            setPayload(typeof data.externalEntityMetaData.payload === 'string'
+              ? data.externalEntityMetaData.payload
               : JSON.stringify(data.externalEntityMetaData.payload, null, 2));
           }
-          
+
           if (data.externalEntityMetaData.responsePayload) {
-            setResponsePayload(typeof data.externalEntityMetaData.responsePayload === 'string' 
-              ? data.externalEntityMetaData.responsePayload 
-              : JSON.stringify(data.externalEntityMetaData.responsePayload, null, 2));
+            const responsePayloadData = data.externalEntityMetaData.responsePayload;
+
+            // If it's a template string (contains <#), use it directly without JSON processing
+            if (typeof responsePayloadData === 'string' && responsePayloadData.includes('<#')) {
+              setResponsePayload(responsePayloadData);
+            } else {
+              // Otherwise, handle as JSON
+              setResponsePayload(typeof responsePayloadData === 'string'
+                ? responsePayloadData
+                : JSON.stringify(responsePayloadData, null, 2));
+            }
           }
-          
-          // Set headers if they exist
+
           if (data.externalEntityMetaData.headers && data.externalEntityMetaData.headers.length > 0) {
             setHeaders(data.externalEntityMetaData.headers);
           }
-          
-          // Set response parsers if they exist
+
           if (data.externalEntityMetaData.responseParser && data.externalEntityMetaData.responseParser.length > 0) {
             setResponseParsers(data.externalEntityMetaData.responseParser);
           }
         }
-        
-        // Set selected attributes
+
         const externalMetadata = data.externalEntityMetaData ? { ...data.externalEntityMetaData, attribute: 'external' } : null;
         const attributesArray = data.externalAttributesMetaData || [];
         setSelectedAttributes(externalMetadata ? [...attributesArray, externalMetadata] : attributesArray);
-        
+
         setRecommendation(data.recommendation || false);
-        
-        // Handle related attributes
+
         if (data.searchableRelationFields) {
           const newRelatedAttributes = {};
           const newExpandedAttributes = {};
-          
+
           data.searchableRelationFields.forEach(field => {
             if (field.relatedEntityName) {
               if (!newRelatedAttributes[field.relatedEntityName]) {
@@ -364,7 +356,6 @@ const ExternalConfiguration = () => {
             }
           });
 
-          // Merge with existing related attributes
           setRelatedAttributes(prev => {
             const merged = { ...prev };
             Object.keys(newRelatedAttributes).forEach(entityName => {
@@ -386,13 +377,11 @@ const ExternalConfiguration = () => {
           setExpandedAttributes(prev => ({ ...prev, ...newExpandedAttributes }));
         }
 
-        // Set searchable attributes
         if (data.searchableFields) {
           console.log("Setting searchable fields from existing data:", data.searchableFields);
           setSearchableAttributes(data.searchableFields);
         }
 
-        // Set searchable relation fields
         if (data.searchableRelationFields) {
           setSearchableRelationFields(data.searchableRelationFields);
         }
@@ -403,7 +392,6 @@ const ExternalConfiguration = () => {
     }
   };
 
-  // Handle attribute expansion for related attributes
   const handleAttributeClick = (attribute) => {
     const isExpanded = expandedAttributes[attribute.key];
     setExpandedAttributes(prev => ({ ...prev, [attribute.key]: !isExpanded }));
@@ -417,16 +405,15 @@ const ExternalConfiguration = () => {
     }
   };
 
-  // Handle search type change
   const handleSearchTypeChange = (type) => {
     console.log("Setting search type to:", type);
     setSearchType(type);
-    
+
     if (type === 'external') {
       setSelectedAttributes(prev => {
         const externalAttribute = prev.find(attr => attr.attribute === 'external');
         if (!externalAttribute) {
-          return [...prev, { 
+          return [...prev, {
             attribute: 'external',
             externalUrl: '',
             httpMethod: '',
@@ -443,7 +430,6 @@ const ExternalConfiguration = () => {
     }
   };
 
-  // Handle searchable attributes change
   const handleSearchableAttributesChange = (e) => {
     const { value, checked } = e.target;
     setSearchableAttributes(prevState => {
@@ -455,7 +441,6 @@ const ExternalConfiguration = () => {
     });
   };
 
-  // Handle related attribute change
   const handleRelatedAttributeChange = (checked, relAttr, attr) => {
     if (checked) {
       setSearchableRelationFields(prevFields => {
@@ -464,7 +449,7 @@ const ExternalConfiguration = () => {
           field.relatedEntityName === attr.relationships[0] &&
           field.relatedFieldName === relAttr.key
         );
-        
+
         if (!alreadyExists) {
           return [
             ...prevFields,
@@ -486,14 +471,13 @@ const ExternalConfiguration = () => {
     }
   };
 
-  // Handle external attributes change
   const handleExternalAttributesChange = (e) => {
     const { value, checked } = e.target;
-    
+
     setSelectedAttributes(prevState => {
       if (checked) {
         const existingAttribute = prevState.find(attr => attr.attribute === value || attr?.attributeName === value);
-        
+
         if (existingAttribute) {
           return prevState.map(attr =>
             attr.attribute === value || attr?.attributeName === value
@@ -501,7 +485,7 @@ const ExternalConfiguration = () => {
               : attr
           );
         }
-        
+
         return [...prevState, {
           attribute: value,
           externalUrl: '',
@@ -517,10 +501,9 @@ const ExternalConfiguration = () => {
     });
   };
 
-  // Handle URL change
   const handleUrlChange = (url) => {
     const hasExternalAttr = selectedAttributes.some(attr => attr.attribute === 'external');
-    
+
     if (hasExternalAttr) {
       setSelectedAttributes(prev => {
         return prev.map(attr => {
@@ -543,10 +526,9 @@ const ExternalConfiguration = () => {
     }
   };
 
-  // Handle HTTP method change
   const handleHttpMethodChange = (method) => {
     const hasExternalAttr = selectedAttributes.some(attr => attr.attribute === 'external');
-    
+
     if (hasExternalAttr) {
       setSelectedAttributes(prev => {
         return prev.map(attr => {
@@ -569,7 +551,6 @@ const ExternalConfiguration = () => {
     }
   };
 
-  // Handle header changes
   const handleHeaderChange = (index, field, value, attribute) => {
     const updatedHeaders = [...headers];
     if (index >= updatedHeaders.length) {
@@ -597,7 +578,6 @@ const ExternalConfiguration = () => {
     });
   };
 
-  // Handle response parser changes
   const handleResponseParserChange = (index, field, value, attribute) => {
     const updatedParsers = [...responseParsers];
     if (index >= updatedParsers.length) {
@@ -625,10 +605,9 @@ const ExternalConfiguration = () => {
     });
   };
 
-  // Add a new header
   const addHeader = () => {
     setHeaders([...headers, { key: "", value: "" }]);
-    
+
     setSelectedAttributes(prev => {
       return prev.map(attr => {
         if (attr.attribute === 'external') {
@@ -640,14 +619,13 @@ const ExternalConfiguration = () => {
     });
   };
 
-  // Remove a header
   const removeHeader = (index, attribute) => {
     setHeaders(headers.filter((_, i) => i !== index));
-    
+
     setSelectedAttributes(prev => {
       return prev.map(attr => {
         if (attr.attribute === attribute) {
-          const headers = Array.isArray(attr.headers) 
+          const headers = Array.isArray(attr.headers)
             ? attr.headers.filter((_, i) => i !== index)
             : [];
           return { ...attr, headers };
@@ -657,14 +635,13 @@ const ExternalConfiguration = () => {
     });
   };
 
-  // Add a new response parser
   const addResponseParser = () => {
     setResponseParsers([...responseParsers, { key: "", value: "" }]);
-    
+
     setSelectedAttributes(prev => {
       return prev.map(attr => {
         if (attr.attribute === 'external') {
-          const responseParser = Array.isArray(attr.responseParser) 
+          const responseParser = Array.isArray(attr.responseParser)
             ? [...attr.responseParser, { key: '', value: '' }]
             : [{ key: '', value: '' }];
           return { ...attr, responseParser };
@@ -674,10 +651,9 @@ const ExternalConfiguration = () => {
     });
   };
 
-  // Remove a response parser
   const removeResponseParser = (index, attribute) => {
     setResponseParsers(responseParsers.filter((_, i) => i !== index));
-    
+
     setSelectedAttributes(prev => {
       return prev.map(attr => {
         if (attr.attribute === attribute) {
@@ -691,7 +667,6 @@ const ExternalConfiguration = () => {
     });
   };
 
-  // Handle JSON payload validation
   const validatePayload = (value) => {
     setPayload(value);
     if (!value.trim()) {
@@ -714,12 +689,23 @@ const ExternalConfiguration = () => {
     }
   };
 
-  // Handle JSON response payload validation
   const validateResponsePayload = (value) => {
     setResponsePayload(value);
-    
-    // Comment out validation logic to allow template-based payloads
-    /*
+
+    if (value.includes('<#')) {
+      setResponsePayloadError("");
+
+      setSelectedAttributes(prev => {
+        return prev.map(attr => {
+          if (attr.attribute === 'external') {
+            return { ...attr, responsePayload: value };
+          }
+          return attr;
+        });
+      });
+      return;
+    }
+
     if (!value.trim()) {
       setResponsePayloadError("");
       return;
@@ -738,21 +724,8 @@ const ExternalConfiguration = () => {
     } else {
       setResponsePayloadError("Invalid JSON format");
     }
-    */
-    
-    // Always update the state without validation
-    setResponsePayloadError("");
-    setSelectedAttributes(prev => {
-      return prev.map(attr => {
-        if (attr.attribute === 'external') {
-          return { ...attr, responsePayload: value };
-        }
-        return attr;
-      });
-    });
   };
 
-  // Create payload for submission
   const createPayload = () => {
     const relationFieldNames = searchableRelationFields.map(field => field.fieldName);
 
@@ -771,11 +744,29 @@ const ExternalConfiguration = () => {
       }).filter(attribute => attribute !== null);
 
     const entityData = selectedAttributes.find(e => e.attribute === 'external');
-    
-    // Use the response payload as-is without trying to parse it as JSON
+
     let responsePayload = entityData?.responsePayload || "";
 
-    // Check if the searchType is 'searchEngine'
+    // If it's a string and contains template syntax, remove all escape characters
+    if (typeof responsePayload === 'string' && responsePayload.includes('<#')) {
+      // Remove all backslashes before quotes
+      responsePayload = responsePayload.replace(/\\"/g, '"');
+
+      // Remove any remaining double backslashes
+      responsePayload = responsePayload.replace(/\\\\/g, '\\');
+    }
+    // Otherwise, handle it as regular JSON
+    else if (typeof responsePayload === 'string') {
+      try {
+        // For regular JSON, parse and re-stringify to normalize
+        const parsed = JSON.parse(responsePayload);
+        responsePayload = JSON.stringify(parsed);
+      } catch (e) {
+        // If parsing fails, keep the original string
+        console.log("Could not parse response payload as JSON, using as-is");
+      }
+    }
+
     if (searchType === 'searchEngine') {
       return {
         entityName: category,
@@ -787,7 +778,6 @@ const ExternalConfiguration = () => {
       };
     }
 
-    // If it's not 'searchEngine', return the payload for external search
     return {
       entityName: category,
       entitySearchType: searchType,
@@ -796,38 +786,32 @@ const ExternalConfiguration = () => {
         ...entityData,
         headers: entityData?.headers?.filter(header => header.key && header.value) || [],
         responseParser: entityData?.responseParser?.filter(parser => parser.key && parser.value) || [],
+        // Use the cleaned response payload
         responsePayload: responsePayload
       },
       externalAttributesMetaData: externalAttributesMetaData
     };
   };
 
-  // Handle form submission
   const handleSubmit = async () => {
-    // Validate JSON payload before submission
     if (searchType === 'external' && payload !== undefined && payload !== null && payload !== '' && !isValidJSON(payload)) {
       setPayloadError("Cannot submit with invalid JSON payload");
       return;
     }
 
-    // Comment out response payload validation to allow template-based payloads
-    /*
-    if (searchType === 'external' && responsePayload !== undefined && responsePayload !== null && responsePayload !== '' && !isValidJSON(responsePayload)) {
+    if (searchType === 'external' && responsePayload !== undefined && responsePayload !== null && responsePayload !== ''
+      && !responsePayload.includes('<#') && !isValidJSON(responsePayload)) {
       setResponsePayloadError("Cannot submit with invalid JSON response payload");
       return;
     }
-    */
 
-    // Check if searchType is selected
     if (!searchType) {
       setWarningMessage('Please select a type of search before submitting.');
       return;
     }
 
-    // Clear any existing warning message
     setWarningMessage('');
 
-    // Check for related attributes only if searchType is 'searchEngine'
     if (searchType === 'searchEngine') {
       const hasSelectedRelatedAttribute = searchableRelationFields.length > 0;
       if (!hasSelectedRelatedAttribute) {
@@ -961,8 +945,8 @@ const ExternalConfiguration = () => {
                   }}
                   className="h-4 w-4 text-indigo-600 border-gray-300"
                 />
-                <label 
-                  htmlFor="external" 
+                <label
+                  htmlFor="external"
                   className="text-sm text-gray-700 cursor-pointer"
                   onClick={() => setSearchType("external")}
                 >
@@ -982,8 +966,8 @@ const ExternalConfiguration = () => {
                   }}
                   className="h-4 w-4 text-indigo-600 border-gray-300"
                 />
-                <label 
-                  htmlFor="searchEngine" 
+                <label
+                  htmlFor="searchEngine"
                   className="text-sm text-gray-700 cursor-pointer"
                   onClick={() => setSearchType("searchEngine")}
                 >
@@ -1106,8 +1090,8 @@ const ExternalConfiguration = () => {
                     id="payload"
                     placeholder="Enter payload details in JSON format"
                     className={`w-full min-h-[120px] px-3 py-2 border rounded-md font-mono text-sm ${payloadError
-                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                        : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
                       }`}
                     value={payload}
                     onChange={(e) => validatePayload(e.target.value)}
@@ -1175,8 +1159,8 @@ const ExternalConfiguration = () => {
                     id="responsePayload"
                     placeholder="Enter response payload details"
                     className={`w-full min-h-[120px] px-3 py-2 border rounded-md font-mono text-sm ${responsePayloadError
-                        ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                        : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
+                      ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                      : 'border-gray-300 focus:ring-indigo-500 focus:border-indigo-500'
                       }`}
                     value={responsePayload}
                     onChange={(e) => validateResponsePayload(e.target.value)}
@@ -1245,8 +1229,8 @@ const ExternalConfiguration = () => {
                   </div>
                 ) : (
                   <div className="p-4 text-center text-gray-500">
-                    {category ? 
-                      `No searchable attributes found for ${category}. Please check if the entity definition is correct.` : 
+                    {category ?
+                      `No searchable attributes found for ${category}. Please check if the entity definition is correct.` :
                       "Please select a category to view searchable attributes."}
                   </div>
                 )}
@@ -1279,8 +1263,8 @@ const ExternalConfiguration = () => {
                 </div>
               ) : (
                 <div className="p-4 text-center text-gray-500">
-                  {category ? 
-                    `No external attributes found for ${category}. Please check if the entity definition is correct.` : 
+                  {category ?
+                    `No external attributes found for ${category}. Please check if the entity definition is correct.` :
                     "Please select a category to view external attributes."}
                 </div>
               )}
@@ -1294,7 +1278,7 @@ const ExternalConfiguration = () => {
               <span className="text-sm font-medium">{warningMessage}</span>
             </div>
           )}
-          
+
           {notificationMessage && (
             <div className="p-4 bg-green-50 text-green-800 border border-green-200 rounded-md flex items-center">
               <CheckCircle className="h-5 w-5 mr-2" />

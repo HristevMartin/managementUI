@@ -8,8 +8,6 @@ import LineChart from '@/components/LineChart';
 import BarChart from '@/components/BarChart';
 import PieChart from '@/components/PieChart';
 import Table from '@/components/Table';
-import { PlusCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 
 const Index = () => {
   // Animating entry of components

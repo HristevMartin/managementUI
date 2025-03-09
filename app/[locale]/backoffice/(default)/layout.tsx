@@ -42,9 +42,6 @@ export default function RootLayout({
     const pathname = window.location.pathname;
     const isOnAuthPage = isAuthPagePath(pathname);
 
-    console.log("Current path:", pathname);
-    console.log("Is auth page:", isOnAuthPage);
-
     setIsAuthPage(isOnAuthPage);
 
     // Close sidebar when clicking outside on mobile
