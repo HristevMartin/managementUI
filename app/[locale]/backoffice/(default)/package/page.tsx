@@ -636,7 +636,7 @@ const Package = () => {
 
 
   return (
-    <div className="flex justify-center w-[98vw] mt-10">
+    <div  className="flex justify-center mt-10">
       <div style={{ width: '40%' }} className="mb-10 max-w-4xl mx-auto p-6 bg-white shadow-lg rounded-lg border border-gray-300 rounded-md">
         <h1 className="text-3xl font-bold mb-6 text-center">Create Package</h1>
 
