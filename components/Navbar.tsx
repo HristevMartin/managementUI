@@ -45,29 +45,24 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
     let allowedLinks = [];
     if (userId) {
       allowedLinks.push({
-        name: "Home",
+        name: "Big Travel Dashboard",
         url: `/${lang}/backoffice/management`,
       });
-      if (hasRequiredRole(userRoles, "ADMIN")) {
-        allowedLinks.push({
-          name: "ADMIN",
-          url: `/${lang}/backoffice/admin`,
-          subLinks: [],
-        });
-      }
+      // if (hasRequiredRole(userRoles, "ADMIN")) {
+      //   allowedLinks.push({
+      //     name: "ADMIN",
+      //     url: `/${lang}/backoffice/admin`,
+      //     subLinks: [],
+      //   });
+      // }
       if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
-          name: "Products",
+          name: "Services",
           url: "#",
           subLinks: [
-            {
-              name: "Type Definition",
-              subLinks: [
-                {
-                  name: "Product Type",
-                  url: `/${lang}/backoffice/owner/addInitialProductCategory`,
-                },
-              ],
+            { 
+              name: "Add New Service", 
+              url: `/${lang}/backoffice/owner/addInitialProductCategory` 
             },
             {
               name: "Manage Data",
@@ -144,7 +139,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
         <div className="flex items-center gap-3">
           <User className="h-6 w-6 text-white" />
           <h3 className="text-lg font-semibold text-white truncate">
-            Welcome, {userName}
+            Hello, {userName}
           </h3>
         </div>
       </div>
