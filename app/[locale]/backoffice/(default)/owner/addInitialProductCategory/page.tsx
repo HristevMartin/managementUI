@@ -91,7 +91,7 @@ const AddProductCategoryPage = ({ params }: any) => {
   const [file, setFile] = useState(null);
   const [categoryErrorName, setErrorCategoryErrorName] = useState("");
   const [relationshipConfigs, setRelationshipConfigs] = useState([
-   
+
   ])
 
   const { showModal } = useModal();
@@ -116,7 +116,7 @@ const AddProductCategoryPage = ({ params }: any) => {
       }
 
       const data = await response.json();
-      
+
 
       const detailsRequest = data.map((entity: any) =>
         fetch(`${apiUrlSpring}/api/jdl/get-entity-by-id/${entity.id}`, {
@@ -286,20 +286,20 @@ const AddProductCategoryPage = ({ params }: any) => {
           },
           body: JSON.stringify([transformedPayload]),
         });
-    
+
         if (!response.ok) {
           throw new Error(`Failed to save data. Please try again later..`);
         }
-        
+
         console.log('show me the the response status', response.status);
         if (response.status === 201 || response.status === 200) {
           showModal("success", "Data saved successfully.");
         } else {
           showModal("error", `Unexpected status: ${response.status}`);
         }
-    
+
         console.log("Request sent, response status:", response.status);
-    
+
       } catch (e: any) {
         console.error("Error sending data:", e);
         showModal("error", `Error sending data: ${e.message || e}`);
@@ -307,7 +307,7 @@ const AddProductCategoryPage = ({ params }: any) => {
         setData(payload);
       }
     };
-    
+
     sendDataToApi();
   };
 
@@ -377,7 +377,7 @@ const AddProductCategoryPage = ({ params }: any) => {
 
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', width: '100vw' }}>
+    <div style={{ minHeight: '100vh', display: 'flex' }}>
       <Container
         maxWidth="md"
         className="input-form-move"

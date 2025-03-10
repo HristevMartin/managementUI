@@ -22,7 +22,7 @@ const data = [
 ];
 
 const MyLineChart = () => (
-  <div>
+  <div className="bg-white bg-white border border-gray-300 shadow-inner p-3">
     <h2 className="mb-4 text-xl font-semibold">Passenger Booking Timeline</h2>
     <ResponsiveContainer width="100%" height={300}>
       <LineChart data={data} margin={{ top: 20, right: 30, bottom: 20, left: 20 }}>

@@ -255,7 +255,7 @@ const Searchproduct = ({ params }: any) => {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', width: '100vw', justifyContent: 'center' }}>
+    <div style={{ minHeight: '100vh', display: 'flex', justifyContent: 'center' }}>
       <div className="container text-black mt-10">
         <form
           className="w-[600px] mx-auto p-6 bg-white rounded-lg shadow-lg" // Fixed width

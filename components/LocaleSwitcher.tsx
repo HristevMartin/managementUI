@@ -7,7 +7,7 @@ export default function LocaleSwitcher() {
   const locale = useLocale();
 
   return (
-    <div style={{border: '2px solid grey', borderRadius: '6px' , width: '100%', textAlign: 'center', display: 'flex', justifyContent: 'center', alignItems: 'center', alignContent: 'center'}}>
+    <div className='flex items-center h-8 text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-md px-2'>
       <LocaleSwitcherSelect defaultValue={locale} label={t('label')}>
         {routing.locales.map((cur) => (
           <option key={cur} value={cur}>

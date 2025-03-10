@@ -1,3 +1,685 @@
+// 'use client';
+// import React, { useState, useEffect } from "react";
+// import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+// import { Button } from "@/components/ui/button";
+// import { Input } from "@/components/ui/input";
+// import { Label } from "@/components/ui/label";
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+// import { PlusCircle, Trash2, Settings, Save, RotateCcw, Database, Server, Code, FileJson, AlertCircle, CheckCircle } from "lucide-react";
+// import AlertDialogSlide from "@/components/AlertDialogSlide";
+// import { getPluralForm, mapProductTypesToCustomFields } from "@/services/productFormService";
+// import { useAuthJHipster } from "@/context/JHipsterContext";
+// import ReactSelect from "react-select";
+// import { useModal } from "@/context/useModal";
+// import Editor from "@/components/editor/page";
+
+// interface AnyDict {
+//   [key: string]: any;
+// }
+
+// const SPRING_URL = process.env.NEXT_PUBLIC_LOCAL_BASE_URL_SPRING;
+// let apiUrl = process.env.NEXT_PUBLIC_LOCAL_BASE_URL;
+
+// const ProductForm = () => {
+//   const [productName, setProductName] = useState<string>("");
+//   const [productType, setProductType] = useState<string>("");
+//   const [price, setPrice] = useState("");
+//   const [productTypes, setProductTypes] = useState<any>([]);
+//   const [customFields, setCustomFields] = useState<any[]>([
+//     { name: "", value: "" },
+//   ]);
+//   const [openDialog, setOpenDialog] = useState(false);
+//   const [categoryId, setCategoryId] = useState<any>("");
+//   const [categoryDetails, setCategoryDetails] = useState<any>([]);
+//   const [showSubmitButton, setShowSubmitButton] = useState(false);
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [file, setFile] = useState(null);
+//   const [localizedValues, setLocalizedValues] = useState<AnyDict>({});
+//   const [imagesBase64, setImagesBase64] = useState<any>([]);
+//   const [languages, setLanguages] = useState<any[]>([]);
+//   const [supportedLanguages, setSupportedLanguages] = useState<any[]>([]);
+//   const [productNameLocales, setProductNameLocales] = useState<AnyDict>({});
+
+//   const { jHipsterAuthToken } = useAuthJHipster();
+//   const { showModal } = useModal();
+
+//   const capitalizeFirstLetter = (string: string) => {
+//     if (!string) return "";
+//     return string.charAt(0).toUpperCase() + string.slice(1);
+//   };
+
+//   useEffect(() => {
+//     if (!jHipsterAuthToken) return;
+
+//     setIsLoading(true);
+
+//     const fetchData = async () => {
+//       try {
+//         const data = await mapProductTypesToCustomFields(jHipsterAuthToken);
+
+//         if (data && data.length > 0) {
+//           setCategoryDetails(data);
+//           setProductTypes(data.map((category) => category.categoryName));
+//           setProductType(data[0].categoryName);
+//           setCategoryId(data[0].categoryId);
+
+//           setCustomFields(
+//             data[0].customFields.map((field) => {
+//               const localizedFields = data[0].localizedFields;
+//               return {
+//                 name: field.name,
+//                 value: "",
+//                 isLocalized: localizedFields.includes(field.name),
+//                 type: field.type
+//               };
+//             })
+//           );
+//         }
+//       } catch (error) {
+//         console.error("Failed to fetch category details:", error);
+//         showModal("error", `Failed to fetch category details`);
+//       } finally {
+//         setIsLoading(false);
+//       }
+//     };
+//     fetchData();
+//   }, [jHipsterAuthToken]);
+
+//   useEffect(() => {
+//     const allLanguages = languages.map((obj) => ({
+//       code: obj.code,
+//       label: obj.name,
+//     }));
+//     setSupportedLanguages(allLanguages);
+
+//     let languageObj = allLanguages.reduce((acc: any, lang: any) => {
+//       acc[lang.code] = "";
+//       return acc;
+//     }, {});
+
+//     setProductNameLocales(languageObj);
+//   }, [languages]);
+
+//   useEffect(() => {
+//     const fetchLanguages = async () => {
+//       try {
+//         const response = await fetch(`${SPRING_URL}/api/languages`, {
+//           headers: {
+//             Authorization: `Bearer ${jHipsterAuthToken}`,
+//           },
+//         });
+
+//         if (!response.ok) {
+//           showModal(
+//             response.status.toString(),
+//             `Error: ${response.statusText}`
+//           );
+//           throw new Error(`Network response was not ok: ${response.status}`);
+//         }
+
+//         const languages = await response.json();
+//         setLanguages(languages);
+//       } catch (error) {
+//         console.error(error);
+//         showModal("500", "An error occurred while fetching languages.");
+//       }
+//     };
+
+//     if (jHipsterAuthToken) {
+//       fetchLanguages();
+//     }
+//   }, [jHipsterAuthToken]);
+
+//   const handleProductTypeChange = (value: string) => {
+//     setProductType(value);
+
+//     const selectedCategory = categoryDetails.find(
+//       (category: any) => category?.categoryName === value
+//     );
+
+//     if (selectedCategory) {
+//       const fieldsWithLocalization = selectedCategory?.customFields.map(
+//         (field: any) => {
+//           if (selectedCategory?.localizedFields.includes(field.name)) {
+//             return {
+//               ...field,
+//               value: "",
+//               isLocalized: true,
+//             };
+//           }
+//           return { ...field, value: "" };
+//         }
+//       );
+
+//       setCustomFields(fieldsWithLocalization);
+//       setCategoryId(selectedCategory?.categoryId);
+//     } else {
+//       console.error("No category found for the selected type:", value);
+//       showModal("error", `No category found for the selected type: ${value}`);
+
+//       setCustomFields([]);
+//       setCategoryId("");
+//     }
+//   };
+
+//   const aggregatedCustomFields = customFields.reduce((acc: any, field: any) => {
+//     acc[field.name] = field.value;
+//     return acc;
+//   }, {});
+
+//   function populateRelationshipFields(customFieldsPayload: any) {
+//     customFields.forEach((field: any) => {
+//       if (field.type == "relationship") {
+//         customFieldsPayload[field.name] = {
+//           id: field.value,
+//         };
+//       } else {
+//         customFieldsPayload[field.name] = field.value;
+//       }
+//     });
+//   }
+
+//   const handleSubmit = async (e: any) => {
+//     e.preventDefault();
+
+//     if (isNaN(Number(price)) || Number(price) <= 0) {
+//       showModal("fail", "Please provide a valid price.");
+//       return;
+//     }
+
+//     let customFieldsPayload = { ...aggregatedCustomFields };
+
+//     populateRelationshipFields(customFieldsPayload);
+
+//     let imagesString = imagesBase64.join(",");
+
+//     customFieldsPayload.name = productName;
+//     customFieldsPayload.price = price;
+
+//     if (imagesString) {
+//       customFieldsPayload.images = imagesString;
+//     }
+
+//     const formData = {
+//       customFields: customFieldsPayload,
+//     };
+
+//     let correctedEndpointPathName = getPluralForm(productType);
+
+//     let submitPayload = formData.customFields;
+//     console.log("submitPayload", submitPayload);
+
+//     try {
+//       const response = await fetch(
+//         `${SPRING_URL}/api/${correctedEndpointPathName}`,
+//         {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//             Authorization: `Bearer ${jHipsterAuthToken}`,
+//           },
+//           body: JSON.stringify(submitPayload),
+//         }
+//       );
+
+//       if (!response.ok) {
+//         throw new Error("Network response was not ok");
+//       }
+
+//       const saveLocales = customFields.some((x: any) => x?.isLocalized);
+
+//       if (response.status === 201) {
+//         if (saveLocales) {
+//           if (response.status === 201) {
+//             // take this logic to a separate utils file
+//             let data = await response.json();
+//             console.log("show me the data", data);
+
+//             let productId = data.id;
+//             let newPayload = {
+//               entityName: productType,
+//               productId,
+//               localizationsFields: {
+//                 name: productNameLocales,
+//                 ...localizedValues,
+//               },
+//             };
+
+//             const localeSaved = await fetch(
+//               `${SPRING_URL}/api/localisation/upsert`,
+//               {
+//                 method: "POST",
+//                 headers: {
+//                   "Content-Type": "application/json",
+//                   Authorization: `Bearer ${jHipsterAuthToken}`,
+//                 },
+//                 body: JSON.stringify(newPayload),
+//               }
+//             );
+
+//             if (!localeSaved.ok) {
+//               throw new Error("Network response was not ok");
+//             }
+
+//             showModal("success", "Product added successfully");
+//           }
+//         } else {
+//           showModal("success", "Product added successfully");
+//         }
+//       } else {
+//         showModal("fail", "Please try again");
+//       }
+//     } catch (error) {
+//       console.error("There was a problem with the fetch operation:", error);
+//     }
+//   };
+
+//   const handleCustomFieldChange = (index: number, newValue: string) => {
+//     console.log("newValue", newValue);
+
+//     const updatedFields = customFields.map((field, idx) => {
+//       if (idx === index) {
+//         return {
+//           ...field,
+//           value: newValue,
+//         };
+//       }
+//       return field;
+//     });
+
+//     setCustomFields(updatedFields);
+//   };
+
+//   const handleSubmitFile = async () => {
+//     if (file) {
+//       const formData = new FormData();
+//       formData.append("file", file);
+//       formData.append("categoryId", categoryId);
+
+//       try {
+//         const response = await fetch(`${apiUrl}/product-bulk-upload`, {
+//           method: "POST",
+//           body: formData,
+//         });
+
+//         if (!response.ok) {
+
+//           throw new Error(`HTTP error! status: ${response.status}`);
+//         }
+
+//         if (response.status === 201) {
+
+//           showModal("success", "File uploaded successfully!");
+//         } else {
+
+//           showModal("error", `Unexpected status: ${response.status}`);
+//         }
+//       } catch (error) {
+//         console.error("Upload error:", error);
+
+//         showModal("error", `File upload failed: ${error}`);
+//       }
+//     } else {
+//       console.log("No file selected");
+
+//       showModal("error", "No file selected. Please choose a file to upload.");
+//     }
+//   };
+
+//   const handleFileChange = (e: any) => {
+//     setFile(e.target.files[0]);
+//     setShowSubmitButton(true);
+//   };
+
+//   const customStyles = {
+//     control: (base: any) => ({
+//       ...base,
+//       minHeight: "46px",
+//       height: "auto",
+//     }),
+//     valueContainer: (base: any) => ({
+//       ...base,
+//       minHeight: "56px",
+//     }),
+//     input: (base: any) => ({
+//       ...base,
+//     }),
+//     placeholder: (base: any) => ({
+//       ...base,
+//     }),
+//     option: (base: any, state: any) => ({
+//       ...base,
+//       backgroundColor: state.isFocused ? "lightgray" : "white",
+//       color: "black",
+//     }),
+//     multiValue: (base: any) => ({
+//       ...base,
+//       backgroundColor: "lightblue",
+//       marginBottom: 12,
+//     }),
+//     multiValueLabel: (base: any) => ({
+//       ...base,
+//       color: "black",
+//     }),
+//     dropdownIndicator: (base: any) => ({
+//       ...base,
+//       marginBottom: 12,
+//     }),
+//     clearIndicator: (base: any) => ({
+//       ...base,
+//       marginBottom: 12,
+//     }),
+//     multiValueRemove: (base: any) => ({
+//       ...base,
+//       color: "red",
+//       ":hover": {
+//         backgroundColor: "red",
+//         color: "white",
+//       },
+//     }),
+//     menuPortal: (base: any) => ({ ...base, zIndex: 9999 }),
+//     menu: (base: any) => ({ ...base, zIndex: 9999 }),
+//   };
+
+//   const isProductNameLocalized = customFields.some(
+//     (field) => field?.name === "name" && field?.isLocalized
+//   );
+
+//   const handleImageFileChange = (e: any, index: number) => {
+//     const file = e.target.files[0];
+//     if (file) {
+//       const reader = new FileReader();
+//       reader.onload = () => {
+//         const base64String = reader.result;
+//         let newImagesBase64 = [...imagesBase64];
+//         newImagesBase64[index] = base64String;
+
+//         setImagesBase64(newImagesBase64.filter((x) => x !== undefined));
+//       };
+//       reader.readAsDataURL(file);
+//     }
+//   };
+
+//   return (
+//     <div style={{ borderRadius: '20px' }} >
+//       <Card className="shadow-lg border border-gray-200">
+//         <CardHeader className="bg-gradient-to-r from-indigo-600 to-indigo-700 text-white">
+//           <CardTitle className="text-2xl font-bold">
+//             {productType ? `Add ${productType}` : "Add Product"}
+//           </CardTitle>
+//         </CardHeader>
+//         <CardContent className="pt-6 space-y-6">
+//           <form onSubmit={handleSubmit} className="space-y-6">
+//             <div className="w-full max-w-xs">
+//               <Label htmlFor="productType" className="text-sm font-medium flex items-center mb-2">
+//                 <Database className="h-4 w-4 mr-2 text-indigo-500" />
+//                 Travel Product Type
+//               </Label>
+//               <Select onValueChange={handleProductTypeChange} value={productType}>
+//                 <SelectTrigger className="w-full border border-gray-300 rounded-md">
+//                   <SelectValue placeholder="Select Product Type" />
+//                 </SelectTrigger>
+//                 <SelectContent>
+//                   {productTypes.map((type: any, index: number) => (
+//                     <SelectItem key={index} value={type}>
+//                       {type}
+//                     </SelectItem>
+//                   ))}
+//                 </SelectContent>
+//               </Select>
+//             </div>
+
+//             <div className="border-t border-gray-200 pt-4">
+//               <h2 className="text-xl font-semibold mb-4 text-gray-800">Basic Information</h2>
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+//                 <div>
+//                   <Label htmlFor="productName" className="text-sm font-medium">Product Name *</Label>
+//                   {isProductNameLocalized ? (
+//                     supportedLanguages.map((lang) => (
+//                       <Input
+//                         key={lang.code}
+//                         id={`productName-${lang.code}`}
+//                         type="text"
+//                         placeholder={lang.label}
+//                         value={productNameLocales[lang.code]}
+//                         onChange={(e) => {
+//                           const newValue = e.target.value;
+//                           setProductNameLocales({
+//                             ...productNameLocales,
+//                             [lang.code]: newValue,
+//                           });
+//                           if (lang.code === "en") {
+//                             setProductName(newValue);
+//                           }
+//                         }}
+//                         required
+//                         className="mb-2"
+//                       />
+//                     ))
+//                   ) : (
+//                     <Input
+//                       id="productName"
+//                       type="text"
+//                       placeholder="Product Name"
+//                       value={productName}
+//                       onChange={(e) => setProductName(e.target.value)}
+//                       required
+//                     />
+//                   )}
+//                 </div>
+
+//                 <div>
+//                   <Label htmlFor="price" className="text-sm font-medium">Price *</Label>
+//                   <Input
+//                     id="price"
+//                     type="number"
+//                     value={price}
+//                     onChange={(e) => setPrice(e.target.value)}
+//                     required
+//                   />
+//                 </div>
+//               </div>
+
+//               <p className="text-sm text-gray-500 mb-4">
+//                 Fill out the custom fields below to add the product.
+//               </p>
+
+//               {isLoading ? (
+//                 <div className="flex justify-center items-center py-8">
+//                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-500"></div>
+//                 </div>
+//               ) : (
+//                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+//                   {customFields.map((field: any, index: number) => {
+//                     if (field.name === "name" || field.name === "price") {
+//                       return null;
+//                     }
+
+//                     if (field?.name === "images") {
+//                       return (
+//                         <div key={index} className="col-span-1 md:col-span-2">
+//                           <Label htmlFor={`customField-${index}`} className="text-sm font-medium mb-2 block">
+//                             {capitalizeFirstLetter(field.name)}
+//                           </Label>
+//                           <Input
+//                             type="file"
+//                             id={`customField-${index}`}
+//                             onChange={(e) => handleImageFileChange(e, index)}
+//                             className="mb-2"
+//                           />
+//                           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
+//                             {imagesBase64.map((image: string, imgIndex: number) => (
+//                               <div key={imgIndex} className="relative aspect-square rounded-md overflow-hidden border border-gray-200">
+//                                 <img
+//                                   src={image}
+//                                   alt={`Preview ${imgIndex}`}
+//                                   className="object-cover w-full h-full"
+//                                 />
+//                               </div>
+//                             ))}
+//                           </div>
+//                         </div>
+//                       );
+//                     }
+
+//                     if (field?.options) {
+//                       const transformedOptions = field?.options?.map(
+//                         (option: any) => ({
+//                           value: option.id,
+//                           label: option.name,
+//                         })
+//                       ) || [];
+
+//                       return (
+//                         <div key={index} className="col-span-1 md:col-span-2">
+//                           <Label htmlFor={`customField-${index}`} className="text-sm font-medium mb-2 block">
+//                             {capitalizeFirstLetter(field?.name)}
+//                           </Label>
+//                           <ReactSelect
+//                             id={`customField-${index}`}
+//                             styles={customStyles}
+//                             isMulti={true}
+//                             options={transformedOptions}
+//                             menuPortalTarget={document.body}
+//                             className="basic-multi-select"
+//                             classNamePrefix="select"
+//                             onChange={(selectedOptions: any) => {
+//                               const optionsArray = Array.isArray(selectedOptions)
+//                                 ? selectedOptions
+//                                 : [selectedOptions];
+//                               const values = optionsArray.map(
+//                                 (option) => option.value
+//                               );
+//                               handleCustomFieldChange(index, values.join(","));
+//                             }}
+//                             value={transformedOptions.filter((option: any) =>
+//                               field.value
+//                                 ?.split(",")
+//                                 .includes(option.value.toString())
+//                             )}
+//                           />
+//                         </div>
+//                       );
+//                     }
+
+//                     return (
+//                       <div key={index} className={field.type === "TextBlob" ? "col-span-1 md:col-span-2" : "col-span-1"}>
+//                         <Label htmlFor={`customValue-${index}`} className="text-sm font-medium mb-2 block">
+//                           {capitalizeFirstLetter(field?.name)}
+//                         </Label>
+
+//                         {field?.type === "TextBlob" ? (
+//                           <Editor
+//                             id={`customValue-${index}`}
+//                             value={field.value || ""}
+//                             onChange={(newValue: any) =>
+//                               handleCustomFieldChange(index, newValue)
+//                             }
+//                             className="min-h-[150px] w-full p-2 border border-gray-300 rounded-md"
+//                           />
+//                         ) : field.name?.toLowerCase() === "startdate" ||
+//                           field.name?.toLowerCase() === "enddate" ? (
+//                           <Input
+//                             id={`customValue-${index}`}
+//                             type="date"
+//                             value={field.value || ""}
+//                             onChange={(e) =>
+//                               handleCustomFieldChange(index, e.target.value)
+//                             }
+//                           />
+//                         ) : (
+//                           <>
+//                             {field?.isLocalized ? (
+//                               supportedLanguages.map((lang) => (
+//                                 <Input
+//                                   key={lang.code}
+//                                   id={`customValue-${index}-${lang.code}`}
+//                                   type="text"
+//                                   value={
+//                                     localizedValues[field.name] &&
+//                                     localizedValues[field.name][lang.code]
+//                                   }
+//                                   onChange={(e) => {
+//                                     const newValue = e.target.value;
+//                                     setLocalizedValues((prev) => ({
+//                                       ...prev,
+//                                       [field.name]: {
+//                                         ...prev[field.name],
+//                                         [lang.code]: newValue,
+//                                       },
+//                                     }));
+
+//                                     // default to english
+//                                     if (lang.code === "en") {
+//                                       handleCustomFieldChange(index, newValue);
+//                                     }
+//                                   }}
+//                                   placeholder={lang.label}
+//                                   className="mb-2"
+//                                 />
+//                               ))
+//                             ) : (
+//                               <Input
+//                                 id={`customValue-${index}`}
+//                                 type="text"
+//                                 value={field.value || ""}
+//                                 onChange={(e) =>
+//                                   handleCustomFieldChange(index, e.target.value)
+//                                 }
+//                               />
+//                             )}
+//                           </>
+//                         )}
+//                       </div>
+//                     );
+//                   })}
+//                 </div>
+//               )}
+//             </div>
+//           </form>
+//         </CardContent>
+//         <CardFooter className="flex justify-center gap-4 pt-2 pb-6 bg-gray-50 border-t">
+//           <Button
+//             type="submit"
+//             onClick={handleSubmit}
+//             className="bg-indigo-600 hover:bg-indigo-700"
+//           >
+//             <Save className="mr-2 h-4 w-4" /> Save
+//           </Button>
+//           <label
+//             htmlFor="file-upload"
+//             className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-indigo-600 text-white hover:bg-indigo-700 h-10 px-4 py-2 cursor-pointer"
+//           >
+//             <PlusCircle className="mr-2 h-4 w-4" /> Upload File
+//             <input
+//               id="file-upload"
+//               type="file"
+//               className="hidden"
+//               onChange={handleFileChange}
+//             />
+//           </label>
+//           {showSubmitButton && (
+//             <Button
+//               type="button"
+//               onClick={handleSubmitFile}
+//               className="bg-indigo-600 hover:bg-indigo-700"
+//             >
+//               Submit File
+//             </Button>
+//           )}
+//         </CardFooter>
+//       </Card>
+
+//       <AlertDialogSlide
+//         open={openDialog}
+//         handleClose={() => setOpenDialog(false)}
+//       />
+//     </div>
+//   );
+// };
+
+// export default ProductForm;
+
 "use client";
 
 import React, { useState, useEffect } from "react";

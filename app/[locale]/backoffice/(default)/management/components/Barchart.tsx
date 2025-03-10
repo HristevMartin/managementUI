@@ -8,7 +8,7 @@ const data = [
 ];
 
 const MyBarChart = () => (
-  <div>
+  <div className="bg-white bg-white border border-gray-300 shadow-inner p-3">
     <h2 className="mb-4 text-xl font-semibold">Passenger Count by Flight Class</h2>
     <BarChart width={600} height={300} data={data}>
       <XAxis dataKey="name" />

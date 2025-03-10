@@ -8,7 +8,7 @@
         "locale": "{locale, select, de {🇩🇪 Deutsch} en {uk English} other {Unknown}}"
     },
     "Management": {
-        "title": "Management",
+        "title": "Big Travel Dashboard",
         "content": "Welcome to Management page"
     }
 }
