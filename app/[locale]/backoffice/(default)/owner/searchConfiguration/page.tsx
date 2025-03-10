@@ -898,7 +898,7 @@ const ExternalConfiguration = () => {
   return (
     <div className="animate-fade-in-down">
       <div className="mb-8 flex justify-between items-center">
-        <h1 className="text-3xl font-semibold text-gray-900">External Configuration</h1>
+        <h1 className="text-3xl font-semibold text-gray-900">Supplier integration</h1>
       </div>
 
       <div className="bg-white border border-gray-200 shadow-sm rounded-lg overflow-hidden">
