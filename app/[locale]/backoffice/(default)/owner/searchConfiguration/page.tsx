@@ -1239,7 +1239,7 @@ const ExternalConfiguration = () => {
           )}
 
           {/* External Attributes Section */}
-          <div className="space-y-4">
+          {/* <div className="space-y-4">
             <label className="block text-sm font-medium text-gray-700 flex items-center">
               <Settings className="h-4 w-4 mr-2 text-indigo-500" />
               External Configuration
@@ -1269,7 +1269,7 @@ const ExternalConfiguration = () => {
                 </div>
               )}
             </div>
-          </div>
+          </div> */}
 
           {/* Display warnings and notifications */}
           {warningMessage && (

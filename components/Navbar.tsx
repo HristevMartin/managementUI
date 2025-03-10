@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronRight, LogOut, User } from 'lucide-react';
 import { signOut, useSession } from 'next-auth/react';
 import hasRequiredRole from '@/utils/checkRole';
+import LocaleSwitcher from './LocaleSwitcher';
 interface NavbarProps {
   toggleSidebar?: () => void;
   params: {
@@ -39,7 +40,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
     }));
   };
 
-  
+
   useEffect(() => {
     let allowedLinks = [];
     if (userId) {
@@ -224,14 +225,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
       <div className="border-t border-gray-200 p-4">
         <div className="flex justify-between items-center">
           <span className="text-sm text-gray-500">Language</span>
-          <select
-            className="text-sm text-gray-600 bg-gray-50 border border-gray-200 rounded-md px-2 py-1"
-            defaultValue="en"
-          >
-            <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-          </select>
+          <LocaleSwitcher />
         </div>
       </div>
 
