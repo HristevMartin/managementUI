@@ -898,7 +898,7 @@ const ExternalConfiguration = () => {
   return (
     <div className="animate-fade-in-down">
       <div className="mb-8 flex justify-between items-center">
-        <h1 className="text-3xl font-semibold text-gray-900">Supplier integration</h1>
+        <h1 className="text-3xl font-semibold text-gray-900">Supplier Integration</h1>
       </div>
 
       <div className="bg-white border border-gray-200 shadow-sm rounded-lg overflow-hidden">
@@ -918,7 +918,7 @@ const ExternalConfiguration = () => {
               onChange={(e) => setCategory(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
-              <option value="">Select a category</option>
+              {/* <option value="">Select a category</option> */}
               {categoryNames.map((name) => (
                 <option key={name} value={name}>{name}</option>
               ))}
@@ -950,7 +950,7 @@ const ExternalConfiguration = () => {
                   className="text-sm text-gray-700 cursor-pointer"
                   onClick={() => setSearchType("external")}
                 >
-                  External
+                  Third-party supplier
                 </label>
               </div>
               <div className="flex items-center space-x-3">
@@ -971,7 +971,7 @@ const ExternalConfiguration = () => {
                   className="text-sm text-gray-700 cursor-pointer"
                   onClick={() => setSearchType("searchEngine")}
                 >
-                  Search Engine
+                  Internal inventory
                 </label>
               </div>
             </div>

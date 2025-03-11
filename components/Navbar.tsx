@@ -57,7 +57,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
       // }
       if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
-          name: "Services",
+          name: "Travel Services",
           url: "#",
           subLinks: [
             { 
@@ -65,7 +65,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
               url: `/${lang}/backoffice/owner/addInitialProductCategory` 
             },
             {
-              name: "Manage Data",
+              name: "Manage Services",
               subLinks: [
                 { name: "Add Product", url: `/${lang}/backoffice/owner/add-product` },
                 {
@@ -75,22 +75,12 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
               ],
             },
             {
-              name: "Search Configuration",
+              name: "Supplier Integration",
               subLinks: [
-                { name: 'Search Configuration', url: `/${lang}/backoffice/owner/searchConfiguration` },
-                { name: 'External Search Configuration', url: `/${lang}/backoffice/owner/externalSearchConfiguration` },
+                { name: 'API Configuration', url: `/${lang}/backoffice/owner/searchConfiguration` },
+                //{ name: 'External Search Configuration', url: `/${lang}/backoffice/owner/externalSearchConfiguration` },
               ],
             },
-          ],
-        });
-      }
-      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
-        allowedLinks.push({
-          name: "Localization",
-          url: "#",
-          subLinks: [
-            { name: "Currencies", url: `/${lang}/backoffice/currencies` },
-            { name: "Language Settings", url: `/${lang}/backoffice/language` },
           ],
         });
       }
@@ -106,16 +96,40 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
       }
       if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
-          name: "Rule Interface",
+          name: "Rule Management",
           url: `/${lang}/backoffice/rule-interface`,
           sublinks: [],
         });
       }
       if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
         allowedLinks.push({
-          name: "Create Package",
-          url: `/${lang}/backoffice/package`,
-          sublinks: [],
+          name: "Travel Packages",
+          url: "#",
+          subLinks: [
+            { name: "Create Packages", url: `/${lang}/backoffice/package` },
+            { name: "Search Packages", url: "#" },
+          ],
+        });
+      }
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+        allowedLinks.push({
+          name: "Settings",
+          url: "#",
+          subLinks: [
+            { name: "Currencies", url: `/${lang}/backoffice/currencies` },
+            { name: "Languages", url: `/${lang}/backoffice/language` },
+          ],
+        });
+      }
+      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+        allowedLinks.push({
+          name: "BigTravel Guide",
+          url: "#",
+          subLinks: [
+            { name: "Documentation", url: "#" },
+            { name: "Glossary", url: "#" },
+            { name: "API Review", url: "#"}
+          ],
         });
       }
     } else {
