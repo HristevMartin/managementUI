@@ -10,7 +10,7 @@ export const getUserStateToHttpOnlyCookie = (initialUserState) => {
 
 export const saveUserStateToHttpOnlyCookie = (initialUserState) => {
   const serializedUserState = JSON.stringify(initialUserState);
-  console.log("serializedUserState", serializedUserState);
+  console.log("serializedUsserState", serializedUserState);
 
   cookies().set({
     name: "user",
