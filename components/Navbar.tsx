@@ -45,7 +45,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
     let allowedLinks = [];
     if (userId) {
       allowedLinks.push({
-        name: "Big Travel Dashboard",
+        name: "BigTravel Dashboard",
         url: `/${lang}/backoffice/management`,
       });
       // if (hasRequiredRole(userRoles, "ADMIN")) {
