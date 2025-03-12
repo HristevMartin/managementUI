@@ -929,7 +929,7 @@ const ExternalConfiguration = () => {
           <div className="space-y-4 bg-gray-50 p-6 rounded-lg border border-gray-200">
             <label className="block text-sm font-medium text-gray-700 flex items-center">
               <Server className="h-4 w-4 mr-2 text-indigo-500" />
-              Type of Search
+              Inventory Source
             </label>
             <div className="flex space-x-8 mt-3">
               <div className="flex items-center space-x-3">
