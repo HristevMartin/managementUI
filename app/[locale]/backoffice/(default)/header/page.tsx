@@ -2,7 +2,7 @@
 import React from 'react';
 import Image from "next/image";
 import { Bell, Settings } from 'lucide-react';
-import logoImage from "./BigTravel-logo-black.png";
+import logoImage from "./ChatGPT Image May 10, 2025, 10_54_21 PM.png";
 
 const Header: React.FC = () => {
   return (
@@ -14,7 +14,7 @@ const Header: React.FC = () => {
           src={logoImage}
           alt="BigTravel"
           className="h-auto rounded-lg"
-          width="150"
+          width="100"
         />
       </div>
 

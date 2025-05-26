@@ -13,11 +13,11 @@ interface LoginData {
 let apiUrlip = process.env.NEXT_PUBLIC_TRAVEL_SECURITY;
 
 export const registerUser = async (data: RegisterData): Promise<any> => {
-  const apiUrl = `${apiUrlip}/auth/register`;
-  console.log('the apiURL', apiUrl);
+  const apiUrl = `${apiUrlip}/travel/register`;
+  console.log('the url is', apiUrl);
 
   try {
-    console.log('111')
+    console.log('getting in here')
     const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
@@ -25,6 +25,7 @@ export const registerUser = async (data: RegisterData): Promise<any> => {
       },
       body: JSON.stringify(data),
     });
+
 
     if (!response.ok){
       console.log('error while calling the api', response);
@@ -34,7 +35,7 @@ export const registerUser = async (data: RegisterData): Promise<any> => {
     const responseData = await response.json();
     console.log('show me the response.status', response.status);
 
-    if (response.status === 200) {
+    if (response.status === 200 || response.status === 201) {
       return { success: true, data: responseData };
     } else {
       console.log('Registration failed:', responseData.message);
@@ -50,7 +51,7 @@ export const registerUser = async (data: RegisterData): Promise<any> => {
 };
 
 export const loginUser = async (data: LoginData): Promise<any> => {
-  const apiUrl = `${apiUrlip}/auth/login`;
+  const apiUrl = `${apiUrlip}/travel/login`;
 
   try {
     const response = await fetch(apiUrl, {
@@ -60,7 +61,6 @@ export const loginUser = async (data: LoginData): Promise<any> => {
       },
       body: JSON.stringify(data),
     });
-    console.log('show me the response', response);
     const responseData = await response.json();
     if (response.status === 200) {
       return { success: true, message: responseData };

@@ -15,6 +15,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
   const [userName, setUserName] = useState('Guest');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [links, setLinks] = useState<any[]>([]);
+  const [user, setUser] = useState<any>(null);
 
   const lang = params.locale;
 
@@ -23,11 +24,33 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
   let userId = session?.user?.id;
   let userRoles = session?.user?.role;
 
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_TRAVEL_SECURITY}/travel/get-user/${userId}`);
+      console.log('show me the response', response);
+      if (response.ok) {
+        const data = await response.json();
+        console.log('show from the nav bar', data);
+        setUser(data.user);
+      }
+    }
+
+    if (userId) {
+      fetchUser();
+    }
+
+  }, [userId]);
+
+  console.log('show me the user', user);
+
   // Simulating session data
   useEffect(() => {
-    setIsLoggedIn(true);
-    setUserName('Martin');
-  }, [userId, userRoles]);
+    if (user) {
+      setIsLoggedIn(true);
+      setUserName(user.name);
+    }
+  }, [user]);
 
   const handleLogout = () => {
     signOut({ redirect: true, callbackUrl: `/${lang}/backoffice/welcome-login` });
@@ -40,13 +63,24 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
     }));
   };
 
+  // userId = 'PRODUCTOWNER';
 
   useEffect(() => {
+    userRoles = ['PRODUCTOWNER']
+
     let allowedLinks = [];
     if (userId) {
       allowedLinks.push({
-        name: "BigTravel Dashboard",
+        name: "Dashboard",
         url: `/${lang}/backoffice/management`,
+      });
+      allowedLinks.push({
+        name: "Create Trade Profile",
+        url: `/${lang}/backoffice/create-profile`,
+      });
+      allowedLinks.push({
+        name: "Add Project",
+        url: `/${lang}/backoffice/create-project`,
       });
       // if (hasRequiredRole(userRoles, "ADMIN")) {
       //   allowedLinks.push({
@@ -55,83 +89,83 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
       //     subLinks: [],
       //   });
       // }
-      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
-        allowedLinks.push({
-          name: "Travel Services",
-          url: "#",
-          subLinks: [
-            { 
-              name: "Add New Service", 
-              url: `/${lang}/backoffice/owner/addInitialProductCategory` 
-            },
-            {
-              name: "Manage Services",
-              subLinks: [
-                { name: "Add Product", url: `/${lang}/backoffice/owner/add-product` },
-                {
-                  name: "Search Product",
-                  url: `/${lang}/backoffice/owner/search-product`,
-                },
-              ],
-            },
-            {
-              name: "Supplier Integration",
-              subLinks: [
-                { name: 'API Configuration', url: `/${lang}/backoffice/owner/searchConfiguration` },
-                //{ name: 'External Search Configuration', url: `/${lang}/backoffice/owner/externalSearchConfiguration` },
-              ],
-            },
-          ],
-        });
-      }
-      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
-        allowedLinks.push({
-          name: "User Management",
-          url: "#",
-          subLinks: [
-            { name: "Create User", url: `/${lang}/backoffice/user-management/create-user` },
-            { name: "Search User", url: `/${lang}/backoffice/user-management/search-user` },
-          ],
-        });
-      }
-      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
-        allowedLinks.push({
-          name: "Rule Management",
-          url: `/${lang}/backoffice/rule-interface`,
-          sublinks: [],
-        });
-      }
-      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
-        allowedLinks.push({
-          name: "Travel Packages",
-          url: "#",
-          subLinks: [
-            { name: "Create Packages", url: `/${lang}/backoffice/package` },
-            { name: "Search Packages", url: "#" },
-          ],
-        });
-      }
-      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
-        allowedLinks.push({
-          name: "Settings",
-          url: "#",
-          subLinks: [
-            { name: "Currencies", url: `/${lang}/backoffice/currencies` },
-            { name: "Languages", url: `/${lang}/backoffice/language` },
-          ],
-        });
-      }
-      if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
-        allowedLinks.push({
-          name: "BigTravel Guide",
-          url: "#",
-          subLinks: [
-            { name: "Documentation", url: "#" },
-            { name: "Glossary", url: "#" },
-            { name: "API Review", url: "#"}
-          ],
-        });
-      }
+      // if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+      //   allowedLinks.push({
+      //     name: "Travel Services",
+      //     url: "#",
+      //     subLinks: [
+      //       {
+      //         name: "Add New Service",
+      //         url: `/${lang}/backoffice/owner/addInitialProductCategory`
+      //       },
+      //       {
+      //         name: "Manage Services",
+      //         subLinks: [
+      //           { name: "Add Product", url: `/${lang}/backoffice/owner/add-product` },
+      //           {
+      //             name: "Search Product",
+      //             url: `/${lang}/backoffice/owner/search-product`,
+      //           },
+      //         ],
+      //       },
+      //       {
+      //         name: "Supplier Integration",
+      //         subLinks: [
+      //           { name: 'API Configuration', url: `/${lang}/backoffice/owner/searchConfiguration` },
+      //           //{ name: 'External Search Configuration', url: `/${lang}/backoffice/owner/externalSearchConfiguration` },
+      //         ],
+      //       },
+      //     ],
+      //   });
+      // }
+      // if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+      //   allowedLinks.push({
+      //     name: "User Management",
+      //     url: "#",
+      //     subLinks: [
+      //       { name: "Create User", url: `/${lang}/backoffice/user-management/create-user` },
+      //       { name: "Search User", url: `/${lang}/backoffice/user-management/search-user` },
+      //     ],
+      //   });
+      // }
+      // if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+      //   allowedLinks.push({
+      //     name: "Rule Management",
+      //     url: `/${lang}/backoffice/rule-interface`,
+      //     sublinks: [],
+      //   });
+      // }
+      // if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+      //   allowedLinks.push({
+      //     name: "Travel Packages",
+      //     url: "#",
+      //     subLinks: [
+      //       { name: "Create Packages", url: `/${lang}/backoffice/package` },
+      //       { name: "Search Packages", url: "#" },
+      //     ],
+      //   });
+      // }
+      // if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+      //   allowedLinks.push({
+      //     name: "Settings",
+      //     url: "#",
+      //     subLinks: [
+      //       { name: "Currencies", url: `/${lang}/backoffice/currencies` },
+      //       { name: "Languages", url: `/${lang}/backoffice/language` },
+      //     ],
+      //   });
+      // }
+      // if (hasRequiredRole(userRoles, "PRODUCTOWNER")) {
+      //   allowedLinks.push({
+      //     name: "BigTravel Guide",
+      //     url: "#",
+      //     subLinks: [
+      //       { name: "Documentation", url: "#" },
+      //       { name: "Glossary", url: "#" },
+      //       { name: "API Review", url: "#" }
+      //     ],
+      //   });
+      // }
     } else {
       allowedLinks.push({
         name: "Login",
@@ -153,7 +187,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
         <div className="flex items-center gap-3">
           <User className="h-6 w-6 text-white" />
           <h3 className="text-lg font-semibold text-white truncate">
-            Hello, {userName}
+            Hello, {user && user[0]?.toUpperCase() + user.slice(1) || userName}
           </h3>
         </div>
       </div>
@@ -232,10 +266,13 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
       </nav>
 
       <div className="border-t border-gray-200 p-4">
-        <div className="flex justify-between items-center">
+        {/* <div className="flex justify-between items-center">
           <span className="text-sm text-gray-500">Language</span>
           <LocaleSwitcher />
-        </div>
+        </div> */}
+        {/* <div>
+          Hello
+        </div> */}
       </div>
 
       {userId && (

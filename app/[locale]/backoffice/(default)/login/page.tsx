@@ -118,6 +118,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/componen
 import { loginUser } from '@/services/userService';
 import { signIn, useSession } from 'next-auth/react';
 import { useRouter } from "next/navigation";
+import { useModal } from "@/context/useModal";
 
 
 
@@ -126,7 +127,7 @@ const Login = ({ lang }: any) => {
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
   const router = useRouter();
-
+  const { showModal } = useModal();
   const { data: session } = useSession();
   const userId = session?.user?.id;
 
@@ -140,18 +141,19 @@ const Login = ({ lang }: any) => {
 
     try {
       const result = await loginUser(loginData);
-
+      console.log('show me the result', result);
       if (result.success) {
         let payload = {
           id: result.message.id,
-          role: result.message.roles,
+          role: result.message.role,
           callbackUrl: `${lang}/backoffice/management`,
           token: result.message.token,
         }
-
+        showModal('success', 'Login successful');
         signIn('credentials', payload);
       } else {
         setError(result.error || 'Login failed');
+        showModal('error', 'Login failed');
       }
     } catch (error: any) {
       setError('Login failed. Please try again.');

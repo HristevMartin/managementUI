@@ -10,10 +10,10 @@ const WelcomeLogin = ({ params }: any) => {
         <h2 style={{ color: '#463bcf' }} className="text-2xl md:text-3xl font-bold mb-6">Already have an account?</h2>
         <Login lang={lang} />
       </div>
-      {/* <div className="flex flex-col items-center pt-6 md:pt-0 md:pl-12 mb-6">
-        <h2 className="text-2xl md:text-3xl font-bold mb-6">Want to create an account?</h2>
+      <div className="flex flex-col items-center pt-6 md:pt-0 md:pl-12 mb-6">
+        <h2 style={{ color: '#463bcf' }} className="text-2xl md:text-3xl font-bold mb-6">Want to create an account?</h2>
         <Register lang={lang} />
-      </div> */}
+      </div>
     </div>
   )
 }
