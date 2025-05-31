@@ -1,9 +1,4 @@
 {
-  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
   "/_not-found/page": "app/_not-found/page.js",
-  "/favicon.ico/route": "app/favicon.ico/route.js",
-  "/[locale]/backoffice/(default)/create-profile/page": "app/[locale]/backoffice/(default)/create-profile/page.js",
-  "/[locale]/backoffice/(default)/create-project/page": "app/[locale]/backoffice/(default)/create-project/page.js",
-  "/[locale]/backoffice/(default)/management/page": "app/[locale]/backoffice/(default)/management/page.js",
-  "/[locale]/backoffice/(default)/welcome-login/page": "app/[locale]/backoffice/(default)/welcome-login/page.js"
+  "/[locale]/backoffice/(default)/management/page": "app/[locale]/backoffice/(default)/management/page.js"
 }

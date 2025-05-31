@@ -19,6 +19,18 @@ dist-ssr
 .DS_Store
 *.suo
 *.ntvs*
+# Next.js
+.next/
+out/
+
+# Terraform
+*.tfstate
+*.tfstate.*
+*.tfvars
+
+# Other common excludes
+node_modules/
+.env*
 *.njsproj
 *.sln
 *.sw?
