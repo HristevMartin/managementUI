@@ -5,23 +5,16 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/text-area";
-import { CalendarIcon, Image as ImageIcon, Plus, X } from "lucide-react";
+import { CalendarIcon, Plus, X } from "lucide-react";
 import { useSession } from "next-auth/react";
 import { useModal } from "@/context/useModal";
-
-const EXPERTISE_OPTIONS = [
-  { label: "Interior Renovations", value: "interior", color: "bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100" },
-  { label: "Wall Texturing", value: "wall-texturing", color: "bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100" },
-  { label: "Flooring Installation", value: "flooring", color: "bg-green-50 border-green-200 text-green-700 hover:bg-green-100" },
-  { label: "Ceiling Work", value: "ceiling", color: "bg-orange-50 border-orange-200 text-orange-700 hover:bg-orange-100" },
-  { label: "Room Remodeling", value: "remodeling", color: "bg-rose-50 border-rose-200 text-rose-700 hover:bg-rose-100" },
-];
 
 function ProjectFormSidePanel({ onSubmitProject }: { onSubmitProject?: (data: any) => void }) {
   const [title, setTitle] = useState("");
   const [desc, setDesc] = useState("");
   const [date, setDate] = useState("");
-  const [expertise, setExpertise] = useState<string[]>([]);
+  const [specifications, setSpecifications] = useState<string[]>([]);
+  const [currentSpec, setCurrentSpec] = useState("");
   const [images, setImages] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -29,13 +22,32 @@ function ProjectFormSidePanel({ onSubmitProject }: { onSubmitProject?: (data: an
   const { showModal } = useModal();
 
   const { data: session } = useSession();
-  let userId = session?.user?.id;
+  let userId = (session?.user as any)?.id;
   console.log('show me the userId', userId);
 
-  const handleExpertiseToggle = (value: string) => {
-    setExpertise(prev =>
-      prev.includes(value) ? prev.filter(e => e !== value) : [...prev, value]
-    );
+  const handleAddSpecification = () => {
+    console.log('Current spec:', currentSpec);
+    console.log('Current specifications:', specifications);
+    
+    if (currentSpec.trim() && !specifications.includes(currentSpec.trim())) {
+      const newSpecs = [...specifications, currentSpec.trim()];
+      console.log('Adding new spec, updated array will be:', newSpecs);
+      setSpecifications(newSpecs);
+      setCurrentSpec("");
+    } else {
+      console.log('Spec not added - either empty or duplicate');
+    }
+  };
+
+  const handleRemoveSpecification = (specToRemove: string) => {
+    setSpecifications(prev => prev.filter(spec => spec !== specToRemove));
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddSpecification();
+    }
   };
 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -61,14 +73,14 @@ function ProjectFormSidePanel({ onSubmitProject }: { onSubmitProject?: (data: an
     e.preventDefault();
     
     if (onSubmitProject) {
-      onSubmitProject({ title, desc, expertise, date, images });
+      onSubmitProject({ title, desc, specifications, date, images });
     }
 
     const formData = new FormData();
     formData.append('title', title);
     formData.append('description', desc);
     formData.append('projectDate', date);
-    formData.append('expertise', JSON.stringify(expertise));
+    formData.append('specifications', JSON.stringify(specifications));
     formData.append('userId', userId);
 
     console.log('project images are following', images);
@@ -98,7 +110,8 @@ function ProjectFormSidePanel({ onSubmitProject }: { onSubmitProject?: (data: an
         setTitle('');
         setDesc('');
         setDate('');
-        setExpertise([]);
+        setSpecifications([]);
+        setCurrentSpec('');
         setImages([]);
         setPreviews([]);
       } else {
@@ -111,15 +124,26 @@ function ProjectFormSidePanel({ onSubmitProject }: { onSubmitProject?: (data: an
     }
   };
 
+  const getTagColor = (index: number) => {
+    const colors = [
+      "bg-blue-100 text-blue-800 border-blue-200",
+      "bg-purple-100 text-purple-800 border-purple-200", 
+      "bg-green-100 text-green-800 border-green-200",
+      "bg-orange-100 text-orange-800 border-orange-200",
+      "bg-rose-100 text-rose-800 border-rose-200",
+      "bg-indigo-100 text-indigo-800 border-indigo-200",
+      "bg-teal-100 text-teal-800 border-teal-200",
+      "bg-amber-100 text-amber-800 border-amber-200"
+    ];
+    return colors[index % colors.length];
+  };
+
   return (
     <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
       <Card className="bg-white shadow-xl border-0 rounded-2xl overflow-hidden">
         {/* Header with gradient background */}
         <CardHeader className="bg-gradient-to-br from-indigo-600 via-purple-600 to-blue-700 text-white p-4 sm:p-6 lg:p-8">
           <div className="flex flex-col items-center space-y-3 sm:space-y-4">
-            <div className="w-16 h-16 sm:w-18 sm:h-18 lg:w-20 lg:h-20 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/30 flex items-center justify-center">
-              <ImageIcon className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 text-white/80" />
-            </div>
             <div className="text-center">
               <CardTitle className="text-xl sm:text-2xl font-bold mb-2">
                 Add Project Details
@@ -169,28 +193,60 @@ function ProjectFormSidePanel({ onSubmitProject }: { onSubmitProject?: (data: an
               </div>
             </div>
 
-            {/* Areas of Expertise */}
+            {/* Project Specifications */}
             <div className="space-y-4">
               <label className="block text-sm font-semibold text-gray-700">
                 Project Specifications
               </label>
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-                {EXPERTISE_OPTIONS.map(option => (
-                  <Button
-                    key={option.value}
-                    type="button"
-                    variant="outline"
-                    className={`flex items-center justify-center px-3 sm:px-4 py-2 sm:py-3 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 border-2 h-10 sm:h-12 ${
-                      expertise.includes(option.value) 
-                        ? "border-indigo-300 bg-indigo-50 text-indigo-700 shadow-md transform scale-105" 
-                        : `${option.color} border-2 hover:shadow-md hover:transform hover:scale-102`
-                    }`}
-                    onClick={() => handleExpertiseToggle(option.value)}
-                  >
-                    {option.label}
-                  </Button>
-                ))}
+              
+              {/* Add Specification Input */}
+              <div className="flex gap-3">
+                <Input
+                  value={currentSpec}
+                  onChange={e => setCurrentSpec(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="e.g. Wall Texturing, Flooring Installation, Custom Lighting..."
+                  className="flex-1 rounded-xl border-2 border-gray-200 focus:border-indigo-400 focus:ring-indigo-400 transition-colors duration-200 py-3 h-10 sm:h-12"
+                />
+                <Button
+                  type="button"
+                  onClick={handleAddSpecification}
+                  disabled={!currentSpec.trim()}
+                  className="px-4 py-3 h-10 sm:h-12 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  <Plus size={16} />
+                  Add
+                </Button>
               </div>
+              
+              {/* Display Added Specifications */}
+              {specifications.length > 0 && (
+                <div className="space-y-3">
+                  <p className="text-sm text-gray-600 font-medium">Added Specifications:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {specifications.map((spec, index) => (
+                      <div
+                        key={spec}
+                        className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium transition-all duration-200 hover:shadow-md ${getTagColor(index)}`}
+                      >
+                        <span>{spec}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveSpecification(spec)}
+                          className="ml-1 hover:bg-black/10 rounded-full p-1 transition-colors duration-200"
+                          title="Remove specification"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              <p className="text-xs text-gray-500">
+                Add custom specifications that describe the technical aspects of your project
+              </p>
             </div>
 
             {/* Project Description */}

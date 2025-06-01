@@ -21,8 +21,8 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
 
   const { data: session } = useSession();
 
-  let userId = session?.user?.id;
-  let userRoles = session?.user?.role;
+  let userId = (session?.user as any)?.id;
+  let userRoles = (session?.user as any)?.role;
 
 
   useEffect(() => {
@@ -81,6 +81,10 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar, params }) => {
       allowedLinks.push({
         name: "Add Project",
         url: `/${lang}/backoffice/create-project`,
+      });
+      allowedLinks.push({
+        name: "Change Project",
+        url: `/${lang}/backoffice/change-project`,
       });
       // if (hasRequiredRole(userRoles, "ADMIN")) {
       //   allowedLinks.push({
