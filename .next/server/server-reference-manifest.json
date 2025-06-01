@@ -3,76 +3,68 @@
     "0b1878232ba7a8e0e5fcd10cad9a809a088d81e4": {
       "workers": {
         "app/[locale]/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
-        "app/[locale]/backoffice/(default)/welcome-login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/management/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/create-profile/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
-        "app/[locale]/backoffice/(default)/login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
+        "app/[locale]/backoffice/(default)/welcome-login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/create-project/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!"
       },
       "layer": {
         "app/[locale]/page": "action-browser",
-        "app/[locale]/backoffice/(default)/welcome-login/page": "action-browser",
         "app/[locale]/backoffice/(default)/management/page": "action-browser",
         "app/[locale]/backoffice/(default)/create-profile/page": "action-browser",
-        "app/[locale]/backoffice/(default)/login/page": "action-browser",
+        "app/[locale]/backoffice/(default)/welcome-login/page": "action-browser",
         "app/[locale]/backoffice/(default)/create-project/page": "action-browser"
       }
     },
     "0fc55571cf0e99434193c75a077f154c186fa6e8": {
       "workers": {
         "app/[locale]/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
-        "app/[locale]/backoffice/(default)/welcome-login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/management/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/create-profile/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
-        "app/[locale]/backoffice/(default)/login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
+        "app/[locale]/backoffice/(default)/welcome-login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/create-project/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!"
       },
       "layer": {
         "app/[locale]/page": "action-browser",
-        "app/[locale]/backoffice/(default)/welcome-login/page": "action-browser",
         "app/[locale]/backoffice/(default)/management/page": "action-browser",
         "app/[locale]/backoffice/(default)/create-profile/page": "action-browser",
-        "app/[locale]/backoffice/(default)/login/page": "action-browser",
+        "app/[locale]/backoffice/(default)/welcome-login/page": "action-browser",
         "app/[locale]/backoffice/(default)/create-project/page": "action-browser"
       }
     },
     "530d76d973f24d7127b836c9e9b825028500cf87": {
       "workers": {
         "app/[locale]/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
-        "app/[locale]/backoffice/(default)/welcome-login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/management/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/create-profile/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
-        "app/[locale]/backoffice/(default)/login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
+        "app/[locale]/backoffice/(default)/welcome-login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/create-project/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!"
       },
       "layer": {
         "app/[locale]/page": "action-browser",
-        "app/[locale]/backoffice/(default)/welcome-login/page": "action-browser",
         "app/[locale]/backoffice/(default)/management/page": "action-browser",
         "app/[locale]/backoffice/(default)/create-profile/page": "action-browser",
-        "app/[locale]/backoffice/(default)/login/page": "action-browser",
+        "app/[locale]/backoffice/(default)/welcome-login/page": "action-browser",
         "app/[locale]/backoffice/(default)/create-project/page": "action-browser"
       }
     },
     "81b4873968bad25961add74d1966d21674b4abea": {
       "workers": {
         "app/[locale]/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
-        "app/[locale]/backoffice/(default)/welcome-login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/management/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/create-profile/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
-        "app/[locale]/backoffice/(default)/login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
+        "app/[locale]/backoffice/(default)/welcome-login/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!",
         "app/[locale]/backoffice/(default)/create-project/page": "(action-browser)/./node_modules/next/dist/build/webpack/loaders/next-flight-action-entry-loader.js?actions=%5B%5B%22C%3A%5C%5CUsers%5C%5Christ%5C%5Cmanagement_ui%5C%5Cmanagement-ui%5C%5Cservices%5C%5Cget-from-cookies.ts%22%2C%5B%22saveUserStateToHttpOnlyCookie%22%2C%22%24%24ACTION_1%22%2C%22%24%24ACTION_0%22%2C%22getUserStateToHttpOnlyCookie%22%5D%5D%5D&__client_imported__=true!"
       },
       "layer": {
         "app/[locale]/page": "action-browser",
-        "app/[locale]/backoffice/(default)/welcome-login/page": "action-browser",
         "app/[locale]/backoffice/(default)/management/page": "action-browser",
         "app/[locale]/backoffice/(default)/create-profile/page": "action-browser",
-        "app/[locale]/backoffice/(default)/login/page": "action-browser",
+        "app/[locale]/backoffice/(default)/welcome-login/page": "action-browser",
         "app/[locale]/backoffice/(default)/create-project/page": "action-browser"
       }
     }
   },
   "edge": {},
-  "encryptionKey": "RSZzSPtq2a4HT/LSqx3zPHx+flDZAuiHEgNTmwuULdE="
+  "encryptionKey": "wqG5SD+zc6ss5tDZEgAnT3We5kI7lW3yTWOgSX9+KHg="
 }

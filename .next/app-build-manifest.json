@@ -16,10 +16,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/[locale]/error.js"
     ],
-    "/[locale]/backoffice/(default)/welcome-login/page": [
+    "/[locale]/backoffice/(default)/management/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/[locale]/backoffice/(default)/welcome-login/page.js"
+      "static/chunks/app/[locale]/backoffice/(default)/management/page.js"
     ],
     "/[locale]/backoffice/(default)/layout": [
       "static/chunks/webpack.js",
@@ -27,20 +27,15 @@
       "static/css/app/[locale]/backoffice/(default)/layout.css",
       "static/chunks/app/[locale]/backoffice/(default)/layout.js"
     ],
-    "/[locale]/backoffice/(default)/management/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/[locale]/backoffice/(default)/management/page.js"
-    ],
     "/[locale]/backoffice/(default)/create-profile/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/[locale]/backoffice/(default)/create-profile/page.js"
     ],
-    "/[locale]/backoffice/(default)/login/page": [
+    "/[locale]/backoffice/(default)/welcome-login/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/[locale]/backoffice/(default)/login/page.js"
+      "static/chunks/app/[locale]/backoffice/(default)/welcome-login/page.js"
     ],
     "/[locale]/backoffice/(default)/create-project/page": [
       "static/chunks/webpack.js",
