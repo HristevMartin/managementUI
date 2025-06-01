@@ -21,6 +21,7 @@ function TraderProfileSidePanel() {
   const [selectedTrade, setSelectedTrade] = useState<string>(""); // Changed to single selection
   const [fullName, setFullName] = useState("");
   const [company, setCompany] = useState("");
+  const [city, setCity] = useState("");
   const [bio, setBio] = useState("");
   const [yearsExp, setYearsExp] = useState("");
   const [specialties, setSpecialties] = useState("");
@@ -53,6 +54,7 @@ function TraderProfileSidePanel() {
     const formData = new FormData();
     formData.append('fullName', fullName);
     formData.append('company', company);
+    formData.append('city', city);
     formData.append('bio', bio);
     formData.append('yearsExperience', yearsExp);
     formData.append('specialties', specialties);
@@ -81,6 +83,7 @@ function TraderProfileSidePanel() {
         showModal('success', 'Profile saved successfully');
         setFullName("");
         setCompany("");
+        setCity("");
         setBio("");
         setYearsExp("");
         setSpecialties("");
@@ -211,6 +214,21 @@ function TraderProfileSidePanel() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* City */}
+              <div className="space-y-2">
+                <label htmlFor="city" className="block text-sm font-semibold text-gray-700">
+                  City *
+                </label>
+                <Input
+                  id="city"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="e.g. London"
+                  className="rounded-xl border-2 border-gray-200 focus:border-indigo-400 focus:ring-indigo-400 transition-colors duration-200 py-3"
+                  required
+                />
+              </div>
+
               {/* Years of experience */}
               <div className="space-y-2">
                 <label htmlFor="yearsExp" className="block text-sm font-semibold text-gray-700">
@@ -227,7 +245,9 @@ function TraderProfileSidePanel() {
                   required
                 />
               </div>
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Specialties */}
               <div className="space-y-2">
                 <label htmlFor="specialties" className="block text-sm font-semibold text-gray-700">
