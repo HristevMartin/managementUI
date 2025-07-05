@@ -21,6 +21,8 @@ dist-ssr
 *.ntvs*
 # Next.js
 .next/
+.next/cache/
+.next/cache/webpack/
 out/
 
 # Terraform

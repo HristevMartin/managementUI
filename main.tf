@@ -33,7 +33,7 @@ variable "app_name" {
 variable "image_name" {
   description = "Container image to deploy to Cloud Run"
   type        = string
-  default     = "gcr.io/stalwart-elixir-458022-d5/managementui2:latest"
+  default     = "gcr.io/stalwart-elixir-458022-d5/management-demo-construct:latest"
 }
 
 provider "google" {
